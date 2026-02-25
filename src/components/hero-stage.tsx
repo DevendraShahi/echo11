@@ -5,9 +5,10 @@ import { gsap } from "gsap";
 import { WavesBackground } from "@/components/waves-background";
 
 const HERO_SIGNALS = [
-  "Strategy-first website systems",
-  "Built for authority and conversion",
-  "Design, engineering, and maintenance in one team",
+  "Asymmetrical spatial experiences",
+  "Next.js edge-rendered architecture",
+  "GSAP and Three.js motion systems",
+  "Sovereign first-party data platforms",
 ];
 
 export function HeroStage() {
@@ -107,23 +108,21 @@ export function HeroStage() {
 
       <div className="container-shell hero-opening-content">
         <p className="section-marker hero-kicker" data-hero="kicker">
-          Welcome to echo11
+          Elite Digital Architecture Firm.
         </p>
         <h1 className="hero-headline hero-headline-opening" data-hero="headline">
-          Your website should win trust and close deals before the first sales
-          call starts.
+          Your fractional partner in asymmetric dominance.
         </h1>
         <p className="hero-body hero-body-opening" data-hero="body">
-          We craft high-impact digital experiences that make your brand look
-          premium, feel credible, and convert serious buyers with confidence.
+          Engineered for Nepal&apos;s top enterprises and global SaaS exports. We
+          eradicate template-driven digital apathy with technical luxury:
+          asymmetrical spatial experiences, Next.js edge-rendering, GSAP/Three.js
+          motion, and sovereign first-party data platforms.
         </p>
 
         <div className="hero-cta-row hero-cta-opening">
           <a className="action action-primary" data-hero="cta" href="#contact">
-            Book Strategy Call
-          </a>
-          <a className="action action-secondary" data-hero="cta" href="#work">
-            See Success Stories
+            Initialize Protocol
           </a>
         </div>
 
