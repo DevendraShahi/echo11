@@ -5,10 +5,10 @@ import { gsap } from "gsap";
 import { WavesBackground } from "@/components/waves-background";
 
 const HERO_SIGNALS = [
-  "Asymmetrical spatial experiences",
-  "Next.js edge-rendered architecture",
-  "GSAP and Three.js motion systems",
-  "Sovereign first-party data platforms",
+  "Avg. +25 Lighthouse",
+  "Edge-rendered on Vercel",
+  "Zero layout shift SLA",
+  "48h response retainer",
 ];
 
 export function HeroStage() {
@@ -108,25 +108,26 @@ export function HeroStage() {
 
       <div className="container-shell hero-opening-content">
         <p className="section-marker hero-kicker" data-hero="kicker">
-          Elite Digital Architecture Firm.
+          {"// ECHO11 STUDIO"}
         </p>
         <h1 className="hero-headline hero-headline-opening" data-hero="headline">
-          Your fractional partner in asymmetric dominance.
+          Websites that load fast. Convert hard.
         </h1>
         <p className="hero-body hero-body-opening" data-hero="body">
-          Engineered for Nepal&apos;s top enterprises and global SaaS exports. We
-          eradicate template-driven digital apathy with technical luxury:
-          asymmetrical spatial experiences, Next.js edge-rendering, GSAP/Three.js
-          motion, and sovereign first-party data platforms.
+          We design, build, and maintain web platforms for SaaS teams and
+          ambitious brands.
         </p>
 
         <div className="hero-cta-row hero-cta-opening">
           <a className="action action-primary" data-hero="cta" href="#contact">
-            Initialize Protocol
+            Start Your Project →
+          </a>
+          <a className="action action-secondary" data-hero="cta" href="#work">
+            See Our Work
           </a>
         </div>
 
-        <ul className="hero-signal-row" aria-label="Studio signals">
+        <ul className="hero-signal-row" aria-label="Hero signals">
           {HERO_SIGNALS.map((signal) => (
             <li key={signal} data-hero="signal">
               {signal}
