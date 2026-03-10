@@ -123,9 +123,9 @@ export function ScrollAmbientBackground({
         height * 0.28,
         height * 0.86,
       );
-      glow.addColorStop(0, "rgba(61, 214, 255, 0.19)");
-      glow.addColorStop(0.52, "rgba(61, 214, 255, 0.07)");
-      glow.addColorStop(1, "rgba(61, 214, 255, 0)");
+      glow.addColorStop(0, "rgba(56, 189, 248, 0.2)");
+      glow.addColorStop(0.52, "rgba(56, 189, 248, 0.08)");
+      glow.addColorStop(1, "rgba(56, 189, 248, 0)");
       ctx.fillStyle = glow;
       ctx.fillRect(0, 0, width, height);
 
@@ -153,7 +153,7 @@ export function ScrollAmbientBackground({
           }
         }
 
-        ctx.strokeStyle = `rgba(123, 201, 248, ${opacity.toFixed(3)})`;
+        ctx.strokeStyle = `rgba(30, 143, 196, ${opacity.toFixed(3)})`;
         ctx.lineWidth = 0.84;
         ctx.stroke();
       });
@@ -175,7 +175,7 @@ export function ScrollAmbientBackground({
           ) - particle.size / 2;
         const alpha = 0.12 + (Math.sin(time * 1.8 + particle.phase) + 1) * 0.12;
 
-        ctx.fillStyle = `rgba(138, 224, 255, ${(alpha * particle.depth).toFixed(3)})`;
+        ctx.fillStyle = `rgba(56, 189, 248, ${(alpha * particle.depth).toFixed(3)})`;
         ctx.fillRect(x, y, particle.size, particle.size);
       });
 

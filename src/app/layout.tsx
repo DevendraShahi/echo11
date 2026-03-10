@@ -1,21 +1,50 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Cormorant_Garamond, Geist_Mono, Manrope } from "next/font/google";
+import { SITE_URL } from "@/lib/seo";
 import "./globals.css";
+import "./redesign-v3.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const manrope = Manrope({
+  variable: "--font-manrope",
   subsets: ["latin"],
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const spaceMono = Geist_Mono({
+  variable: "--font-space-mono",
   subsets: ["latin"],
+});
+
+const cormorantGaramond = Cormorant_Garamond({
+  variable: "--font-cormorant-garamond",
+  subsets: ["latin"],
+  weight: ["500", "600", "700"],
 });
 
 export const metadata: Metadata = {
-  title: "echo11 | Premium Website Engineering",
+  metadataBase: new URL(SITE_URL),
+  title: {
+    default: "Echo11 | Premium Website Architecture",
+    template: "%s",
+  },
   description:
-    "echo11 builds and maintains premium business websites with conversion-focused UX, high performance, and long-term operational support.",
+    "Echo11 designs, builds, and runs premium web platforms for growth-stage businesses and high-visibility brands.",
+  alternates: {
+    canonical: "/",
+  },
+  openGraph: {
+    title: "Echo11 | Premium Website Architecture",
+    description:
+      "Echo11 designs, builds, and runs premium web platforms for growth-stage businesses and high-visibility brands.",
+    url: SITE_URL,
+    siteName: "Echo11",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Echo11 | Premium Website Architecture",
+    description:
+      "Echo11 designs, builds, and runs premium web platforms for growth-stage businesses and high-visibility brands.",
+  },
 };
 
 export default function RootLayout({
@@ -26,7 +55,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${manrope.variable} ${spaceMono.variable} ${cormorantGaramond.variable} antialiased`}
       >
         {children}
       </body>

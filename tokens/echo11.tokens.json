@@ -1,0 +1,43 @@
+{
+  "$schema": "https://www.designtokens.org/tr/drafts/format/",
+  "color": {
+    "bg": { "value": "#050709" },
+    "bg-2": { "value": "#080C10" },
+    "surface": { "value": "#0D1117" },
+    "surface-2": { "value": "#111820" },
+    "surface-3": { "value": "#162130" },
+    "text": { "value": "#F2F7FF" },
+    "text-2": { "value": "#CBD5E1" },
+    "muted": { "value": "#8B98A9" },
+    "ghost": { "value": "#4A5568" },
+    "accent": { "value": "#38BDF8" },
+    "accent-dim": { "value": "#1E8FC4" },
+    "line": { "value": "#1A2638" },
+    "line-mid": { "value": "#243348" },
+    "line-strong": { "value": "#2E4460" },
+    "ui-border": { "value": "#42618E" }
+  },
+  "typography": {
+    "text-base": { "value": "clamp(15px, 1.2vw, 17px)" },
+    "text-h2": { "value": "clamp(28px, 3vw, 44px)" },
+    "text-d1": { "value": "clamp(52px, 6.5vw, 96px)" }
+  },
+  "spacing": {
+    "section-sm": { "value": "48px" },
+    "section-md": { "value": "72px" },
+    "section-lg": { "value": "96px" },
+    "section-xl": { "value": "128px" }
+  },
+  "radius": {
+    "radius-1": { "value": "2px" },
+    "radius-2": { "value": "4px" },
+    "radius-3": { "value": "6px" }
+  },
+  "motion": {
+    "dur-1": { "value": "120ms" },
+    "dur-2": { "value": "180ms" },
+    "dur-3": { "value": "240ms" },
+    "dur-4": { "value": "350ms" },
+    "dur-5": { "value": "600ms" }
+  }
+}
