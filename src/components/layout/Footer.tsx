@@ -4,10 +4,12 @@ import Link from "next/link";
 import Image from "next/image";
 import { Container } from "@/components/ui/Container";
 import { ArrowUpRight, Github, Twitter, Linkedin } from "lucide-react";
+import { usePathname } from "next/navigation";
 import { useState, useEffect } from "react";
 
 export function Footer() {
   const [time, setTime] = useState<string>("00:00:00");
+  const pathname = usePathname();
 
   useEffect(() => {
     const updateTime = () => {
@@ -18,6 +20,10 @@ export function Footer() {
     const timer = setInterval(updateTime, 1000);
     return () => clearInterval(timer);
   }, []);
+
+  if (pathname.startsWith('/lab') || pathname.startsWith('/portal')) {
+    return null;
+  }
 
   return (
     <footer className="w-full bg-black relative border-t border-white/5 overflow-hidden pt-32 pb-8">

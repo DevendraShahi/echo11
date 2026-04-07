@@ -30,6 +30,10 @@ export function Navbar() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  if (pathname.startsWith('/lab') || pathname.startsWith('/portal')) {
+    return null;
+  }
+
   return (
     <header
       className={`fixed top-0 z-50 w-full transition-all duration-300 ${
