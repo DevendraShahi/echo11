@@ -242,3 +242,178 @@ supabase/migrations/                   6 database migrations
 docs/                                  This changelog file
 AGENTS.md                              AI agent development guidelines
 scripts/                               Setup scripts
+
+---
+
+## 9. Commit Breakdown — feat: full lab & portal build (April 7, 2026)
+
+Commit: 8ecfaac | Branch: main | Repo: https://github.com/DevendraShahi/echo11
+Total: 216 files (189 new, 4 modified)
+
+---
+
+### Built complete Lab internal app (/lab)
+The entire agency management application was built under src/app/lab/(authenticated)/.
+Includes 10 full pages: Dashboard (stats, charts, quick actions), Clients (CRM with filters
+and sort), Projects (list + detail + milestones + expenses + Kanban), Tasks (board view +
+detail modal), Meetings (calendar + CRUD), Invoices (list + create + detail + PDF download),
+Contracts (list + generate from templates + send + sign), Teams (member management), Settings
+(profile, preferences, team invites, pending invites panel), and Docs (internal documentation).
+Each page is a server component that fetches data and passes it to client components.
+
+### Built client-facing portal (/portal)
+A separate read-only surface for invited clients at src/app/portal/.
+Clients can log in, view their active projects and milestone progress, and download invoices.
+The portal has its own layout, auth routes (/portal/auth/login, /portal/auth/verify,
+/portal/auth/callback, /portal/auth/signout), and its own indigo/purple color scheme
+to visually separate it from the internal Lab.
+
+### Implemented team member invitation flow (token-based, no ghost accounts)
+Previously the invite button only wrote a row to the team_invites table. No email was sent
+and no signup page existed. This was rebuilt ground-up:
+- inviteTeamMember() inserts the invite record and calls sendTeamInvitation().
+- The email delivers a secure link containing the invite UUID.
+- The new /lab/auth/team-signup page reads the invite ID, validates it server-side using
+  the service role key (bypassing RLS since the invitee has no session), pre-fills their
+  email, and lets them enter their name and password.
+- supabase.auth.signUp() fires only after form submission — no ghost accounts.
+- acceptTeamInvite() then elevates their profile role and marks the invite accepted.
+
+### Implemented client portal invitation flow (token-based) with rebuilt /portal/auth/verify
+The old flow called supabase.auth.admin.createUser() at invite time which created locked,
+passwordless accounts in Supabase Auth without the client knowing. This was completely removed.
+New flow generates a 32-byte random hex token, stores it in clients.invitation_token, and
+sends it in the portal invite email. The client clicks the link, hits the rebuilt
+/portal/auth/verify?token=... page which validates the token server-side, shows them a
+setup form for their name and password, calls signUp(), and then acceptClientInvite()
+links their new auth ID to the clients record and clears the one-time token.
+
+### Integrated Resend for transactional emails
+All four email types are implemented in src/lib/email.ts using hand-written HTML templates
+(no React Email dependency, for maximum inbox compatibility):
+- sendTeamInvitation: dark-mode email with cyan CTA button, sent on team invite.
+- sendClientInvitation: indigo-gradient email with portal access CTA, sent on client invite.
+- sendWelcomeEmail: simple welcome message, available for future use.
+- sendContractEmail: formal contract-for-review email with contract details and a view link.
+In development (no RESEND_API_KEY), all emails are logged to the terminal so links can be
+tested without a real API key.
+
+### Added 12 server action files for all CRUD operations
+All database mutations happen through Next.js server actions (use server directive), never
+through direct client-side queries. Each file owns one domain:
+client-actions, project-actions, task-actions, invoice-actions, contract-actions,
+meeting-actions, team-actions, note-actions, document-actions, notification-actions,
+settings-actions, contact-actions.
+All actions follow the same pattern: authenticate user, check permissions, mutate DB,
+log to activities table, revalidatePath, return { success, error }.
+
+### Added Supabase SSR client helpers (server.ts + client.ts)
+src/lib/supabase/server.ts — async function using @supabase/ssr createServerClient with
+cookie store. Used in server components and server actions.
+src/lib/supabase/client.ts — sync function using createBrowserClient. Used in client
+components for real-time reads. Neither file uses the service role key.
+
+### Added PDF generation for contracts and invoices via @react-pdf/renderer
+src/lib/contract-pdf.tsx — renders a styled contract PDF in the browser using
+@react-pdf/renderer. Triggered from the contract detail page.
+src/lib/invoice-pdf.tsx — renders invoice PDF with line items, totals, and branding.
+Both are marked use client and use the PDFDownloadLink component pattern.
+
+### Added contract template engine with variable substitution
+src/lib/contract-template-engine.ts — takes a template string with {{variable}} placeholders
+and a values map, and returns the filled document text. Used when generating contracts from
+any of the 5 seeded templates (NDA, Service Agreement, SOW, Retainer, Custom).
+
+### Added onboarding system (TooltipTour, WelcomeModal, HelpModal, Checklist)
+Four onboarding components in src/components/onboarding/:
+- TooltipTour: react-joyride wrapper that runs step-by-step tours on each Lab page.
+  Steps target elements by ID. Beacon fixed to white for visibility on dark backgrounds.
+  Manual scrollIntoView implemented to avoid nested scroll container conflicts.
+- WelcomeModal: shown on first login, introduces the Lab interface.
+- HelpModal: accessible from the sidebar help button at any time.
+- OnboardingChecklist: tracks which key actions the user has completed.
+- pageTours.ts: defines the step arrays for each page's tour.
+- tourState.ts: localStorage-backed state for tracking completed tours.
+
+### Fixed onboarding beacon visibility and scroll stability
+The beacon (pulsing circle on the target element) was invisible because its default color
+was black against the black Lab background. Changed to white (#FFFFFF) with a translucent
+glow ring. Scroll stability was fixed by disabling react-joyride's built-in scroll and
+implementing manual scrollIntoView calls in the callback instead.
+
+### Isolated marketing Navbar and Footer from /lab and /portal routes
+Both layout/Navbar.tsx and layout/Footer.tsx now use usePathname() and return null when
+the pathname starts with /lab or /portal. This prevents the global marketing nav from
+rendering inside the app surfaces, which have their own LabHeader and LabFooter.
+
+### Added 10 new UI components
+src/components/ui/ additions:
+- LabButton: variants (default, ghost, glass, danger) with consistent sizing.
+- LabCard: card wrapper with optional hover effects.
+- LabBadge: status pills with semantic color mapping.
+- PageHeader: page title + optional icon + optional action button slot.
+- SearchInput: search field with clear button and debounce-ready interface.
+- FilterTabs: horizontal tab strip with optional badge counts.
+- EmptyState: icon + title + description + optional CTA for empty list states.
+- Dropdown: accessible dropdown menu with keyboard support.
+- ViewToggle: list/grid/kanban view switcher.
+- (Plus existing: Button, Card, Badge, Container, WavesBackground)
+
+### Added Lab layout system
+src/components/layout/lab/:
+- LabSidebar: collapsible left navigation with icon labels and active route highlight.
+- LabHeader: sticky top bar with page title, search, notification bell, user avatar.
+- LabFooter: minimal footer with version and status.
+- ThemeProvider: reads user_preferences.theme from DB and applies it to the layout.
+- CommandPalette: Cmd+K triggered global search and navigation palette.
+- NotificationBell: badge indicator with dropdown list of recent notifications.
+
+### Added 7 Supabase migrations including RLS hardening migration
+All migrations live in supabase/migrations/:
+1. 20240401000000_fix_rls.sql — fixed project_expenses RLS.
+2. 20240401010000_enhance_tasks_org.sql — added task org fields.
+3. 20240401020000_fix_tasks_rls.sql — task-specific policy fixes.
+4. 20240401030000_task_attachments.sql — added task_attachments table.
+5. 20240401040000_user_preferences.sql — user_preferences with auto-create trigger.
+6. 20240401050000_contracts_overhaul.sql — contracts table columns, templates table
+   with 5 seeded templates, storage bucket, and initial RLS policies.
+7. 20240408000000_tighten_rls.sql — hardened contracts public SELECT to authenticated
+   only, hardened contracts storage bucket from public to authenticated-only access,
+   and added explicit user-scoped RLS policies on the team_invites table.
+
+### Added AGENTS.md development guidelines
+Root-level AGENTS.md defines rules for any AI agent or developer working in this repo:
+build commands, tech stack, route structure, auth patterns, file organization, code style,
+server action patterns, Tailwind design tokens, database client usage, migration workflow,
+UI component inventory, and important gotchas.
+
+### Added docs/CHANGELOGS.md session documentation
+This file. Captures session decisions, architectural patterns, security audit results,
+and pending work so future contributors have full context without needing to read all code.
+
+### Added src/types/lab.ts (378 lines)
+Single file of TypeScript interfaces and types for all Lab domain objects:
+Client, Project, Task, Invoice, InvoiceItem, Contract, ContractTemplate, Meeting,
+MeetingAttendee, Team, TeamMember, Notification, UserPreferences, Theme, Activity,
+Milestone, ProjectExpense, TimeLog, TaskComment, TaskAttachment, TaskFilter, and more.
+Imported everywhere in Lab server actions and components.
+
+### New dependencies added
+Package                Purpose
+@supabase/ssr          Supabase server-side rendering client (cookie-based sessions)
+@supabase/supabase-js  Direct Supabase JS client (used for admin/service role calls)
+resend                 Transactional email delivery
+recharts               SVG charts for dashboard (RevenueChart, TaskCompletionChart, etc.)
+react-joyride          Step-by-step onboarding tour library
+@react-pdf/renderer    In-browser PDF generation for contracts and invoices
+@dnd-kit/core          Drag-and-drop primitives (Kanban board)
+@dnd-kit/sortable      Sortable list abstraction over dnd-kit/core
+@dnd-kit/utilities     CSS transform helpers for dnd-kit
+date-fns               Date formatting (format, parseISO, isAfter, differenceInDays, etc.)
+
+---
+
+GitHub is now fully in sync with local. No uncommitted changes remain as of this push.
+
+
+
