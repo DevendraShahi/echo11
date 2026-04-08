@@ -426,7 +426,7 @@ export async function getInviteDetails(inviteId: string) {
     }
 
     return { email: invite.email, role: invite.role }
-  } catch (err) {
+  } catch {
     return null
   }
 }

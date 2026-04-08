@@ -65,7 +65,7 @@ export default function DocsPage() {
               <ul className="list-disc list-inside text-sm text-white/70 space-y-2">
                 <li><strong>Lifecycle Status:</strong> Track client journey using flags like Lead, Prospect, Active, At Risk, or Inactive.</li>
                 <li><strong>Client Detail Tabbing:</strong> Every client has sub-tabs for Contacts, Projects, Invoices, Documents, and Activity history.</li>
-                <li><strong>Portal Access:</strong> You can explicitly trigger "Send Invitation" to create auth accounts for clients to access their own portal.</li>
+                <li><strong>Portal Access:</strong> You can explicitly trigger &quot;Send Invitation&quot; to create auth accounts for clients to access their own portal.</li>
               </ul>
             </LabCardContent>
           </LabCard>
@@ -73,7 +73,7 @@ export default function DocsPage() {
             <LabCardHeader><LabCardTitle>Team Hierarchy</LabCardTitle></LabCardHeader>
             <LabCardContent>
               <ul className="list-disc list-inside text-sm text-white/70 space-y-2">
-                <li><strong>Roles:</strong> Assign members as "Admin" (sees and manages everything) or "Member" (sees their assigned scope).</li>
+                <li><strong>Roles:</strong> Assign members as &quot;Admin&quot; (sees and manages everything) or &quot;Member&quot; (sees their assigned scope).</li>
                 <li><strong>Team Lead Access:</strong> Leaders can see all work underneath their designated team hierarchy.</li>
                 <li><strong>Team Assignment:</strong> Organize staff into teams (e.g. Design Team, Dev Team) with distinctly assigned colors.</li>
               </ul>

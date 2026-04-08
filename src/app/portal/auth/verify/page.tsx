@@ -43,7 +43,7 @@ function ClientVerifyForm() {
           setInviteEmail(details.email)
           setCompanyName(details.companyName)
         }
-      } catch (err) {
+      } catch {
         setError("Failed to verify invitation.")
       } finally {
         setValidating(false)
@@ -139,7 +139,7 @@ function ClientVerifyForm() {
           </div>
           <h1 className="text-3xl font-bold text-white mb-3 font-sans">Account Created!</h1>
           <p className="text-white/60 mb-8 font-mono text-sm leading-relaxed">
-            Your client portal is just about ready. We've sent a final confirmation link to your email.
+            Your client portal is just about ready. We&apos;ve sent a final confirmation link to your email.
             <br/><br/>
             Please confirm your email address to log in!
           </p>

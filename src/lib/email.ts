@@ -184,7 +184,7 @@ export async function sendWelcomeEmail({
     }
 
     return { success: true }
-  } catch (error) {
+  } catch {
     return { success: false, error: 'Failed to send email' }
   }
 }
@@ -281,7 +281,7 @@ export async function sendContractEmail({
     })
 
     return { success: true }
-  } catch (error) {
+  } catch {
     return { success: false, error: 'Failed to send email' }
   }
 }

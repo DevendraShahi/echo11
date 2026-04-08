@@ -42,7 +42,7 @@ export interface ButtonProps
 }
 
 const Button = forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant = "default", size = "default", asChild = false, ...props }, ref) => {
+  ({ className, variant = "default", size = "default", ...props }, ref) => {
     // Generate class string based on variants
     const classes = cn(
       buttonVariants.base,

@@ -2,7 +2,7 @@
 
 import { motion } from "framer-motion";
 import { Container } from "@/components/ui/Container";
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/Card";
+import { Card } from "@/components/ui/Card";
 import { MonitorSmartphone, Code2, Gauge, Wrench } from "lucide-react";
 
 export const services = [

@@ -9,12 +9,8 @@ import { motion, useScroll, useTransform, useInView } from "framer-motion";
 import { 
   ArrowRight, 
   MonitorSmartphone, 
-  Code2, 
-  Gauge, 
-  Wrench,
   Layers,
   Sparkles,
-  Zap,
   Shield,
   Rocket,
   Check,

@@ -1,6 +1,6 @@
 import { PageWrapper } from "@/components/layout/PageWrapper";
 import { ProcessTimeline } from "@/components/sections/ProcessTimeline";
-import { Container } from "@/components/ui/Container";
+
 
 export const metadata = {
   title: "Process | echo11",

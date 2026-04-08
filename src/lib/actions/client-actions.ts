@@ -529,7 +529,7 @@ export async function getClientInviteDetails(token: string) {
     if (error || !client || !client.email) return null
 
     return { id: client.id, email: client.email, companyName: client.company_name }
-  } catch (err) {
+  } catch {
     return null
   }
 }
@@ -557,8 +557,8 @@ export async function acceptClientInvite(clientId: string, authUserId: string, f
     if (clientUpdateError) throw new Error(clientUpdateError.message)
 
     return { success: true }
-  } catch (err: any) {
+  } catch (err) {
     console.error('Error accepting client invite:', err)
-    return { success: false, error: err.message || 'Server error accepting invite' }
+    return { success: false, error: err instanceof Error ? err.message : 'Server error accepting invite' }
   }
 }

@@ -1,6 +1,5 @@
 import { PageWrapper } from "@/components/layout/PageWrapper";
 import { SelectedWork } from "@/components/sections/SelectedWork";
-import { Container } from "@/components/ui/Container";
 
 export const metadata = {
   title: "Work | echo11",

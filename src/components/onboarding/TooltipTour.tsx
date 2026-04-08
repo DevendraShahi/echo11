@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useCallback, useEffect } from 'react'
-import { Joyride, Step, ACTIONS, EVENTS, STATUS } from 'react-joyride'
+import { Joyride, Step, EVENTS, STATUS } from 'react-joyride'
 import { cn } from '@/lib/utils'
 import { consumePendingTour } from './tourState'
 
@@ -34,6 +34,7 @@ export function TooltipTour({ steps, pageId, onComplete }: TooltipTourProps) {
     }
   }, [pageId, steps.length])
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const handleJoyrideCallback = useCallback((data: any) => {
     const { status, type, step } = data
 
@@ -62,6 +63,7 @@ export function TooltipTour({ steps, pageId, onComplete }: TooltipTourProps) {
     disableBeacon: step.disableBeacon ?? false,
   }))
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const TooltipComponent = ({
     continuous,
     index,
@@ -71,7 +73,16 @@ export function TooltipTour({ steps, pageId, onComplete }: TooltipTourProps) {
     skipProps,
     tooltipProps,
     isLastStep,
-  }: any) => (
+  }: {
+    continuous: boolean
+    index: number
+    step: Step
+    backProps: React.HTMLAttributes<HTMLButtonElement>
+    primaryProps: React.HTMLAttributes<HTMLButtonElement>
+    skipProps: React.HTMLAttributes<HTMLButtonElement>
+    tooltipProps: React.HTMLAttributes<HTMLDivElement>
+    isLastStep: boolean
+  }) => (
     <div
       {...tooltipProps}
       className="bg-[#0a0a0a] border border-white/10 shadow-2xl p-5 max-w-[320px] font-sans relative"

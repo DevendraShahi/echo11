@@ -41,7 +41,7 @@ function TeamSignupForm() {
           setInviteEmail(details.email)
           setInviteRole(details.role)
         }
-      } catch (err) {
+      } catch {
         setError("Failed to verify invitation.")
       } finally {
         setValidating(false)
@@ -136,7 +136,7 @@ function TeamSignupForm() {
           </div>
           <h1 className="text-3xl font-bold text-white mb-3 font-sans">Welcome to echo11!</h1>
           <p className="text-white/60 mb-8 font-mono text-sm leading-relaxed">
-            Your account has been successfully created. We've sent an email confirmation link.
+            Your account has been successfully created. We&apos;ve sent an email confirmation link.
             <br/><br/>
             Please confirm your email before signing in!
           </p>
