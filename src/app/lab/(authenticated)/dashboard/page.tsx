@@ -1,5 +1,6 @@
+import React from 'react'
 import { createClient } from '@/lib/supabase/server'
-import { format, subDays } from 'date-fns'
+import { format, subDays, addDays } from 'date-fns'
 import { 
   FolderKanban, 
   CheckSquare, 
@@ -10,9 +11,10 @@ import {
 } from 'lucide-react'
 import { StatCard, RevenueChart, ProjectStatusChart, QuickActions, ActiveProjects, OverdueTasks, DateRangePicker } from '@/components/dashboard'
 import { LabCard, LabCardHeader, LabCardTitle, LabCardContent } from '@/components/ui/LabCard'
-import { ProjectStatus } from '@/types/lab'
+import { ProjectStatus, Project } from '@/types/lab'
 import { TooltipTour, PageVisitTracker } from '@/components/onboarding'
 import { dashboardTourSteps } from '@/components/onboarding/pageTours'
+import { cn } from '@/lib/utils'
 
 async function getStats() {
   const supabase = await createClient()
@@ -23,9 +25,9 @@ async function getStats() {
 
   const [projectsResult, tasksResult, invoicesResult, meetingsResult, recentInvoices, prevInvoices] = await Promise.all([
     supabase.from('projects').select('id,status', { count: 'exact' }),
-    supabase.from('tasks').select('id,status,due_date', { count: 'exact' }),
+    supabase.from('tasks').select('id,status,due_date,priority', { count: 'exact' }),
     supabase.from('invoices').select('total,status,created_at', { count: 'exact' }),
-    supabase.from('meetings').select('id,scheduled_at').gte('scheduled_at', now.toISOString()),
+    supabase.from('meetings').select('id,scheduled_at').gte('scheduled_at', now.toISOString()).lte('scheduled_at', addDays(now, 7).toISOString()),
     supabase.from('invoices').select('total,status,created_at').gte('created_at', thirtyDaysAgo).eq('status', 'paid'),
     supabase.from('invoices').select('total,status,created_at').gte('created_at', sixtyDaysAgo).lt('created_at', thirtyDaysAgo).eq('status', 'paid')
   ])
@@ -34,10 +36,15 @@ async function getStats() {
   const totalProjects = projectsResult.count || 0
   const completedTasks = tasksResult.data?.filter(t => t.status === 'done').length || 0
   const totalTasks = tasksResult.count || 0
+  const weightMap: Record<string, number> = { low: 0.5, medium: 1, high: 2, urgent: 3 }
+  const totalTaskWeight = tasksResult.data?.reduce((sum, t) => sum + (weightMap[t.priority] || 0), 0) || 0
+  const completedTaskWeight = tasksResult.data
+    ?.filter(t => t.status === 'done')
+    .reduce((sum, t) => sum + (weightMap[t.priority] || 0), 0) || 0
   const totalRevenue = invoicesResult.data?.filter(i => i.status === 'paid').reduce((sum, i) => sum + (i.total || 0), 0) || 0
   const monthlyRevenue = recentInvoices.data?.reduce((sum, i) => sum + (i.total || 0), 0) || 0
   const prevRevenue = prevInvoices.data?.reduce((sum, i) => sum + (i.total || 0), 0) || 0
-  const upcomingMeetings = meetingsResult.count || 0
+  const upcomingMeetings = meetingsResult.data?.length || 0
 
   const overdueTasks = tasksResult.data?.filter(t => {
     if (!t.due_date || t.status === 'done') return false
@@ -51,14 +58,16 @@ async function getStats() {
     activeProjects,
     totalTasks,
     completedTasks,
+    totalTaskWeight,
+    completedTaskWeight,
     totalRevenue,
     monthlyRevenue,
     upcomingMeetings,
     overdueTasks,
-    taskCompletionRate: totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0,
+    taskCompletionRate: totalTaskWeight > 0 ? Math.round((completedTaskWeight / totalTaskWeight) * 100) : 0,
     trends: {
       projects: totalProjects > 0 ? Math.round((activeProjects / totalProjects) * 100) : 0,
-      tasks: totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0,
+      tasks: totalTaskWeight > 0 ? Math.round((completedTaskWeight / totalTaskWeight) * 100) : 0,
       revenue: revenueTrend,
       meetings: upcomingMeetings
     }
@@ -78,13 +87,15 @@ async function getRecentActivities() {
 
 async function getUpcomingMeetings() {
   const supabase = await createClient()
+  const now = new Date()
   const { data } = await supabase
     .from('meetings')
     .select('*, project:projects(name)')
-    .gte('scheduled_at', new Date().toISOString())
+    .gte('scheduled_at', now.toISOString())
+    .lte('scheduled_at', addDays(now, 7).toISOString())
     .order('scheduled_at', { ascending: true })
     .limit(5)
-  
+
   return data || []
 }
 
@@ -92,12 +103,12 @@ async function getActiveProjects() {
   const supabase = await createClient()
   const { data } = await supabase
     .from('projects')
-    .select('*, client:clients(company_name)')
+    .select('*, client:clients(company_name), tasks(status, priority)')
     .eq('status', 'active')
     .order('updated_at', { ascending: false })
     .limit(5)
   
-  return data || []
+  return (data || []).map((project) => project as Project)
 }
 
 async function getOverdueTasks() {
@@ -165,18 +176,42 @@ async function getProjectStatusData() {
   ]
 }
 
+async function getUserRole() {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return 'member'
+
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('role')
+    .eq('id', user.id)
+    .single()
+
+  return profile?.role || 'member'
+}
+
 export default async function DashboardPage() {
-  const [stats, activities, meetings, activeProjects, overdueTasks, revenueData, projectStatusData] = await Promise.all([
+  const [stats, activities, meetings, activeProjects, overdueTasks, revenueData, projectStatusData, role] = await Promise.all([
     getStats(),
     getRecentActivities(),
     getUpcomingMeetings(),
     getActiveProjects(),
     getOverdueTasks(),
     getRevenueData(),
-    getProjectStatusData()
+    getProjectStatusData(),
+    getUserRole()
   ])
 
-  const statCards = [
+  const isAdmin = role === 'admin'
+
+  const statCards: Array<{
+    title: string
+    value: string | number
+    subtitle?: string | number
+    icon: React.ReactNode
+    color: 'indigo' | 'emerald' | 'amber' | 'rose' | 'sky' | 'violet' | 'accent'
+    trend: { value: number; isPositive: boolean; label: string }
+  }> = [
     {
       title: 'Active Projects',
       value: stats.activeProjects,
@@ -193,21 +228,26 @@ export default async function DashboardPage() {
       color: 'emerald' as const,
       trend: { value: stats.taskCompletionRate, isPositive: stats.taskCompletionRate > 50, label: 'completion' },
     },
-    {
+  ]
+
+  if (isAdmin) {
+    statCards.push({
       title: 'Revenue (Monthly)',
       value: `$${stats.monthlyRevenue.toLocaleString()}`,
+      subtitle: `$${stats.totalRevenue.toLocaleString()} total`,
       icon: <DollarSign className="w-6 h-6" />,
-      color: 'amber' as const,
+      color: 'amber',
       trend: { value: Math.abs(stats.trends.revenue), isPositive: stats.trends.revenue >= 0, label: 'vs last period' },
-    },
-    {
-      title: 'Upcoming Meetings',
-      value: stats.upcomingMeetings,
-      icon: <Calendar className="w-6 h-6" />,
-      color: 'rose' as const,
-      trend: { value: 0, isPositive: true, label: 'next 7 days' },
-    },
-  ]
+    })
+  }
+
+  statCards.push({
+    title: 'Upcoming Meetings',
+    value: stats.upcomingMeetings,
+    icon: <Calendar className="w-6 h-6" />,
+    color: 'rose',
+    trend: { value: 0, isPositive: true, label: 'next 7 days' },
+  })
 
   return (
     <div className="space-y-6 font-sans">
@@ -227,7 +267,13 @@ export default async function DashboardPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4" data-tour="stats-cards">
+      <div
+        className={cn(
+          'grid gap-4',
+          isAdmin ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-4' : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'
+        )}
+        data-tour="stats-cards"
+      >
         {statCards.map((stat) => (
           <StatCard
             key={stat.title}
@@ -245,10 +291,17 @@ export default async function DashboardPage() {
         <QuickActions />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div data-tour="revenue-chart">
-          <RevenueChart data={revenueData} />
-        </div>
+      <div
+        className={cn(
+          'grid gap-6',
+          isAdmin ? 'grid-cols-1 lg:grid-cols-2' : 'grid-cols-1'
+        )}
+      >
+        {isAdmin && (
+          <div data-tour="revenue-chart">
+            <RevenueChart data={revenueData} />
+          </div>
+        )}
         <div data-tour="project-status">
           <ProjectStatusChart data={projectStatusData} />
         </div>
@@ -285,10 +338,10 @@ export default async function DashboardPage() {
                     <div className="flex-1 min-w-0">
                       <p className="text-sm text-foreground">
                         <span className="font-medium">{(activity.user as { full_name?: string })?.full_name || 'Someone'}</span>
-                        {' '}{activity.action}
+                        {' '}{activity.action ?? 'performed an action'}
                       </p>
                       <p className="text-xs text-white/40">
-                        {format(new Date(activity.created_at), 'MMM d, h:mm a')}
+                        {activity.created_at ? format(new Date(activity.created_at), 'MMM d, h:mm a') : '—'}
                       </p>
                     </div>
                   </div>
@@ -300,7 +353,7 @@ export default async function DashboardPage() {
 
         <LabCard data-tour="upcoming-meetings">
           <LabCardHeader className="flex flex-row items-center justify-between pb-2">
-            <LabCardTitle className="text-lg font-semibold">Upcoming Meetings</LabCardTitle>
+            <LabCardTitle className="text-lg font-semibold">Upcoming Meetings <span className="text-xs font-normal text-white/40 ml-1">(next 7 days)</span></LabCardTitle>
           </LabCardHeader>
           <LabCardContent>
             {meetings.length === 0 ? (
@@ -315,16 +368,16 @@ export default async function DashboardPage() {
                   <div key={meeting.id} className="flex items-start gap-3 p-3 rounded-none bg-white/5">
                     <div className="w-12 h-12 bg-accent/10 border border-accent/20 rounded-none flex flex-col items-center justify-center flex-shrink-0">
                       <span className="text-sm font-bold text-accent">
-                        {format(new Date(meeting.scheduled_at), 'd')}
+                        {meeting.scheduled_at ? format(new Date(meeting.scheduled_at), 'd') : '?'}
                       </span>
                       <span className="text-[10px] text-accent/70 uppercase">
-                        {format(new Date(meeting.scheduled_at), 'MMM')}
+                        {meeting.scheduled_at ? format(new Date(meeting.scheduled_at), 'MMM') : ''}
                       </span>
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="font-medium text-foreground">{meeting.title}</p>
                       <p className="text-sm text-white/50">
-                        {format(new Date(meeting.scheduled_at), 'h:mm a')} • {meeting.duration_minutes} min
+                        {meeting.scheduled_at ? format(new Date(meeting.scheduled_at), 'h:mm a') : '—'} • {meeting.duration_minutes ?? '?'} min
                       </p>
                       {meeting.project && (
                         <p className="text-xs text-white/40 mt-1">

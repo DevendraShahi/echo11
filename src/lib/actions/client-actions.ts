@@ -5,6 +5,7 @@ import { sendClientInvitation } from '@/lib/email'
 import { revalidatePath } from 'next/cache'
 import { randomBytes } from 'crypto'
 import { getUserRoleAndTeam } from './team-actions'
+import { requireAdminOrLead } from './role-helpers'
 
 export interface CreateClientParams {
   company_name: string
@@ -50,6 +51,11 @@ export async function createClientWithAuth(
   
   if (!authUser) {
     return { success: false, error: 'You must be logged in to create a client' }
+  }
+
+  const allowed = await requireAdminOrLead(authUser.id)
+  if (!allowed) {
+    return { success: false, error: 'Only admins or team leads can create clients' }
   }
 
   try {
@@ -148,11 +154,16 @@ export async function createClientWithAuth(
 
 export async function sendClientPortalInvite(clientId: string): Promise<{ success: boolean; error?: string }> {
   const supabase = await createClient()
-  
+
   const { data: { user: authUser } } = await supabase.auth.getUser()
-  
+
   if (!authUser) {
     return { success: false, error: 'You must be logged in' }
+  }
+
+  const allowed = await requireAdminOrLead(authUser.id)
+  if (!allowed) {
+    return { success: false, error: 'Only admins or team leads can send portal invitations' }
   }
 
   try {
@@ -184,12 +195,16 @@ export async function sendClientPortalInvite(clientId: string): Promise<{ succes
       token: invitationToken
     })
 
+    // Token expires in 7 days
+    const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()
+
     // Update client record
     const { error: updateError } = await supabase
       .from('clients')
       .update({
         invitation_sent_at: now,
-        invitation_token: invitationToken
+        invitation_token: invitationToken,
+        invitation_token_expires_at: expiresAt
       })
       .eq('id', clientId)
 
@@ -250,6 +265,11 @@ export async function updateClient(
     return { success: false, error: 'You must be logged in' }
   }
 
+  const allowed = await requireAdminOrLead(authUser.id)
+  if (!allowed) {
+    return { success: false, error: 'Only admins or team leads can update clients' }
+  }
+
   try {
     const { error } = await supabase
       .from('clients')
@@ -300,11 +320,16 @@ export async function updateClient(
 
 export async function deleteClient(clientId: string): Promise<{ success: boolean; error?: string }> {
   const supabase = await createClient()
-  
+
   const { data: { user: authUser } } = await supabase.auth.getUser()
-  
+
   if (!authUser) {
     return { success: false, error: 'You must be logged in' }
+  }
+
+  const allowed = await requireAdminOrLead(authUser.id)
+  if (!allowed) {
+    return { success: false, error: 'Only admins or team leads can delete clients' }
   }
 
   try {
@@ -316,6 +341,28 @@ export async function deleteClient(clientId: string): Promise<{ success: boolean
 
     if (fetchError || !client) {
       return { success: false, error: 'Client not found' }
+    }
+
+    // Check for active projects
+    const { count: activeProjectCount } = await supabase
+      .from('projects')
+      .select('*', { count: 'exact', head: true })
+      .eq('client_id', clientId)
+      .in('status', ['active', 'on_hold'])
+
+    if ((activeProjectCount ?? 0) > 0) {
+      return { success: false, error: 'Cannot delete client with active or on-hold projects. Archive the projects first.' }
+    }
+
+    // Check for unpaid invoices
+    const { count: unpaidInvoiceCount } = await supabase
+      .from('invoices')
+      .select('*', { count: 'exact', head: true })
+      .eq('client_id', clientId)
+      .in('status', ['sent', 'overdue'])
+
+    if ((unpaidInvoiceCount ?? 0) > 0) {
+      return { success: false, error: 'Cannot delete client with outstanding invoices. Resolve all invoices first.' }
     }
 
     const { error: deleteError } = await supabase
@@ -522,11 +569,16 @@ export async function getClientInviteDetails(token: string) {
   try {
     const { data: client, error } = await supabaseAdmin
       .from('clients')
-      .select('id, email, company_name')
+      .select('id, email, company_name, invitation_token_expires_at')
       .eq('invitation_token', token)
       .single()
 
     if (error || !client || !client.email) return null
+
+    // Reject expired tokens
+    if (client.invitation_token_expires_at && new Date(client.invitation_token_expires_at) < new Date()) {
+      return null
+    }
 
     return { id: client.id, email: client.email, companyName: client.company_name }
   } catch {
@@ -551,6 +603,7 @@ export async function acceptClientInvite(clientId: string, authUserId: string, f
     const { error: clientUpdateError } = await supabaseAdmin.from('clients').update({
       auth_id: authUserId,
       invitation_token: null,
+      invitation_token_expires_at: null,
       invitation_accepted_at: new Date().toISOString()
     }).eq('id', clientId)
 

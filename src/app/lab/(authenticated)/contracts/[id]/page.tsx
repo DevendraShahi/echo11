@@ -1,13 +1,12 @@
 'use client'
 
 import { useState, useEffect, use } from 'react'
-import { createClient } from '@/lib/supabase/client'
 import { LabButton } from '@/components/ui/LabButton'
 import { Contract, ContractStatus } from '@/types/lab'
 import { getContractDetail, updateContractStatus, uploadContractFile, generateContractFromTemplate, sendContractToClient, deleteContract } from '@/lib/actions/contract-actions'
 import { 
-  ArrowLeft, FileText, Calendar, DollarSign, User, Mail, Download, Send, 
-  Upload, Wand2, Trash2, Loader2, Check, Eye, File, ExternalLink, X
+  ArrowLeft, FileText, Calendar, DollarSign, Mail, Download, Send, 
+  Upload, Wand2, Trash2, Loader2, Check, File, ExternalLink, X
 } from 'lucide-react'
 import { format } from 'date-fns'
 import { cn } from '@/lib/utils'
@@ -42,6 +41,7 @@ export default function ContractPage({ params }: ContractPageProps) {
 
   useEffect(() => {
     loadData()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id])
 
   async function loadData() {

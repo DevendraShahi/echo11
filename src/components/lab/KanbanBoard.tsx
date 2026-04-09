@@ -30,7 +30,6 @@ import { Project, Profile } from '@/types/lab'
 import Link from 'next/link'
 import { LabButton } from '@/components/ui/LabButton'
 import { PageHeader } from '@/components/ui/PageHeader'
-import { SearchInput } from '@/components/ui/SearchInput'
 
 const columns: { id: TaskStatus; title: string; color: string }[] = [
   { id: 'todo', title: 'To Do', color: 'bg-slate-500' },
@@ -217,15 +216,16 @@ export function KanbanBoard() {
   const [refreshKey, setRefreshKey] = useState(0)
   const [defaultStatus, setDefaultStatus] = useState<TaskStatus>('todo')
   
+  const [selectedProjectId, setSelectedProjectId] = useState<string>('')
   const [showFilters, setShowFilters] = useState(false)
   const [filters, setFilters] = useState({
-    project_id: '',
     assignee_id: '',
     priority: '',
     search: '',
   })
   const [projects, setProjects] = useState<Pick<Project, 'id' | 'name'>[]>([])
   const [members, setMembers] = useState<Pick<Profile, 'id' | 'full_name'>[]>([])
+  const [canCompleteTasks, setCanCompleteTasks] = useState(false)
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -246,98 +246,136 @@ export function KanbanBoard() {
       supabase.from('profiles').select('id, full_name')
     ])
     
-    setProjects(projectsRes.data || [])
+    const fetchedProjects = projectsRes.data || []
+    setProjects(fetchedProjects)
     setMembers(membersRes.data || [])
+    
+    if (fetchedProjects.length > 0 && !selectedProjectId) {
+      setSelectedProjectId(fetchedProjects[0].id)
+    }
   }
 
-  useEffect(() => {
-    async function fetchTasks() {
-      try {
-        const supabase = createClient()
-        
-        let query = supabase
-          .from('tasks')
-          .select('*')
-          .order('sort_order', { ascending: true })
+  async function loadUserContext() {
+    const supabase = createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return
 
-        if (filters.project_id) {
-          query = query.eq('project_id', filters.project_id)
-        }
-        if (filters.assignee_id) {
-          query = query.eq('assignee_id', filters.assignee_id)
-        }
-        if (filters.priority) {
-          query = query.eq('priority', filters.priority)
-        }
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('role, team_id')
+      .eq('id', user.id)
+      .single()
 
-        const { data: basicTasks, error: basicError } = await query
+    const isAdmin = profile?.role === 'admin'
+    let isLead = false
 
-        if (basicError) {
-          console.error('Error fetching basic tasks:', basicError)
-          setError(basicError.message)
-          setLoading(false)
-          return
-        }
-
-        if (!basicTasks || basicTasks.length === 0) {
-          setTasks([])
-          setLoading(false)
-          return
-        }
-
-        const projectIds = [...new Set(basicTasks.map(t => t.project_id).filter(Boolean))]
-        const assigneeIds = [...new Set(basicTasks.map(t => t.assignee_id).filter(Boolean))]
-
-        const projectMap: Record<string, { id: string; name: string }> = {}
-        if (projectIds.length > 0) {
-          const { data: projectsData } = await supabase
-            .from('projects')
-            .select('id, name')
-            .in('id', projectIds)
-          
-          if (projectsData) {
-            projectsData.forEach(p => { projectMap[p.id] = p })
-          }
-        }
-
-        const assigneeMap: Record<string, { id: string; full_name: string | null; avatar_url: string | null }> = {}
-        if (assigneeIds.length > 0) {
-          const { data: profilesData } = await supabase
-            .from('profiles')
-            .select('id, full_name, avatar_url')
-            .in('id', assigneeIds)
-          
-          if (profilesData) {
-            profilesData.forEach(p => { assigneeMap[p.id] = p })
-          }
-        }
-
-        const enrichedTasks = basicTasks.map(task => ({
-          ...task,
-          project: task.project_id ? projectMap[task.project_id] : null,
-          assignee: task.assignee_id ? assigneeMap[task.assignee_id] : null
-        })) as Task[]
-
-        let filteredTasks = enrichedTasks
-        if (filters.search) {
-          const searchLower = filters.search.toLowerCase()
-          filteredTasks = enrichedTasks.filter(t => 
-            t.title?.toLowerCase().includes(searchLower) ||
-            t.description?.toLowerCase().includes(searchLower)
-          )
-        }
-        
-        setTasks(filteredTasks)
-      } catch (error) {
-        console.error('Error fetching tasks:', error)
-        setError(error instanceof Error ? error.message : 'An unexpected error occurred')
-      }
-      setLoading(false)
+    if (profile?.team_id) {
+      const { data: team } = await supabase
+        .from('teams')
+        .select('lead_id')
+        .eq('id', profile.team_id)
+        .single()
+      isLead = team?.lead_id === user.id
     }
 
-    fetchTasks()
+    setCanCompleteTasks(Boolean(isAdmin || isLead))
+  }
+
+  async function fetchTasks() {
+    try {
+      const supabase = createClient()
+
+      if (!selectedProjectId) {
+        setTasks([])
+        setLoading(false)
+        return
+      }
+
+      let query = supabase
+        .from('tasks')
+        .select('*')
+        .eq('project_id', selectedProjectId)
+        .order('sort_order', { ascending: true })
+      if (filters.assignee_id) {
+        query = query.eq('assignee_id', filters.assignee_id)
+      }
+      if (filters.priority) {
+        query = query.eq('priority', filters.priority)
+      }
+
+      const { data: basicTasks, error: basicError } = await query
+
+      if (basicError) {
+        console.error('Error fetching basic tasks:', basicError)
+        setError(basicError.message)
+        setLoading(false)
+        return
+      }
+
+      if (!basicTasks || basicTasks.length === 0) {
+        setTasks([])
+        setLoading(false)
+        return
+      }
+
+      const projectIds = [...new Set(basicTasks.map(t => t.project_id).filter(Boolean))]
+      const assigneeIds = [...new Set(basicTasks.map(t => t.assignee_id).filter(Boolean))]
+
+      const projectMap: Record<string, { id: string; name: string }> = {}
+      if (projectIds.length > 0) {
+        const { data: projectsData } = await supabase
+          .from('projects')
+          .select('id, name')
+          .in('id', projectIds)
+        
+        if (projectsData) {
+          projectsData.forEach(p => { projectMap[p.id] = p })
+        }
+      }
+
+      const assigneeMap: Record<string, { id: string; full_name: string | null; avatar_url: string | null }> = {}
+      if (assigneeIds.length > 0) {
+        const { data: profilesData } = await supabase
+          .from('profiles')
+          .select('id, full_name, avatar_url')
+          .in('id', assigneeIds)
+        
+        if (profilesData) {
+          profilesData.forEach(p => { assigneeMap[p.id] = p })
+        }
+      }
+
+      const enrichedTasks = basicTasks.map(task => ({
+        ...task,
+        project: task.project_id ? projectMap[task.project_id] : null,
+        assignee: task.assignee_id ? assigneeMap[task.assignee_id] : null
+      })) as Task[]
+
+      let filteredTasks = enrichedTasks
+      if (filters.search) {
+        const searchLower = filters.search.toLowerCase()
+        filteredTasks = enrichedTasks.filter(t => 
+          t.title?.toLowerCase().includes(searchLower) ||
+          t.description?.toLowerCase().includes(searchLower)
+        )
+      }
+
+      setTasks(filteredTasks)
+    } catch (error) {
+      console.error('Error fetching tasks:', error)
+      setError(error instanceof Error ? error.message : 'An unexpected error occurred')
+    }
+    setLoading(false)
+  }
+
+  useEffect(function() {
     loadFiltersData()
-  }, [filters, refreshKey])
+    loadUserContext() // eslint-disable-line react-hooks/exhaustive-deps
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(function() {
+    fetchTasks() // eslint-disable-line react-hooks/exhaustive-deps
+  }, [filters, selectedProjectId, refreshKey]) // eslint-disable-line react-hooks/exhaustive-deps
 
   function refreshTasks() {
     setRefreshKey(k => k + 1)
@@ -366,12 +404,23 @@ export function KanbanBoard() {
       newStatus = overTask.status
     }
 
+    if (newStatus === 'done' && !canCompleteTasks) {
+      alert('Only a team lead or admin can move tasks to Done.')
+      return
+    }
+
     if (newStatus !== activeTask.status) {
+      const previousTasks = tasks
+
       setTasks(tasks.map(t => 
         t.id === active.id ? { ...t, status: newStatus } : t
       ))
 
-      await updateTaskStatus(active.id as string, newStatus)
+      const result = await updateTaskStatus(active.id as string, newStatus)
+      if (!result.success) {
+        alert(result.error || 'Failed to update task status')
+        setTasks(previousTasks)
+      }
     }
   }
 
@@ -392,7 +441,7 @@ export function KanbanBoard() {
         </div>
         <p className="text-sm text-white/50">{error}</p>
         <button
-          onClick={() => { setError(null); setLoading(true); }}
+          onClick={() => { setError(null); setLoading(true); setRefreshKey(k => k + 1); }}
           className="px-4 py-2 bg-accent hover:bg-accent/80 text-white rounded-none transition-colors font-sans"
         >
           Retry
@@ -409,10 +458,20 @@ export function KanbanBoard() {
         icon={CheckSquare}
         action={
           <div className="flex items-center gap-3">
+            <select
+              value={selectedProjectId}
+              onChange={(e) => setSelectedProjectId(e.target.value)}
+              className="px-4 py-2.5 bg-white/5 border border-white/10 rounded-none text-white focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent transition-all font-sans min-w-[200px]"
+            >
+              <option value="" className="bg-black" disabled>Select Project</option>
+              {projects.map(p => (
+                <option key={p.id} value={p.id} className="bg-black">{p.name}</option>
+              ))}
+            </select>
             <button 
               onClick={() => setShowFilters(!showFilters)}
               className={cn(
-                "flex items-center gap-2 px-4 py-2.5 font-medium transition-all font-sans",
+                "flex items-center gap-2 px-4 py-2.5 font-medium transition-all font-sans cursor-pointer",
                 showFilters 
                   ? "bg-accent text-white" 
                   : "bg-white/5 text-white/70 hover:bg-white/10 border border-white/10"
@@ -421,16 +480,14 @@ export function KanbanBoard() {
             >
               <Filter className="w-4 h-4" />
               Filters
-              {(filters.project_id || filters.assignee_id || filters.priority || filters.search) && (
+              {(filters.assignee_id || filters.priority || filters.search) && (
                 <span className="w-2 h-2 bg-white rounded-full" />
               )}
             </button>
-            <Link href="/lab/tasks/new" data-tour="new-task">
-              <LabButton>
-                <Plus className="w-4 h-4 mr-2" />
-                Add Task
-              </LabButton>
-            </Link>
+            <LabButton disabled={!selectedProjectId} onClick={() => setIsModalOpen(true)} data-tour="new-task">
+              <Plus className="w-4 h-4 mr-2" />
+              Add Task
+            </LabButton>
           </div>
         }
       />
@@ -449,17 +506,6 @@ export function KanbanBoard() {
               />
             </div>
             
-            <select
-              value={filters.project_id}
-              onChange={(e) => setFilters({ ...filters, project_id: e.target.value })}
-              className="px-4 py-2.5 bg-white/5 border border-white/10 rounded-none text-white/70 focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent transition-all"
-            >
-              <option value="" className="bg-black">All Projects</option>
-              {projects.map(p => (
-                <option key={p.id} value={p.id} className="bg-black">{p.name}</option>
-              ))}
-            </select>
-
             <select
               value={filters.assignee_id}
               onChange={(e) => setFilters({ ...filters, assignee_id: e.target.value })}
@@ -483,9 +529,9 @@ export function KanbanBoard() {
               <option value="urgent" className="bg-black">Urgent</option>
             </select>
 
-            {(filters.project_id || filters.assignee_id || filters.priority || filters.search) && (
+            {(filters.assignee_id || filters.priority || filters.search) && (
               <button
-                onClick={() => setFilters({ project_id: '', assignee_id: '', priority: '', search: '' })}
+                onClick={() => setFilters({ assignee_id: '', priority: '', search: '' })}
                 className="flex items-center gap-1.5 px-3 py-2 text-sm text-white/50 hover:text-white transition-colors font-sans"
               >
                 <X className="w-4 h-4" />
@@ -496,18 +542,25 @@ export function KanbanBoard() {
         </div>
       )}
 
-      {tasks.length === 0 ? (
+      {!selectedProjectId ? (
+        <div className="flex-1 flex items-center justify-center">
+          <div className="text-center p-8 bg-white/5 border border-white/10 max-w-md">
+            <div className="w-16 h-16 mx-auto mb-4 bg-white/5 rounded-none flex items-center justify-center">
+              <CheckSquare className="w-8 h-8 text-accent" />
+            </div>
+            <p className="text-white/70 mb-4 font-sans">Select a project to manage its tasks</p>
+          </div>
+        </div>
+      ) : tasks.length === 0 ? (
         <div className="flex-1 flex items-center justify-center">
           <div className="text-center p-8 bg-white/5 border border-white/10 max-w-md">
             <div className="w-16 h-16 mx-auto mb-4 bg-white/5 rounded-none flex items-center justify-center">
               <Plus className="w-8 h-8 text-accent" />
             </div>
             <p className="text-white/70 mb-4 font-sans">No tasks found</p>
-            <Link href="/lab/tasks/new">
-              <LabButton>
-                Create Task
-              </LabButton>
-            </Link>
+            <LabButton onClick={() => setIsModalOpen(true)}>
+              Create Task
+            </LabButton>
           </div>
         </div>
       ) : (
@@ -534,11 +587,14 @@ export function KanbanBoard() {
           </div>
 
           <DragOverlay>
-            {activeId ? (
-              <div className="w-72">
-                <TaskCard task={tasks.find(t => t.id === activeId)!} isDragging />
-              </div>
-            ) : null}
+            {activeId ? (() => {
+              const activeTask = tasks.find(t => t.id === activeId)
+              return activeTask ? (
+                <div className="w-72">
+                  <TaskCard task={activeTask} isDragging />
+                </div>
+              ) : null
+            })() : null}
           </DragOverlay>
         </DndContext>
       )}
@@ -548,6 +604,7 @@ export function KanbanBoard() {
         onClose={() => setIsModalOpen(false)} 
         onSuccess={refreshTasks}
         defaultStatus={defaultStatus}
+        defaultProjectId={selectedProjectId}
       />
     </div>
   )

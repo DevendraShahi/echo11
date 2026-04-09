@@ -4,9 +4,8 @@ import { useState, useEffect } from 'react'
 import { createClientWithAuth, updateClient, ClientWithRelations } from '@/lib/actions/client-actions'
 import { updateClientStatus } from '@/lib/actions/contract-actions'
 import { LabButton } from '@/components/ui/LabButton'
-import { X, Loader2, Mail, CheckCircle, User, Phone, Building, Tags, Globe, ArrowRight } from 'lucide-react'
+import { X, Loader2, Mail, CheckCircle, User, Phone, Building, Tags, Globe } from 'lucide-react'
 import { ClientLifecycleStatus } from '@/types/lab'
-import { cn } from '@/lib/utils'
 
 interface ClientFormModalProps {
   isOpen: boolean

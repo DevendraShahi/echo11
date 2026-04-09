@@ -2,7 +2,7 @@
 
 import { useMemo } from 'react'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
-import { format, subDays, startOfWeek, endOfWeek } from 'date-fns'
+import { format, subDays, startOfWeek } from 'date-fns'
 import { LabCard, LabCardHeader, LabCardTitle, LabCardContent } from '@/components/ui/LabCard'
 
 interface TaskData {

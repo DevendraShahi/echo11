@@ -1,7 +1,6 @@
 'use client'
 
-import { useState } from 'react'
-import { createClient } from '@/lib/supabase/client'
+import { useState, useEffect } from 'react'
 import { createTeam, updateTeam, deleteTeam } from '@/lib/actions/team-actions'
 import { LabButton } from '@/components/ui/LabButton'
 import { Team } from '@/types/lab'
@@ -11,6 +10,7 @@ interface TeamFormModalProps {
   isOpen: boolean
   onClose: () => void
   onSuccess: () => void
+  onDelete?: () => void
   editTeam?: Team | null
 }
 
@@ -27,48 +27,58 @@ const TEAM_COLORS = [
   '#3B82F6', // Blue
 ]
 
-export function TeamFormModal({ isOpen, onClose, onSuccess, editTeam }: TeamFormModalProps) {
+export function TeamFormModal({ isOpen, onClose, onSuccess, onDelete, editTeam }: TeamFormModalProps) {
   const [name, setName] = useState(editTeam?.name || '')
   const [description, setDescription] = useState(editTeam?.description || '')
   const [color, setColor] = useState(editTeam?.color || '#6366F1')
   const [loading, setLoading] = useState(false)
-  const [showDelete, setShowDelete] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    setName(editTeam?.name || '')
+    setDescription(editTeam?.description || '')
+    setColor(editTeam?.color || '#6366F1')
+    setError(null)
+  }, [editTeam])
 
   if (!isOpen) return null
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault()
-    setLoading(true)
-
-    let result
-    if (editTeam) {
-      result = await updateTeam(editTeam.id, { name, description, color })
-    } else {
-      result = await createTeam({ name, description, color })
-    }
-
-    setLoading(false)
-
-    if (result.success) {
-      onSuccess()
-      onClose()
-    } else {
-      alert(result.error || 'Failed to save team')
+  async function handleSubmit(e?: React.FormEvent) {
+    if (e) e.preventDefault()
+    setError(null)
+    try {
+      setLoading(true)
+      let result
+      if (editTeam) {
+        result = await updateTeam(editTeam.id, { name, description, color })
+      } else {
+        result = await createTeam({ name, description, color })
+      }
+      setLoading(false)
+      if (result?.success) {
+        onSuccess()
+        onClose()
+      } else {
+        setError(result?.error || 'Failed to save team')
+      }
+    } catch (err) {
+      console.error(err)
+      setLoading(false)
+      setError('An unexpected error occurred.')
     }
   }
 
   async function handleDelete() {
     if (!editTeam || !confirm('Are you sure you want to delete this team?')) return
-    
     setLoading(true)
     const result = await deleteTeam(editTeam.id)
     setLoading(false)
-
     if (result.success) {
-      onSuccess()
+      if (onDelete) onDelete()
+      else onSuccess()
       onClose()
     } else {
-      alert(result.error || 'Failed to delete team')
+      setError(result.error || 'Failed to delete team')
     }
   }
 
@@ -85,7 +95,12 @@ export function TeamFormModal({ isOpen, onClose, onSuccess, editTeam }: TeamForm
           </button>
         </div>
         
-        <form onSubmit={handleSubmit} className="p-4 space-y-4">
+        <div className="p-4 space-y-4" onKeyDown={(e) => {
+          if (e.key === 'Enter') {
+            e.preventDefault()
+            if (!loading && name.trim()) handleSubmit()
+          }
+        }}>
           <div>
             <label className="block text-xs font-mono uppercase text-white/50 mb-2">Team Name *</label>
             <input
@@ -124,6 +139,8 @@ export function TeamFormModal({ isOpen, onClose, onSuccess, editTeam }: TeamForm
             </div>
           </div>
 
+          {error && <p className="text-sm text-rose-400 font-mono">{error}</p>}
+
           <div className="flex gap-2 pt-2">
             {editTeam && (
               <button
@@ -138,11 +155,19 @@ export function TeamFormModal({ isOpen, onClose, onSuccess, editTeam }: TeamForm
             <LabButton type="button" variant="ghost" onClick={onClose} className="flex-1 font-mono text-xs uppercase tracking-wider">
               Cancel
             </LabButton>
-            <LabButton type="submit" disabled={loading} className="flex-1 font-mono text-xs uppercase tracking-wider">
+            <LabButton 
+              type="button" 
+              onClick={(e) => {
+                e.preventDefault()
+                handleSubmit()
+              }} 
+              disabled={loading || !name.trim()} 
+              className="flex-1 font-mono text-xs uppercase tracking-wider"
+            >
               {loading ? 'Saving...' : editTeam ? 'Update Team' : 'Create Team'}
             </LabButton>
           </div>
-        </form>
+        </div>
       </div>
     </div>
   )

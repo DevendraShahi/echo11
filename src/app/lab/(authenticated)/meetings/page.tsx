@@ -26,8 +26,7 @@ async function getProjects() {
   const supabase = await createClient()
   const { data } = await supabase
     .from('projects')
-    .select('id, name')
-    .eq('status', 'active')
+    .select('id, name, status')
     .order('name', { ascending: true })
   
   return data || []

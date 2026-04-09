@@ -1,7 +1,9 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
+import { createClient as createSupabaseClient } from '@supabase/supabase-js'
 import { revalidatePath } from 'next/cache'
+import { createNotification } from './notification-actions'
 
 export interface TeamFormData {
   name: string
@@ -30,14 +32,19 @@ export async function createTeam(data: TeamFormData): Promise<{ success: boolean
     return { success: false, error: 'You must be logged in' }
   }
 
+  if (!data.name?.trim()) {
+    return { success: false, error: 'Team name is required' }
+  }
+
   try {
     const { data: team, error } = await supabase
       .from('teams')
       .insert({
-        name: data.name,
+        name: data.name.trim(),
         description: data.description || null,
         lead_id: data.lead_id || null,
-        color: data.color || '#6366f1'
+        color: data.color || '#6366f1',
+        created_by: userId,
       })
       .select()
       .single()
@@ -68,21 +75,49 @@ export async function updateTeam(
     return { success: false, error: 'You must be logged in' }
   }
 
+  if (data.name !== undefined && !data.name?.trim()) {
+    return { success: false, error: 'Team name cannot be empty' }
+  }
+
+  const updatePayload: TeamUpdateData & { updated_at: string } = {
+    ...data,
+    ...(data.name ? { name: data.name.trim() } : {}),
+    updated_at: new Date().toISOString()
+  }
+
   try {
     const { error } = await supabase
       .from('teams')
-      .update({
-        ...data,
-        updated_at: new Date().toISOString()
-      })
+      .update(updatePayload)
       .eq('id', teamId)
 
     if (error) {
       return { success: false, error: error.message }
     }
 
+    // Auto-notify team members about the team update
+    try {
+      const { data: members } = await supabase.from('profiles').select('id').eq('team_id', teamId)
+      if (members && members.length > 0) {
+        for (const member of members) {
+          if (member.id !== userId) { 
+             await createNotification({
+               userId: member.id,
+               type: 'team',
+               title: 'Team Updated',
+               message: `Your team details have been updated.`,
+               link: `/lab/teams`
+             })
+          }
+        }
+      }
+    } catch(e) {
+      console.error('Failed to dispatch team update notifications', e)
+    }
+
     revalidatePath('/lab/settings')
     revalidatePath('/lab/teams')
+    revalidatePath(`/lab/teams/${teamId}`)
 
     return { success: true }
 
@@ -101,7 +136,16 @@ export async function deleteTeam(teamId: string): Promise<{ success: boolean; er
   }
 
   try {
-    const { error } = await supabase
+    const supabaseAdmin = createSupabaseClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    )
+
+    // Clear FK references before deleting
+    await supabaseAdmin.from('profiles').update({ team_id: null }).eq('team_id', teamId)
+    await supabaseAdmin.from('projects').update({ team_id: null }).eq('team_id', teamId)
+
+    const { error } = await supabaseAdmin
       .from('teams')
       .delete()
       .eq('id', teamId)
@@ -133,7 +177,12 @@ export async function assignUserToTeam(
   }
 
   try {
-    const { error } = await supabase
+    const supabaseAdmin = createSupabaseClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    )
+
+    const { error } = await supabaseAdmin
       .from('profiles')
       .update({ team_id: teamId })
       .eq('id', userId)
@@ -142,7 +191,22 @@ export async function assignUserToTeam(
       return { success: false, error: error.message }
     }
 
+    // Notify user of assignment
+    if (teamId) {
+       const { data: teamInfo } = await supabaseAdmin.from('teams').select('name').eq('id', teamId).single()
+       if (teamInfo) {
+         await createNotification({
+           userId: userId, // ID of the assigned user
+           type: 'team',
+           title: 'Added to Team',
+           message: `You have been officially added to ${teamInfo.name}.`,
+           link: `/lab/teams`
+         })
+       }
+    }
+
     revalidatePath('/lab/settings')
+    revalidatePath('/lab/teams')
 
     return { success: true }
 
@@ -277,10 +341,14 @@ export async function removeTagFromProject(
 export async function getAllTeams() {
   const supabase = await createClient()
   
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from('teams')
-    .select('*, lead:profiles(id, full_name, avatar_url)')
+    .select('*, lead:profiles!teams_lead_id_fkey(id, full_name, avatar_url), members:profiles!profiles_team_id_fkey(id)')
     .order('name', { ascending: true })
+
+  if (error) {
+    console.error('Error fetching all teams:', error)
+  }
 
   return data || []
 }
@@ -288,11 +356,15 @@ export async function getAllTeams() {
 export async function getTeam(teamId: string) {
   const supabase = await createClient()
   
-  const { data: team } = await supabase
+  const { data: team, error: teamError } = await supabase
     .from('teams')
-    .select('*, lead:profiles(id, full_name, avatar_url)')
+    .select('*, lead:profiles!teams_lead_id_fkey(id, full_name, avatar_url)')
     .eq('id', teamId)
     .single()
+
+  if (teamError) {
+    console.error('Error fetching team by ID:', teamError)
+  }
 
   if (!team) return null
 
@@ -308,7 +380,14 @@ export async function getTeam(teamId: string) {
     .eq('team_id', teamId)
     .order('name', { ascending: true })
 
-  return { ...team, members: members || [], projects: projects || [] }
+  const mappedProjects = (projects || []).map((p: { id: string; name: string; status: string; client: { id: string; company_name: string }[] | { id: string; company_name: string } | null }) => ({
+    id: p.id,
+    name: p.name,
+    status: p.status,
+    client: Array.isArray(p.client) ? (p.client[0] ?? null) : (p.client ?? null),
+  }))
+
+  return { ...team, members: members || [], projects: mappedProjects }
 }
 
 export async function getUserTeam(userId: string) {
@@ -322,11 +401,15 @@ export async function getUserTeam(userId: string) {
 
   if (!profile?.team_id) return null
 
-  const { data: team } = await supabase
+  const { data: team, error } = await supabase
     .from('teams')
-    .select('*, lead:profiles(id, full_name, avatar_url)')
+    .select('*, lead:profiles!teams_lead_id_fkey(id, full_name, avatar_url)')
     .eq('id', profile.team_id)
     .single()
+
+  if (error) {
+    console.error('Error fetching user team:', error)
+  }
 
   return team
 }
@@ -355,7 +438,12 @@ export async function assignProjectToTeam(
   }
 
   try {
-    const { error } = await supabase
+    const supabaseAdmin = createSupabaseClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    )
+
+    const { error } = await supabaseAdmin
       .from('projects')
       .update({ team_id: teamId })
       .eq('id', projectId)
@@ -383,7 +471,12 @@ export async function removeProjectFromTeam(projectId: string): Promise<{ succes
   }
 
   try {
-    const { error } = await supabase
+    const supabaseAdmin = createSupabaseClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    )
+
+    const { error } = await supabaseAdmin
       .from('projects')
       .update({ team_id: null })
       .eq('id', projectId)
@@ -411,7 +504,12 @@ export async function removeUserFromTeam(userId: string): Promise<{ success: boo
   }
 
   try {
-    const { error } = await supabase
+    const supabaseAdmin = createSupabaseClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    )
+
+    const { error } = await supabaseAdmin
       .from('profiles')
       .update({ team_id: null })
       .eq('id', userId)
@@ -442,7 +540,12 @@ export async function setTeamLead(
   }
 
   try {
-    const { error } = await supabase
+    const supabaseAdmin = createSupabaseClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    )
+
+    const { error } = await supabaseAdmin
       .from('teams')
       .update({ lead_id: userId, updated_at: new Date().toISOString() })
       .eq('id', teamId)

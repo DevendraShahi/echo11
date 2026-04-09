@@ -1,21 +1,26 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
-import { revalidatePath } from 'next/cache'
 import { Notification } from '@/types/lab'
 
-export async function getNotifications(): Promise<Notification[]> {
+export async function getNotifications(unreadOnly = true): Promise<Notification[]> {
   const supabase = await createClient()
-  
+
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return []
 
-  const { data } = await supabase
+  let query = supabase
     .from('notifications')
     .select('*')
     .eq('user_id', user.id)
     .order('created_at', { ascending: false })
     .limit(50)
+
+  if (unreadOnly) {
+    query = query.eq('read', false)
+  }
+
+  const { data } = await query
 
   return (data || []) as Notification[]
 }

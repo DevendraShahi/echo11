@@ -1,7 +1,60 @@
 # Echo11 Lab — Development Changelog
 
-> Last Updated: April 7, 2026
-> Session Focus: Onboarding Tour Polish, Team + Client Invitation Flows, Security Audit
+> Last Updated: April 8, 2026
+> Session Focus: Auth redirect hardening, mention notifications, task permissions, domain cleanup
+
+---
+
+## 0. New Changes (April 8, 2026)
+
+### Supabase Auth Redirect Hardening
+- Added explicit callback handlers to keep email confirmations on product surfaces:
+  - `/lab/auth/callback` verifies Supabase email OTP and redirects to `/lab/auth/login`.
+  - `/portal/auth/callback` already existed; invite flows now point at it with `next=/portal/auth/login`.
+- Updated all Supabase `emailRedirectTo` values to use production domain (`https://echo11.tech`) with correct callback paths:
+  - Team invites: `/lab/auth/callback?next=/lab/auth/login`
+  - Client portal invites: `/portal/auth/callback?next=/portal/auth/login`
+  - Portal magic link login: `/portal/auth/callback`
+- Removed localhost fallbacks from invite emails, contract links, and portal signout redirects. Default domain is now echo11.tech unless env overrides.
+- Self-signup disabled: `/lab/auth/signup` now shows “self-signup is disabled” notice and routes users to login; only invitation flows remain.
+- Login guard: if a user signs in with an unverified email, we sign them out and surface “Email not verified”.
+
+Key files:  
+- `src/app/lab/auth/callback/route.ts` (new)  
+- `src/app/lab/(auth)/auth/team-signup/page.tsx`  
+- `src/app/portal/auth/verify/page.tsx`  
+- `src/app/portal/auth/login/page.tsx`  
+- `src/app/portal/auth/signout/route.ts`  
+- `src/lib/actions/contract-actions.ts`, `src/lib/email.ts`, `src/app/preview-invite/page.tsx`
+
+### Moodboard Mentions & Notifications
+- Moodboard chat now supports @mentions of team members with a dropdown picker.
+- Mentions trigger per-user notifications linking back to the team moodboard.
+- Team members are fetched to power suggestions; mention parsing is regex-based and trims duplicates.
+
+Key files:  
+- `src/app/lab/(authenticated)/teams/[id]/moodboard/page.tsx`  
+- `src/lib/actions/team-moodboard-actions.ts`
+
+### Task Permissions & Filters
+- Kanban board enforces: only admins or team leads can move tasks into “Done”; members are blocked with client+server validation and optimistic rollback.
+- “My Tasks” toggle removed (existing assignee filter remains); project selection restored to required dropdown.
+- Status updates validated server-side in `updateTaskStatus`.
+
+Key files:  
+- `src/components/lab/KanbanBoard.tsx`  
+- `src/lib/actions/task-actions.ts`
+
+### Domain & URL Cleanup
+- Default app/lab/portal URLs now point to `https://echo11.tech` in all generated links (contracts, emails, preview invite, portal signout).
+- README/AGENTS updated to reference the production domain instead of localhost.
+
+### What’s Left / Known Warnings
+- Current lint/type warnings unrelated to these changes still exist (see latest `npm run build` output: unused vars, missing hook deps, several `any` usages, alt text warnings).
+- Ensure production env vars are set: `NEXT_PUBLIC_APP_URL=https://echo11.tech`, `NEXT_PUBLIC_LAB_URL`, `NEXT_PUBLIC_PORTAL_URL`, Supabase keys, Resend keys.
+- Supabase dashboard must list allowed redirect URLs:  
+  - `https://echo11.tech/lab/auth/callback` (and `?next=/lab/auth/login`)  
+  - `https://echo11.tech/portal/auth/callback` (and `?next=/portal/auth/login`)
 
 ---
 
@@ -417,3 +470,13 @@ GitHub is now fully in sync with local. No uncommitted changes remain as of this
 
 
 
+
+---
+
+## 10. Build Error Fixes (April 8, 2026)
+
+Fixed deployment blockers related to strict TypeScript type checking and unescaped quote strings that caused the Vercel branch to fail building and stay stale:
+
+1. **Unescaped Quotes:** Found out React JSX dislikes raw single and double quotes (`"` and `'`). Replaced all them with `&quot;` and `&apos;` in `docs/page.tsx`, `team-signup/page.tsx` and `verify/page.tsx`.
+2. **Explicit Any:** Enforced types by replacing `any` casts with `Error`/`boolean` fallbacks or using `#eslint-disable` directive locally when package utility types weren't available in standard exports.
+3. **Unused Catch Variables:** Removed unused `error` and `err` assignment variables from the `catch` blocks in Actions and generic logic that strictly didn't consume it.

@@ -5,7 +5,6 @@ import { createMeeting, getProjectsForMeetingForm } from '@/lib/actions/meeting-
 import { LabButton } from '@/components/ui/LabButton'
 import { X, Loader2, CheckCircle, Projector, Calendar, Clock, Video, MapPin, AlignLeft } from 'lucide-react'
 import { Project } from '@/types/lab'
-import { cn } from '@/lib/utils'
 
 interface MeetingFormModalProps {
   isOpen: boolean

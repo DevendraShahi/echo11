@@ -2,7 +2,6 @@
 
 import { useState } from 'react'
 import { MoreHorizontal, Copy, Archive, Trash2 } from 'lucide-react'
-import { cn } from '@/lib/utils'
 
 interface ProjectActionsProps {
   projectId: string
@@ -12,7 +11,7 @@ interface ProjectActionsProps {
   onDelete?: () => void
 }
 
-export function ProjectActions({ projectId, projectStatus, onDuplicate, onArchive, onDelete }: ProjectActionsProps) {
+export function ProjectActions({ projectStatus, onDuplicate, onArchive, onDelete }: ProjectActionsProps) {
   const [isOpen, setIsOpen] = useState(false)
 
   return (

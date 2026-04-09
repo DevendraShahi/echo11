@@ -1,13 +1,14 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
-import { Bell, X, Check, Trash2, FileText, Users, Calendar, AlertCircle, ExternalLink } from 'lucide-react'
+import { Bell, Check, Trash2, FileText, Users, Calendar, AlertCircle, ExternalLink } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import Link from 'next/link'
 import { Notification } from '@/types/lab'
 import { getNotifications, getUnreadCount, markAsRead, markAllAsRead, deleteNotification } from '@/lib/actions/notification-actions'
 import { formatDistanceToNow } from 'date-fns'
 import { cn } from '@/lib/utils'
+import { createClient } from '@/lib/supabase/client'
 
 import { FolderKanban } from 'lucide-react'
 
@@ -40,6 +41,17 @@ export function NotificationBell() {
 
   useEffect(() => {
     loadNotifications()
+
+    const supabase = createClient()
+    const channel = supabase.channel('realtime_notifications')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'notifications' }, () => {
+        loadNotifications()
+      })
+      .subscribe()
+
+    return () => {
+      supabase.removeChannel(channel)
+    }
   }, [])
 
   useEffect(() => {
@@ -63,19 +75,31 @@ export function NotificationBell() {
     setLoading(false)
   }
 
+  function removeNotification(id: string) {
+    setNotifications(prev => prev.filter(n => n.id !== id))
+    setUnreadCount(prev => Math.max(0, prev - 1))
+  }
+
   async function handleMarkAsRead(id: string) {
+    removeNotification(id)
     await markAsRead(id)
-    loadNotifications()
+  }
+
+  async function handleLinkClick(id: string) {
+    removeNotification(id)
+    setIsOpen(false)
+    await markAsRead(id)
   }
 
   async function handleMarkAllRead() {
+    setNotifications([])
+    setUnreadCount(0)
     await markAllAsRead()
-    loadNotifications()
   }
 
   async function handleDelete(id: string) {
+    removeNotification(id)
     await deleteNotification(id)
-    loadNotifications()
   }
 
   return (
@@ -122,9 +146,10 @@ export function NotificationBell() {
                 <div className="divide-y divide-white/5">
                   {notifications.map(notification => (
                     notification.link ? (
-                      <Link 
+                      <Link
                         key={notification.id}
                         href={notification.link}
+                        onClick={() => handleLinkClick(notification.id)}
                         className="block p-3 hover:bg-white/5 transition-colors"
                       >
                         <div className="flex items-start gap-3">

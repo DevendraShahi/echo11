@@ -2,9 +2,9 @@
 
 import { useState, useEffect, useRef, use } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { updateTask, deleteTask, addTaskComment, deleteTaskComment, logTime, getTeamMembers, uploadTaskAttachment, deleteTaskAttachment } from '@/lib/actions/task-actions'
+import { updateTask, deleteTask, addTaskComment, deleteTaskComment, logTime, uploadTaskAttachment, deleteTaskAttachment } from '@/lib/actions/task-actions'
 import { LabButton } from '@/components/ui/LabButton'
-import { X, Loader2, Trash2, Clock, MessageSquare, Calendar, Flag, Send, Plus, Paperclip, Download, FileText, ArrowLeft, Edit3, Save, Image, Folder, AlertCircle } from 'lucide-react'
+import { Loader2, Trash2, Clock, MessageSquare, Calendar, Flag, Send, Plus, Paperclip, Download, FileText, ArrowLeft, Edit3, Save, Image, Folder, AlertCircle } from 'lucide-react'
 import { Task, TaskStatus, TaskPriority, TaskComment, TimeLog, TaskAttachment } from '@/types/lab'
 import { format } from 'date-fns'
 import Link from 'next/link'
@@ -66,13 +66,16 @@ export default function TaskDetailPage({ params }: TaskPageProps) {
   
   const [newComment, setNewComment] = useState('')
   const [newTimeLog, setNewTimeLog] = useState({ hours: '', date: '', notes: '' })
+  const [teamMembers, setTeamMembers] = useState<{ id: string; full_name: string | null }[]>([])
   const [currentUserId, setCurrentUserId] = useState<string | null>(null)
+  const [canEdit, setCanEdit] = useState(false)
+  const [saveError, setSaveError] = useState<string | null>(null)
 
-  useEffect(() => {
+  useEffect(function() {
     if (taskId) {
       loadData()
     }
-  }, [taskId])
+  }, [taskId]) // eslint-disable-line react-hooks/exhaustive-deps
 
   async function loadData() {
     setLoading(true)
@@ -141,7 +144,31 @@ export default function TaskDetailPage({ params }: TaskPageProps) {
       ])
 
       if (userResult.data?.user) {
-        setCurrentUserId(userResult.data.user.id)
+        const authUserId = userResult.data.user.id
+        setCurrentUserId(authUserId)
+
+        // Determine if user can edit: admin, team lead, or task assignee
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('role, team_id')
+          .eq('id', authUserId)
+          .single()
+
+        const isAdmin = profile?.role === 'admin'
+        const isAssignee = taskData.assignee_id === authUserId
+
+        let isLead = false
+        if (profile?.team_id) {
+          const { data: team } = await supabase
+            .from('teams')
+            .select('lead_id')
+            .eq('id', profile.team_id)
+            .single()
+          isLead = team?.lead_id === authUserId
+        }
+
+        setCanEdit(isAdmin || isLead || isAssignee)
+        setTeamMembers([])
       }
 
       setComments(commentsData.data || [])
@@ -154,7 +181,9 @@ export default function TaskDetailPage({ params }: TaskPageProps) {
   }
 
   async function handleSave() {
+    if (!formData.title.trim()) { setSaveError('Title is required'); return }
     setSaving(true)
+    setSaveError(null)
     const result = await updateTask(taskId, {
       title: formData.title,
       description: formData.description || null,
@@ -167,16 +196,20 @@ export default function TaskDetailPage({ params }: TaskPageProps) {
     if (result.success) {
       setIsEditing(false)
       loadData()
+    } else {
+      setSaveError(result.error || 'Failed to save changes')
     }
     setSaving(false)
   }
 
   async function handleDelete() {
     if (!confirm('Are you sure you want to delete this task?')) return
-    
+
     const result = await deleteTask(taskId)
     if (result.success) {
       window.location.href = '/lab/tasks'
+    } else {
+      alert(result.error || 'Failed to delete task')
     }
   }
 
@@ -225,6 +258,12 @@ export default function TaskDetailPage({ params }: TaskPageProps) {
     const file = e.target.files?.[0]
     if (!file || !currentUserId) return
 
+    if (file.size > 10 * 1024 * 1024) {
+      alert('File size must be under 10MB')
+      if (fileInputRef.current) fileInputRef.current.value = ''
+      return
+    }
+
     setUploading(true)
     const result = await uploadTaskAttachment(taskId, file)
     
@@ -255,6 +294,7 @@ export default function TaskDetailPage({ params }: TaskPageProps) {
     
     if (error) {
       console.error('Download error:', error)
+      alert('Failed to download file. It may no longer exist.')
       return
     }
 
@@ -314,11 +354,13 @@ export default function TaskDetailPage({ params }: TaskPageProps) {
             <div className="bg-white/5 border border-white/10 p-6">
               {isEditing ? (
                 <div className="space-y-4">
+                  {saveError && <div className="p-3 bg-rose-500/10 border border-rose-500/20 text-rose-400 text-sm font-mono">{saveError}</div>}
                   <input
                     type="text"
                     value={formData.title}
                     onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                     className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white font-semibold focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent transition-all font-sans"
+                    placeholder="Task title"
                   />
                   <textarea
                     value={formData.description}
@@ -327,12 +369,41 @@ export default function TaskDetailPage({ params }: TaskPageProps) {
                     rows={4}
                     className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white/70 focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent transition-all resize-none font-sans"
                   />
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="text-xs text-white/50 block mb-1.5 uppercase tracking-wide font-sans">Status</label>
+                      <select value={formData.status} onChange={(e) => setFormData({ ...formData, status: e.target.value as TaskStatus })}
+                        className="w-full px-3 py-2.5 bg-white/5 border border-white/10 text-white/70 focus:outline-none focus:border-accent font-sans appearance-none cursor-pointer">
+                        {(Object.keys(statusLabels) as TaskStatus[]).map(s => <option key={s} value={s} className="bg-[#0a0a0a]">{statusLabels[s]}</option>)}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="text-xs text-white/50 block mb-1.5 uppercase tracking-wide font-sans">Priority</label>
+                      <select value={formData.priority} onChange={(e) => setFormData({ ...formData, priority: e.target.value as TaskPriority })}
+                        className="w-full px-3 py-2.5 bg-white/5 border border-white/10 text-white/70 focus:outline-none focus:border-accent font-sans appearance-none cursor-pointer">
+                        {(Object.keys(priorityLabels) as TaskPriority[]).map(p => <option key={p} value={p} className="bg-[#0a0a0a]">{priorityLabels[p]}</option>)}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="text-xs text-white/50 block mb-1.5 uppercase tracking-wide font-sans">Assignee</label>
+                      <select value={formData.assignee_id} onChange={(e) => setFormData({ ...formData, assignee_id: e.target.value })}
+                        className="w-full px-3 py-2.5 bg-white/5 border border-white/10 text-white/70 focus:outline-none focus:border-accent font-sans appearance-none cursor-pointer">
+                        <option value="" className="bg-[#0a0a0a]">Unassigned</option>
+                        {teamMembers.map(m => <option key={m.id} value={m.id} className="bg-[#0a0a0a]">{m.full_name || m.id}</option>)}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="text-xs text-white/50 block mb-1.5 uppercase tracking-wide font-sans">Due Date</label>
+                      <input type="date" value={formData.due_date} onChange={(e) => setFormData({ ...formData, due_date: e.target.value })}
+                        className="w-full px-3 py-2.5 bg-white/5 border border-white/10 text-white/70 focus:outline-none focus:border-accent font-sans" />
+                    </div>
+                  </div>
                   <div className="flex gap-3">
                     <LabButton onClick={handleSave} disabled={saving}>
                       {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
                       Save Changes
                     </LabButton>
-                    <LabButton variant="ghost" onClick={() => setIsEditing(false)}>
+                    <LabButton variant="ghost" onClick={() => { setIsEditing(false); setSaveError(null) }}>
                       Cancel
                     </LabButton>
                   </div>
@@ -341,12 +412,14 @@ export default function TaskDetailPage({ params }: TaskPageProps) {
                 <div>
                   <div className="flex items-start justify-between gap-4 mb-4">
                     <h1 className="text-2xl font-bold text-white font-sans">{task.title}</h1>
-                    <button
-                      onClick={() => setIsEditing(true)}
-                      className="p-2 hover:bg-white/10 rounded-lg text-white/50 hover:text-white transition-colors"
-                    >
-                      <Edit3 className="w-5 h-5" />
-                    </button>
+                    {canEdit && (
+                      <button
+                        onClick={() => setIsEditing(true)}
+                        className="p-2 hover:bg-white/10 rounded-lg text-white/50 hover:text-white transition-colors"
+                      >
+                        <Edit3 className="w-5 h-5" />
+                      </button>
+                    )}
                   </div>
                   {task.description && (
                     <p className="text-white/70 whitespace-pre-wrap leading-relaxed">{task.description}</p>
@@ -497,7 +570,7 @@ export default function TaskDetailPage({ params }: TaskPageProps) {
                           <input
                             type="number"
                             step="0.5"
-                            min="0"
+                            min="0.5"
                             value={newTimeLog.hours}
                             onChange={(e) => setNewTimeLog({ ...newTimeLog, hours: e.target.value })}
                             className="w-full px-3 py-2.5 bg-white/5 border border-white/10 rounded-lg text-white/70 focus:outline-none focus:border-accent transition-all font-sans"
@@ -509,6 +582,7 @@ export default function TaskDetailPage({ params }: TaskPageProps) {
                           <input
                             type="date"
                             value={newTimeLog.date}
+                            max={new Date().toISOString().split('T')[0]}
                             onChange={(e) => setNewTimeLog({ ...newTimeLog, date: e.target.value })}
                             className="w-full px-3 py-2.5 bg-white/5 border border-white/10 rounded-lg text-white/70 focus:outline-none focus:border-accent transition-all font-sans"
                           />
@@ -692,16 +766,18 @@ export default function TaskDetailPage({ params }: TaskPageProps) {
               </div>
             </div>
 
-            <div className="bg-white/5 border border-rose-500/20 p-5">
-              <LabButton 
-                variant="danger" 
-                className="w-full"
-                onClick={handleDelete}
-              >
-                <Trash2 className="w-4 h-4" />
-                Delete Task
-              </LabButton>
-            </div>
+            {canEdit && (
+              <div className="bg-white/5 border border-rose-500/20 p-5">
+                <LabButton
+                  variant="danger"
+                  className="w-full"
+                  onClick={handleDelete}
+                >
+                  <Trash2 className="w-4 h-4" />
+                  Delete Task
+                </LabButton>
+              </div>
+            )}
           </div>
         </div>
       </div>

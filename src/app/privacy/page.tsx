@@ -22,7 +22,6 @@ export default function PrivacyPage() {
   return (
     <PageWrapper>
       <div className="pt-48 pb-16 relative overflow-hidden">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_50%,rgba(120,119,198,0.08),transparent_50%)]" />
         
         <Container>
           <motion.div

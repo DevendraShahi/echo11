@@ -2,6 +2,8 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
+import { createNotification } from './notification-actions'
+import { createClient as createServiceClient } from '@supabase/supabase-js'
 
 export interface TaskFormData {
   title: string
@@ -41,6 +43,27 @@ async function getUserId(supabase: Awaited<ReturnType<typeof createClient>>) {
   return user?.id || null
 }
 
+async function requireProjectAccess(projectId: string, userId: string): Promise<boolean> {
+  if (!projectId) return false
+
+  const service = createServiceClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  )
+
+  const [{ data: profile }, { data: project }] = await Promise.all([
+    service.from('profiles').select('role').eq('id', userId).single(),
+    service.from('projects').select('team_id').eq('id', projectId).single()
+  ])
+
+  const isAdmin = profile?.role === 'admin'
+  const isLead = project?.team_id
+    ? !!(await service.from('teams').select('lead_id').eq('id', project.team_id).eq('lead_id', userId).single()).data
+    : false
+
+  return isAdmin || isLead
+}
+
 export async function createTask(data: TaskFormData): Promise<{ success: boolean; error?: string; taskId?: string }> {
   const supabase = await createClient()
   const userId = await getUserId(supabase)
@@ -50,6 +73,11 @@ export async function createTask(data: TaskFormData): Promise<{ success: boolean
   }
 
   try {
+    const hasAccess = await requireProjectAccess(data.project_id, userId)
+    if (!hasAccess) {
+      return { success: false, error: 'Only admins or team leads can create tasks for this project' }
+    }
+
     // Get max sort_order for the status column
     const { data: maxOrder } = await supabase
       .from('tasks')
@@ -94,6 +122,16 @@ export async function createTask(data: TaskFormData): Promise<{ success: boolean
       console.warn('Failed to log activity:', activityError)
     }
 
+    if (data.assignee_id && data.assignee_id !== userId) {
+      await createNotification({
+        userId: data.assignee_id,
+        type: 'task',
+        title: 'New Task Assigned',
+        message: `You have been assigned to: ${data.title}`,
+        link: `/lab/projects/${data.project_id}`
+      })
+    }
+
     revalidatePath('/lab/tasks')
     revalidatePath(`/lab/projects/${data.project_id}`)
 
@@ -120,9 +158,17 @@ export async function updateTask(
     // Get old task data for comparison
     const { data: oldTask } = await supabase
       .from('tasks')
-      .select('status, project_id')
+      .select('status, project_id, title, assignee_id')
       .eq('id', taskId)
       .single()
+
+    const projectIdToCheck = data.project_id || oldTask?.project_id
+    if (projectIdToCheck) {
+      const hasAccess = await requireProjectAccess(projectIdToCheck, userId)
+      if (!hasAccess) {
+        return { success: false, error: 'Only admins or team leads can update tasks for this project' }
+      }
+    }
 
     const { error } = await supabase
       .from('tasks')
@@ -167,6 +213,24 @@ export async function updateTask(
       console.warn('Failed to log activity:', activityError)
     }
 
+    if (data.assignee_id && oldTask && data.assignee_id !== oldTask.assignee_id && data.assignee_id !== userId) {
+      await createNotification({
+        userId: data.assignee_id,
+        type: 'task',
+        title: 'Task Assigned To You',
+        message: `You are now the assignee for: ${data.title || oldTask.title}`,
+        link: `/lab/projects/${data.project_id || oldTask.project_id}`
+      })
+    } else if (data.status && oldTask && data.status !== oldTask.status && oldTask.assignee_id && oldTask.assignee_id !== userId) {
+      await createNotification({
+        userId: oldTask.assignee_id,
+        type: 'task',
+        title: 'Task Status Updated',
+        message: `${oldTask.title} was moved to ${data.status.replace('_', ' ')}.`,
+        link: `/lab/projects/${data.project_id || oldTask.project_id}`
+      })
+    }
+
     // Revalidate paths
     revalidatePath('/lab/tasks')
     if (oldTask?.project_id) {
@@ -199,6 +263,13 @@ export async function deleteTask(taskId: string): Promise<{ success: boolean; er
       .select('project_id, title')
       .eq('id', taskId)
       .single()
+
+    if (task?.project_id) {
+      const hasAccess = await requireProjectAccess(task.project_id, userId)
+      if (!hasAccess) {
+        return { success: false, error: 'Only admins or team leads can delete tasks for this project' }
+      }
+    }
 
     const { error } = await supabase
       .from('tasks')
@@ -246,12 +317,36 @@ export async function updateTaskStatus(
   }
 
   try {
-    // Get old task for revalidation
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('role, team_id')
+      .eq('id', userId)
+      .single()
+
+    const isAdmin = profile?.role === 'admin'
+    let isLead = false
+
+    if (profile?.team_id) {
+      const { data: team } = await supabase
+        .from('teams')
+        .select('lead_id')
+        .eq('id', profile.team_id)
+        .single()
+      isLead = team?.lead_id === userId
+    }
+
+    // Get old task for revalidation and assignee check
     const { data: oldTask } = await supabase
       .from('tasks')
-      .select('project_id, status')
+      .select('project_id, status, assignee_id')
       .eq('id', taskId)
       .single()
+
+    const isAssignee = oldTask?.assignee_id === userId
+
+    if (newStatus === 'done' && !(isAdmin || isLead || isAssignee)) {
+      return { success: false, error: 'Only a team lead, admin, or the task assignee can move tasks to Done' }
+    }
 
     // Update status and recalculate sort_order
     const { data: maxOrder } = await supabase
@@ -290,6 +385,7 @@ export async function updateTaskStatus(
     }
 
     revalidatePath('/lab/tasks')
+    revalidatePath(`/lab/tasks/${taskId}`)
     if (oldTask?.project_id) {
       revalidatePath(`/lab/projects/${oldTask.project_id}`)
     }

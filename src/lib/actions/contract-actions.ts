@@ -7,6 +7,8 @@ import { createClient as createBrowserClient } from '@/lib/supabase/client'
 import { generateContractPDFBlob } from '@/lib/contract-pdf'
 import { substituteVariables, getDefaultVariables } from '@/lib/contract-template-engine'
 import { sendContractEmail } from '@/lib/email'
+import { createNotification } from './notification-actions'
+import { requireAdminOrLead } from './role-helpers'
 
 export interface CreateContractParams {
   client_id: string
@@ -51,6 +53,11 @@ export async function createContract(
     return { success: false, error: 'You must be logged in' }
   }
 
+  const allowed = await requireAdminOrLead(user.id)
+  if (!allowed) {
+    return { success: false, error: 'Only admins or team leads can create contracts' }
+  }
+
   try {
     const contractNumber = await generateContractNumber()
 
@@ -84,6 +91,36 @@ export async function createContract(
       metadata: { client_id: params.client_id, title: params.title, contract_number: contractNumber }
     })
 
+    // Notify team members (actor's team) about new contract
+    try {
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('team_id')
+        .eq('id', user.id)
+        .single()
+
+      if (profile?.team_id) {
+        const { data: members } = await supabase
+          .from('profiles')
+          .select('id')
+          .eq('team_id', profile.team_id)
+
+        await Promise.all(
+          (members || [])
+            .filter(m => m.id !== user.id)
+            .map(m => createNotification({
+              userId: m.id,
+              type: 'contract',
+              title: 'New Contract Created',
+              message: params.title,
+              link: `/lab/contracts/${contract.id}`
+            }))
+        )
+      }
+    } catch (notifyErr) {
+      console.warn('Failed to dispatch contract notifications', notifyErr)
+    }
+
     revalidatePath(`/lab/clients/${params.client_id}`)
     revalidatePath('/lab/contracts')
     return { success: true, contract: contract as Contract }
@@ -105,7 +142,18 @@ export async function updateContract(
     return { success: false, error: 'You must be logged in' }
   }
 
+  const allowed = await requireAdminOrLead(user.id)
+  if (!allowed) {
+    return { success: false, error: 'Only admins or team leads can update contracts' }
+  }
+
   try {
+    const { data: oldContract } = await supabase
+      .from('contracts')
+      .select('status, title, created_by')
+      .eq('id', contractId)
+      .single()
+
     const { error } = await supabase
       .from('contracts')
       .update({
@@ -120,6 +168,44 @@ export async function updateContract(
 
     if (error) {
       return { success: false, error: error.message }
+    }
+
+    // Notify creator and team on status change
+    if (params.status && oldContract && params.status !== oldContract.status) {
+      try {
+        const targets = new Set<string>()
+        if (oldContract.created_by) targets.add(oldContract.created_by)
+
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('team_id')
+          .eq('id', user.id)
+          .single()
+
+        if (profile?.team_id) {
+          const { data: members } = await supabase
+            .from('profiles')
+            .select('id')
+            .eq('team_id', profile.team_id)
+          members?.forEach(m => targets.add(m.id))
+        }
+
+        targets.delete(user.id)
+
+        await Promise.all(
+          Array.from(targets).map(targetId =>
+            createNotification({
+              userId: targetId,
+              type: 'contract',
+              title: `${oldContract.title} status updated`,
+              message: `Status changed to ${params.status}`,
+              link: `/lab/contracts/${contractId}`
+            })
+          )
+        )
+      } catch (notifyErr) {
+        console.warn('Failed to dispatch contract status notifications', notifyErr)
+      }
     }
 
     revalidatePath(`/lab/clients/${clientId}`)
@@ -140,6 +226,11 @@ export async function updateContractStatus(
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) {
     return { success: false, error: 'You must be logged in' }
+  }
+
+  const allowed = await requireAdminOrLead(user.id)
+  if (!allowed) {
+    return { success: false, error: 'Only admins or team leads can update contract status' }
   }
 
   try {
@@ -178,6 +269,11 @@ export async function deleteContract(
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) {
     return { success: false, error: 'You must be logged in' }
+  }
+
+  const allowed = await requireAdminOrLead(user.id)
+  if (!allowed) {
+    return { success: false, error: 'Only admins or team leads can delete contracts' }
   }
 
   try {
@@ -251,6 +347,11 @@ export async function uploadContractFile(
     return { success: false, error: 'You must be logged in' }
   }
 
+  const allowed = await requireAdminOrLead(user.id)
+  if (!allowed) {
+    return { success: false, error: 'Only admins or team leads can upload contract files' }
+  }
+
   try {
     const fileExt = file.name.split('.').pop()
     const fileName = `${contractId}/${Date.now()}.${fileExt}`
@@ -294,6 +395,11 @@ export async function generateContractFromTemplate(
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) {
     return { success: false, error: 'You must be logged in' }
+  }
+
+  const allowed = await requireAdminOrLead(user.id)
+  if (!allowed) {
+    return { success: false, error: 'Only admins or team leads can generate contract documents' }
   }
 
   try {
@@ -412,6 +518,11 @@ export async function sendContractToClient(
     return { success: false, error: 'You must be logged in' }
   }
 
+  const allowed = await requireAdminOrLead(user.id)
+  if (!allowed) {
+    return { success: false, error: 'Only admins or team leads can send contracts to clients' }
+  }
+
   try {
     const { data: contract } = await supabase
       .from('contracts')
@@ -427,7 +538,7 @@ export async function sendContractToClient(
     }
 
     const client = contract.client as { company_name: string; contact_name: string; email: string } | null
-    const contractUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/lab/contracts/${contractId}`
+    const contractUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'https://echo11.tech'}/lab/contracts/${contractId}`
 
     const emailResult = await sendContractEmail({
       to: recipientEmail,

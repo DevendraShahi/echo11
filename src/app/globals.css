@@ -40,6 +40,35 @@
   }
 }
 
+/* Registered custom properties for animating radial gradient stops */
+@property --orb-mid {
+  syntax: '<percentage>';
+  inherits: false;
+  initial-value: 40%;
+}
+
+@property --orb-edge {
+  syntax: '<percentage>';
+  inherits: false;
+  initial-value: 70%;
+}
+
+@keyframes orbRadiusPulse {
+  0%, 100% {
+    --orb-mid: 40%;
+    --orb-edge: 70%;
+  }
+  50% {
+    --orb-mid: 58%;
+    --orb-edge: 90%;
+  }
+}
+
+.orb-pulse {
+  animation: orbRadiusPulse 6s ease-in-out infinite;
+  background: radial-gradient(circle at center, var(--accent) 0%, #005588 var(--orb-mid), transparent var(--orb-edge));
+}
+
 @layer utilities {
   .text-glow {
     text-shadow: 0 0 20px var(--accent-glow);

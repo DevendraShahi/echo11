@@ -1,6 +1,6 @@
 import { PageHeader } from '@/components/ui/PageHeader'
 import { LabCard, LabCardContent, LabCardHeader, LabCardTitle } from '@/components/ui/LabCard'
-import { CheckSquare, Briefcase, FileText, FileSignature, Folder, MessageSquare, BookOpen, Users, Settings, Calendar, LayoutDashboard } from 'lucide-react'
+import { CheckSquare, Briefcase, FileSignature, BookOpen, Users, Settings, LayoutDashboard } from 'lucide-react'
 
 export const metadata = {
   title: 'Team Onboarding | echo11Lab',

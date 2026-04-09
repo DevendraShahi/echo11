@@ -3,6 +3,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { ClientContact, ContactRole } from '@/types/lab'
+import { requireAdminOrLead } from './role-helpers'
 
 export interface CreateContactParams {
   client_id: string
@@ -33,6 +34,15 @@ export async function createContact(
     return { success: false, error: 'You must be logged in' }
   }
 
+  const allowed = await requireAdminOrLead(user.id)
+  if (!allowed) {
+    return { success: false, error: 'Only admins or team leads can add contacts' }
+  }
+
+  if (!params.name?.trim()) {
+    return { success: false, error: 'Contact name is required' }
+  }
+
   try {
     if (params.is_primary) {
       await supabase
@@ -45,12 +55,12 @@ export async function createContact(
       .from('client_contacts')
       .insert({
         client_id: params.client_id,
-        name: params.name,
-        email: params.email || null,
-        phone: params.phone || null,
-        role: params.role || null,
+        name: params.name.trim(),
+        email: params.email || undefined,
+        phone: params.phone || undefined,
+        role: params.role || undefined,
         is_primary: params.is_primary || false,
-        notes: params.notes || null
+        notes: params.notes || undefined
       })
       .select()
       .single()
@@ -90,6 +100,15 @@ export async function updateContact(
     return { success: false, error: 'You must be logged in' }
   }
 
+  const allowed = await requireAdminOrLead(user.id)
+  if (!allowed) {
+    return { success: false, error: 'Only admins or team leads can update contacts' }
+  }
+
+  if (params.name !== undefined && !params.name.trim()) {
+    return { success: false, error: 'Contact name cannot be empty' }
+  }
+
   try {
     if (params.is_primary) {
       await supabase
@@ -102,11 +121,11 @@ export async function updateContact(
       .from('client_contacts')
       .update({
         name: params.name,
-        email: params.email || null,
-        phone: params.phone || null,
-        role: params.role || null,
+        email: params.email || undefined,
+        phone: params.phone || undefined,
+        role: params.role || undefined,
         is_primary: params.is_primary || false,
-        notes: params.notes || null
+        notes: params.notes || undefined
       })
       .eq('id', contactId)
 
@@ -115,6 +134,7 @@ export async function updateContact(
     }
 
     revalidatePath(`/lab/clients/${clientId}`)
+    revalidatePath('/lab/clients')
     return { success: true }
   } catch (error) {
     console.error('Error updating contact:', error)
@@ -127,13 +147,36 @@ export async function deleteContact(
   clientId: string
 ): Promise<{ success: boolean; error?: string }> {
   const supabase = await createClient()
-  
+
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) {
     return { success: false, error: 'You must be logged in' }
   }
 
+  const allowed = await requireAdminOrLead(user.id)
+  if (!allowed) {
+    return { success: false, error: 'Only admins or team leads can delete contacts' }
+  }
+
   try {
+    // Prevent deleting primary contact if others exist
+    const { data: contactToDelete } = await supabase
+      .from('client_contacts')
+      .select('is_primary')
+      .eq('id', contactId)
+      .single()
+
+    if (contactToDelete?.is_primary) {
+      const { count } = await supabase
+        .from('client_contacts')
+        .select('*', { count: 'exact', head: true })
+        .eq('client_id', clientId)
+
+      if ((count ?? 0) > 1) {
+        return { success: false, error: 'Cannot delete the primary contact while other contacts exist. Assign a new primary first.' }
+      }
+    }
+
     const { error } = await supabase
       .from('client_contacts')
       .delete()
@@ -144,6 +187,7 @@ export async function deleteContact(
     }
 
     revalidatePath(`/lab/clients/${clientId}`)
+    revalidatePath('/lab/clients')
     return { success: true }
   } catch (error) {
     console.error('Error deleting contact:', error)
@@ -156,10 +200,15 @@ export async function setPrimaryContact(
   clientId: string
 ): Promise<{ success: boolean; error?: string }> {
   const supabase = await createClient()
-  
+
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) {
     return { success: false, error: 'You must be logged in' }
+  }
+
+  const allowed = await requireAdminOrLead(user.id)
+  if (!allowed) {
+    return { success: false, error: 'Only admins or team leads can change primary contacts' }
   }
 
   try {
@@ -178,6 +227,7 @@ export async function setPrimaryContact(
     }
 
     revalidatePath(`/lab/clients/${clientId}`)
+    revalidatePath('/lab/clients')
     return { success: true }
   } catch (error) {
     console.error('Error setting primary contact:', error)

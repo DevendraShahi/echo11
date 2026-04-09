@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from 'react'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
-import { Mail, Phone, MoreHorizontal, Send, Edit3, Trash2, ExternalLink, DollarSign, FolderKanban, Star } from 'lucide-react'
+import { Mail, Phone, MoreHorizontal, Send, Edit3, Trash2, ExternalLink, DollarSign, FolderKanban } from 'lucide-react'
 import { ClientWithRelations } from '@/lib/actions/client-actions'
 
 interface ClientCardProps {

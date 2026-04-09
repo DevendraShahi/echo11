@@ -8,7 +8,7 @@ import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 
 const projects = [
-  { id: "trueluxe", title: "TrueLuxe Nepal", category: "E-Commerce", desc: "Skincare ecommerce with advanced filtering." },
+  { id: "trueluxe", title: "TrueLuxe Nepal", category: "E-Commerce", desc: "Skincare ecommerce with advanced filtering.", link: "https://trueluxe-nepal.vercel.app" },
   { id: "prika", title: "Prika Couture", category: "Fashion", desc: "Lifestyle and fashion brand digital storefront.", link: "https://prika.vercel.app" },
   { id: "leaders", title: "The Leaders NP", category: "Corporate", desc: "Corporate platform for the-leadersnp.com.", link: "https://the-leadersnp.com" },
   { id: "green", title: "Green Lifestyle", category: "Blog", desc: "Sustainability blog with optimized reading experience.", link: "https://devendrashahi.pythonanywhere.com/" },
@@ -16,7 +16,7 @@ const projects = [
   { id: "3am3d", title: "3am3d", category: "Creative", desc: "3D and creative studio portfolio.", link: "https://3am3d.vercel.app" },
 ];
 
-const categories = ["All", "E-Commerce", "SaaS", "Creative", "Corporate", "Fashion", "Blog"];
+
 
 export function SelectedWork({ standalone = false }: { standalone?: boolean } = {}) {
   const [activeProject, setActiveProject] = useState<string | null>(projects[0].id);

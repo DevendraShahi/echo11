@@ -11,6 +11,7 @@ type ProjectWithClient = Omit<Project, 'client'> & {
 
 type ProjectWithMilestones = ProjectWithClient & {
   milestones?: Milestone[]
+  tasks?: { status: string; priority: string }[]
 }
 
 async function getProjects(): Promise<ProjectWithMilestones[]> {
@@ -23,7 +24,8 @@ async function getProjects(): Promise<ProjectWithMilestones[]> {
     .select(`
       *,
       client:clients(company_name, contact_name),
-      milestones(id, name, weight, completed, completed_at)
+      milestones(id, name, weight, completed, completed_at),
+      tasks(status, priority)
     `)
     .order('created_at', { ascending: false })
 
@@ -38,7 +40,7 @@ async function getProjects(): Promise<ProjectWithMilestones[]> {
     return []
   }
 
-  return (projects || []) as ProjectWithMilestones[]
+  return (projects || []) as unknown as ProjectWithClient[]
 }
 
 async function getClients() {
@@ -71,14 +73,19 @@ async function getClients() {
 }
 
 export default async function ProjectsPage() {
-  const projects = await getProjects()
-  const clients = await getClients()
+  const [projects, clients, userRole] = await Promise.all([
+    getProjects(),
+    getClients(),
+    getUserRoleAndTeam()
+  ])
+
+  const canEdit = userRole?.isAdmin || userRole?.isLead || false
 
   return (
     <>
       <TooltipTour steps={projectsTourSteps} pageId="projects" />
       <PageVisitTracker pageId="projects" />
-      <ProjectsPageClient initialProjects={projects} initialClients={clients} />
+      <ProjectsPageClient initialProjects={projects} initialClients={clients} canEdit={canEdit} />
     </>
   )
 }

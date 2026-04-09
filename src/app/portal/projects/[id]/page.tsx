@@ -1,7 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { notFound, redirect } from 'next/navigation'
 import Link from 'next/link'
-import { ArrowLeft, Clock, CheckSquare, DollarSign, Calendar } from 'lucide-react'
+import { ArrowLeft, Clock, CheckSquare, Calendar } from 'lucide-react'
 import { format } from 'date-fns'
 
 type ProjectDetail = {

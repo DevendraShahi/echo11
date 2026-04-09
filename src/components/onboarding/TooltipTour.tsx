@@ -4,6 +4,7 @@ import { useState, useCallback, useEffect } from 'react'
 import { Joyride, Step, EVENTS, STATUS } from 'react-joyride'
 import { cn } from '@/lib/utils'
 import { consumePendingTour } from './tourState'
+import { isStepComplete } from './OnboardingChecklist'
 
 export interface TourStep {
   target: string
@@ -21,16 +22,22 @@ interface TooltipTourProps {
 
 export function TooltipTour({ steps, pageId, onComplete }: TooltipTourProps) {
   const [run, setRun] = useState(false)
+  const [showTour, setShowTour] = useState(false)
 
   useEffect(() => {
     const storageKey = `echo11_tour_${pageId}_done`
-    const hasSeenTour = localStorage.getItem(storageKey)
+    const hasSeenTour = localStorage.getItem(storageKey) === 'true'
+    const stepCompleted = isStepComplete(pageId)
     const isPending = consumePendingTour(pageId)
+    const userWantsTour = isPending || (!hasSeenTour && !stepCompleted)
 
-    if ((!hasSeenTour || isPending) && steps.length > 0) {
+    if (userWantsTour && steps.length > 0) {
+      setShowTour(true)
       // Small delay so page elements have time to render
       const t = setTimeout(() => setRun(true), 300)
       return () => clearTimeout(t)
+    } else {
+      setShowTour(false)
     }
   }, [pageId, steps.length])
 
@@ -51,9 +58,12 @@ export function TooltipTour({ steps, pageId, onComplete }: TooltipTourProps) {
     if (status === STATUS.FINISHED || status === STATUS.SKIPPED) {
       localStorage.setItem(`echo11_tour_${pageId}_done`, 'true')
       setRun(false)
+      setShowTour(false)
       onComplete?.()
     }
   }, [pageId, onComplete])
+
+  if (!showTour) return null
 
   const joyrideSteps: Step[] = steps.map(step => ({
     target: step.target,

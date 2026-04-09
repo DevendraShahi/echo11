@@ -11,11 +11,7 @@ import {
   Clock,
   Edit,
   ExternalLink,
-  MoreHorizontal,
-  Users,
-  Copy,
-  Archive,
-  Trash2
+  Users
 } from 'lucide-react'
 import Link from 'next/link'
 import { format } from 'date-fns'
@@ -47,7 +43,8 @@ async function getProject(id: string): Promise<ProjectWithRelations | null> {
     .from('projects')
     .select(`
       *,
-      client:clients(*)
+      client:clients(*),
+      tasks:tasks(status, priority)
     `)
     .eq('id', id)
     .single()
@@ -203,10 +200,18 @@ export default async function ProjectDetailPage({
   const completedTasks = tasks.filter(t => t.status === 'done').length
   const paidInvoices = invoices.filter(i => i.status === 'paid').reduce((sum, inv) => sum + (inv.total || 0), 0)
 
-  // Calculate weighted progress from milestones
-  const totalWeight = milestones.reduce((sum, m) => sum + (m.weight || 0), 0)
-  const completedWeight = milestones.filter(m => m.completed).reduce((sum, m) => sum + (m.weight || 0), 0)
-  const weightedProgress = totalWeight > 0 ? Math.round((completedWeight / totalWeight) * 100) : project.progress
+  // Calculate weighted progress from tasks
+  const weightMap: Record<string, number> = {
+    low: 0.5,
+    medium: 1,
+    high: 2,
+    urgent: 3,
+  }
+  const totalWeight = tasks.reduce((sum, t) => sum + (weightMap[t.priority] || 0), 0)
+  const completedWeight = tasks
+    .filter(t => t.status === 'done')
+    .reduce((sum, t) => sum + (weightMap[t.priority] || 0), 0)
+  const weightedProgress = totalWeight > 0 ? Math.round((completedWeight / totalWeight) * 100) : 0
 
   // Calculate budget from expenses
   const calculatedBudget = expenses.reduce((sum, e) => sum + (e.amount || 0), 0)
@@ -287,9 +292,6 @@ export default async function ProjectDetailPage({
                 <p className="text-xs text-white/40 font-sans">Progress</p>
                 <div className="flex items-center gap-2">
                   <p className="text-xl font-bold text-foreground font-sans">{weightedProgress}%</p>
-                  {totalWeight > 0 && weightedProgress !== project.progress && (
-                    <span className="text-xs text-white/40">(manual: {project.progress}%)</span>
-                  )}
                 </div>
               </div>
             </div>
@@ -397,6 +399,7 @@ export default async function ProjectDetailPage({
                         className="flex items-center gap-2 px-3 py-1.5 bg-white/5 rounded-none"
                       >
                         {member.avatar_url ? (
+                          /* eslint-disable-next-line @next/next/no-img-element */
                           <img 
                             src={member.avatar_url} 
                             alt={member.full_name || ''}

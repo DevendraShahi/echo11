@@ -17,6 +17,7 @@ type SortOption = 'recent' | 'name' | 'revenue' | 'projects'
 interface ClientsPageContentProps {
   initialClients: ClientWithStats[]
   initialStats: ClientStats
+  canEdit?: boolean
 }
 
 const FILTER_OPTIONS: { value: FilterOption; label: string }[] = [
@@ -37,7 +38,7 @@ const SORT_OPTIONS: { value: SortOption; label: string }[] = [
   { value: 'projects', label: 'Projects' },
 ]
 
-export function ClientsPageContent({ initialClients, initialStats }: ClientsPageContentProps) {
+export function ClientsPageContent({ initialClients, initialStats, canEdit = false }: ClientsPageContentProps) {
   const [clients, setClients] = useState(initialClients)
   const [stats] = useState(initialStats)
   const [showModal, setShowModal] = useState(false)
@@ -149,17 +150,19 @@ export function ClientsPageContent({ initialClients, initialStats }: ClientsPage
             <h1 className="text-3xl font-bold text-white tracking-tight font-sans">Clients</h1>
             <p className="text-white/50 mt-1 font-mono text-sm">Manage your client relationships</p>
           </div>
-          <LabButton 
-            onClick={() => {
-              setEditingClient(null)
-              setShowModal(true)
-            }}
-            className="font-mono uppercase text-xs tracking-wider"
-            data-tour="add-client"
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            Add Client
-          </LabButton>
+          {canEdit && (
+            <LabButton
+              onClick={() => {
+                setEditingClient(null)
+                setShowModal(true)
+              }}
+              className="font-mono uppercase text-xs tracking-wider"
+              data-tour="add-client"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Add Client
+            </LabButton>
+          )}
         </div>
 
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-px bg-white/5 border border-white/5" data-tour="client-stats">
@@ -330,8 +333,8 @@ export function ClientsPageContent({ initialClients, initialStats }: ClientsPage
                 ? 'Try adjusting your search or filters' 
                 : 'Add your first client to start tracking projects and invoicing'}
             </p>
-            {!hasActiveFilters && (
-              <LabButton 
+            {canEdit && !hasActiveFilters && (
+              <LabButton
                 onClick={() => {
                   setEditingClient(null)
                   setShowModal(true)
@@ -350,9 +353,9 @@ export function ClientsPageContent({ initialClients, initialStats }: ClientsPage
                 key={client.id}
                 client={client}
                 index={index}
-                onEdit={handleEditClient}
-                onDelete={handleDeleteClient}
-                onSendInvite={handleSendInvite}
+                onEdit={canEdit ? handleEditClient : undefined}
+                onDelete={canEdit ? handleDeleteClient : undefined}
+                onSendInvite={canEdit ? handleSendInvite : undefined}
               />
             ))}
           </div>

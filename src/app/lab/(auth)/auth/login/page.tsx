@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import { Mail, Lock, Loader2 } from 'lucide-react'
+import { Mail, Lock, Loader2, AlertCircle } from 'lucide-react'
 
 export default function LoginPage() {
   const router = useRouter()
@@ -34,20 +34,27 @@ export default function LoginPage() {
     )
   }
 
-  const handleLogin = async (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setLoading(true)
     setError(null)
 
     const supabase = createClient()
     
-    const { error: signInError } = await supabase.auth.signInWithPassword({
+    const { data, error: signInError } = await supabase.auth.signInWithPassword({
       email,
       password,
     })
 
     if (signInError) {
       setError(signInError.message)
+      setLoading(false)
+      return
+    }
+
+    if (data.session?.user?.email_confirmed_at === null) {
+      await supabase.auth.signOut()
+      setError('Email not verified. Please check your inbox for the verification link.')
       setLoading(false)
       return
     }
@@ -70,7 +77,8 @@ export default function LoginPage() {
         <div className="bg-[#0a0a0a] border border-white/10 p-8">
           <form onSubmit={handleLogin} className="space-y-4">
             {error && (
-              <div className="p-3 bg-rose-500/10 border border-rose-500/20 text-rose-400 text-sm font-mono">
+              <div className="flex items-center gap-2 p-3 bg-rose-500/10 border border-rose-500/20 text-rose-400 text-sm font-mono">
+                <AlertCircle className="w-4 h-4 flex-shrink-0" />
                 {error}
               </div>
             )}
@@ -85,7 +93,8 @@ export default function LoginPage() {
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2.5 bg-white/5 border border-white/10 text-white placeholder:text-white/30 focus:border-accent focus:outline-none font-mono text-sm"
+                  disabled={loading}
+                  className="w-full pl-10 pr-4 py-2.5 bg-white/5 border border-white/10 text-white placeholder:text-white/30 focus:border-accent focus:outline-none font-mono text-sm disabled:opacity-50"
                   placeholder="you@example.com"
                   required
                 />
@@ -102,7 +111,8 @@ export default function LoginPage() {
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2.5 bg-white/5 border border-white/10 text-white placeholder:text-white/30 focus:border-accent focus:outline-none font-mono text-sm"
+                  disabled={loading}
+                  className="w-full pl-10 pr-4 py-2.5 bg-white/5 border border-white/10 text-white placeholder:text-white/30 focus:border-accent focus:outline-none font-mono text-sm disabled:opacity-50"
                   placeholder="••••••••"
                   required
                 />
@@ -127,14 +137,7 @@ export default function LoginPage() {
 
           <div className="mt-6 text-center">
             <p className="text-sm text-white/50 font-mono">
-              Don&apos;t have an account?{' '}
-              <button
-                type="button"
-                onClick={() => router.push('/lab/auth/signup')}
-                className="text-accent hover:text-accent/80 transition-colors"
-              >
-                Sign up
-              </button>
+              Need access? Use your team invitation link or contact your administrator.
             </p>
           </div>
         </div>

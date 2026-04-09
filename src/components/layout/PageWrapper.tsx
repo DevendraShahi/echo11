@@ -21,7 +21,7 @@ export function PageWrapper({ children }: { children: React.ReactNode }) {
       {pathname !== "/" && (
         <div className="absolute top-0 left-0 w-full h-[800px] pointer-events-none z-0 flex justify-center">
           {/* Pure, dense cyan-blue radial orb mimicking the Figma design perfectly */}
-          <div className="w-[1200px] h-[1200px] absolute top-[-600px] bg-[radial-gradient(circle_at_center,var(--accent)_0%,#005588_40%,transparent_70%)] opacity-80 blur-[80px] rounded-full" />
+          <div className="orb-pulse w-[1200px] h-[1200px] absolute top-[-600px] opacity-80 blur-[80px] rounded-full" />
         </div>
       )}
 

@@ -68,6 +68,7 @@ function ClientVerifyForm() {
       email: inviteEmail,
       password,
       options: {
+        emailRedirectTo: `${process.env.NEXT_PUBLIC_APP_URL || 'https://echo11.tech'}/portal/auth/callback?next=/portal/auth/login`,
         data: {
           full_name: fullName,
           company_name: companyName,

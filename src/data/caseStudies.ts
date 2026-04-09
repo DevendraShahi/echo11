@@ -24,7 +24,7 @@ export const caseStudies: CaseStudy[] = [
     year: "2025",
     tagline: "Premium skincare marketplace reimagined",
     description: "A sophisticated e-commerce platform for premium skincare products, featuring advanced filtering, personalized recommendations, and a seamless checkout experience tailored for the Nepali market.",
-    link: "https://trueluxe.example.com",
+    link: "https://trueluxe-nepal.vercel.app",
     thumbnail: "https://images.unsplash.com/photo-1556228720-195a672e8a03?w=800&q=80",
     color: "#C4A77D",
     services: ["UX Research", "UI Design", "Frontend Development", "Backend Integration"],

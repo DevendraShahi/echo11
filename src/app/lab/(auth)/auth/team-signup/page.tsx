@@ -20,6 +20,7 @@ function TeamSignupForm() {
   const [inviteRole, setInviteRole] = useState('')
   
   const [password, setPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
   const [fullName, setFullName] = useState('')
   const [success, setSuccess] = useState(false)
 
@@ -59,6 +60,12 @@ function TeamSignupForm() {
     setSubmitting(true)
     setError(null)
 
+    if (password !== confirmPassword) {
+      setError('Passwords do not match')
+      setSubmitting(false)
+      return
+    }
+
     const supabase = createClient()
     
     // Create the auth user with the pre-verified email
@@ -66,6 +73,7 @@ function TeamSignupForm() {
       email: inviteEmail,
       password,
       options: {
+        emailRedirectTo: `${process.env.NEXT_PUBLIC_APP_URL || 'https://echo11.tech'}/lab/auth/callback?next=/lab/auth/login`,
         data: {
           full_name: fullName,
         },
@@ -205,7 +213,8 @@ function TeamSignupForm() {
                   type="text"
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
-                  className="w-full pl-11 pr-4 py-3 bg-white/5 border border-white/10 text-white placeholder:text-white/20 focus:border-accent focus:bg-white/10 focus:outline-none font-mono text-sm transition-all"
+                  disabled={submitting}
+                  className="w-full pl-11 pr-4 py-3 bg-white/5 border border-white/10 text-white placeholder:text-white/20 focus:border-accent focus:bg-white/10 focus:outline-none font-mono text-sm transition-all disabled:opacity-50"
                   placeholder="John Doe"
                   required
                   autoFocus
@@ -223,13 +232,33 @@ function TeamSignupForm() {
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full pl-11 pr-4 py-3 bg-white/5 border border-white/10 text-white placeholder:text-white/20 focus:border-accent focus:bg-white/10 focus:outline-none font-mono text-sm transition-all"
+                  disabled={submitting}
+                  className="w-full pl-11 pr-4 py-3 bg-white/5 border border-white/10 text-white placeholder:text-white/20 focus:border-accent focus:bg-white/10 focus:outline-none font-mono text-sm transition-all disabled:opacity-50"
                   placeholder="••••••••"
                   required
                   minLength={6}
                 />
               </div>
               <p className="text-[11px] text-white/30 mt-2 font-mono uppercase tracking-wider">Must be at least 6 characters</p>
+            </div>
+
+            <div>
+              <label className="block text-xs font-mono uppercase tracking-wider text-white/50 mb-2">
+                Confirm Password
+              </label>
+              <div className="relative group">
+                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30 group-focus-within:text-accent transition-colors" />
+                <input
+                  type="password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  disabled={submitting}
+                  className="w-full pl-11 pr-4 py-3 bg-white/5 border border-white/10 text-white placeholder:text-white/20 focus:border-accent focus:bg-white/10 focus:outline-none font-mono text-sm transition-all disabled:opacity-50"
+                  placeholder="Match the password"
+                  required
+                  minLength={6}
+                />
+              </div>
             </div>
 
             <button

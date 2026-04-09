@@ -7,11 +7,10 @@ import { PageHeader } from '@/components/ui/PageHeader'
 import { SearchInput } from '@/components/ui/SearchInput'
 import { FilterTabs, FilterTab } from '@/components/ui/FilterTabs'
 import { EmptyState } from '@/components/ui/EmptyState'
-import { Plus, Video, Calendar, Clock, Users, MapPin, CalendarDays } from 'lucide-react'
+import { Plus, Video, Clock, Users, MapPin, CalendarDays } from 'lucide-react'
 import { MeetingFormModal } from '@/components/lab/MeetingForm'
 import Link from 'next/link'
 import { format } from 'date-fns'
-import { deleteMeeting } from '@/lib/actions/meeting-actions'
 import { useRouter } from 'next/navigation'
 
 type MeetingWithProject = Omit<Meeting, 'project'> & {
@@ -24,7 +23,7 @@ interface MeetingsPageProps {
 }
 
 export default function MeetingsPageClient({ initialMeetings, initialProjects }: MeetingsPageProps) {
-  const [meetings, setMeetings] = useState(initialMeetings)
+  const [meetings] = useState(initialMeetings)
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [view, setView] = useState<'upcoming' | 'past' | 'all'>('upcoming')
   const [searchQuery, setSearchQuery] = useState('')
@@ -37,8 +36,6 @@ export default function MeetingsPageClient({ initialMeetings, initialProjects }:
     const matchesSearch = meeting.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       (meeting.description || '').toLowerCase().includes(searchQuery.toLowerCase())
     const matchesProject = !projectFilter || meeting.project_id === projectFilter
-    
-    const now = new Date()
     const meetingDate = new Date(meeting.scheduled_at)
     
     let matchesView = true

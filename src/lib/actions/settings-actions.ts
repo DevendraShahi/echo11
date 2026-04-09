@@ -1,6 +1,7 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
+import { createClient as createServiceClient } from '@supabase/supabase-js'
 import { revalidatePath } from 'next/cache'
 import { UserPreferences, Theme } from '@/types/lab'
 import { sendTeamInvitation } from '@/lib/email'
@@ -168,34 +169,63 @@ export async function changePassword(
 
 export async function getTeamMembers() {
   const supabase = await createClient()
-  
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user) {
-    return []
-  }
+  if (!user) return []
 
   const { data: currentProfile } = await supabase
     .from('profiles')
-    .select('role, team_id')
+    .select('role')
     .eq('id', user.id)
     .single()
 
-  if (!currentProfile || currentProfile.role !== 'admin') {
-    return []
+  if (currentProfile?.role !== 'admin') return []
+
+  // Use service role to bypass any RLS and to backfill missing profiles
+  const service = createServiceClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  )
+
+  // Fetch auth users (first page; adjust perPage if org grows)
+  const { data: authUsers, error: authError } = await service.auth.admin.listUsers({ page: 1, perPage: 200 })
+  if (authError) {
+    console.error('Failed to list auth users', authError)
   }
 
-  const { data: members } = await supabase
+  const { data: profiles } = await service
     .from('profiles')
-    .select('id, email, full_name, role, team_id, created_at')
+    .select('id, email, full_name, role, team_id, job_title, created_at')
     .order('created_at', { ascending: true })
 
-  return members || []
+  const profileMap = new Map((profiles || []).map(p => [p.id, p]))
+  const missing = (authUsers?.users || []).filter(u => !profileMap.has(u.id))
+
+  if (missing.length > 0) {
+    const rows = missing.map(u => ({
+      id: u.id,
+      email: u.email,
+      full_name: u.user_metadata?.full_name || null,
+      role: 'member',
+      team_id: null,
+      job_title: null,
+      created_at: new Date().toISOString(),
+    }))
+    try {
+      await service.from('profiles').upsert(rows)
+      rows.forEach(r => profileMap.set(r.id, r))
+    } catch (e) {
+      console.error('Failed to backfill missing profiles', e)
+    }
+  }
+
+  return Array.from(profileMap.values())
 }
 
 export async function updateMemberRole(
   memberId: string,
   role: 'admin' | 'member' | 'client'
 ): Promise<{ success: boolean; error?: string }> {
+  const { createClient: createSupabaseClient } = await import('@supabase/supabase-js')
   const supabase = await createClient()
   
   const { data: { user } } = await supabase.auth.getUser()
@@ -217,8 +247,21 @@ export async function updateMemberRole(
     return { success: false, error: 'You cannot change your own role' }
   }
 
+  if (role !== 'admin') {
+    const { data: admins } = await supabase.from('profiles').select('id').eq('role', 'admin')
+    const otherAdmins = (admins || []).filter(a => a.id !== memberId)
+    if (otherAdmins.length === 0) {
+      return { success: false, error: 'Cannot demote the last admin' }
+    }
+  }
+
   try {
-    const { error } = await supabase
+    const supabaseAdmin = createSupabaseClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    )
+
+    const { error } = await supabaseAdmin
       .from('profiles')
       .update({ role, updated_at: new Date().toISOString() })
       .eq('id', memberId)
@@ -229,6 +272,7 @@ export async function updateMemberRole(
     }
 
     revalidatePath('/lab/settings')
+    revalidatePath('/lab/teams')
     return { success: true }
   } catch (error) {
     console.error('Error updating member role:', error)
@@ -240,6 +284,7 @@ export interface TeamInvite {
   id: string
   email: string
   role: string
+  job_title?: string | null
   status: string
   invited_by: string | null
   expires_at: string
@@ -265,7 +310,6 @@ export async function getPendingInvites(): Promise<TeamInvite[]> {
   const { data } = await supabase
     .from('team_invites')
     .select('*')
-    .eq('invited_by', user.id)
     .eq('status', 'pending')
     .gt('expires_at', new Date().toISOString())
     .order('created_at', { ascending: false })
@@ -275,7 +319,8 @@ export async function getPendingInvites(): Promise<TeamInvite[]> {
 
 export async function inviteTeamMember(
   email: string,
-  role: 'admin' | 'member' | 'client'
+  role: 'admin' | 'member' | 'client',
+  jobTitle?: string
 ): Promise<{ success: boolean; error?: string }> {
   const supabase = await createClient()
   
@@ -298,7 +343,7 @@ export async function inviteTeamMember(
     const { data: existingProfile } = await supabase
       .from('profiles')
       .select('id')
-      .eq('email', email)
+      .eq('email', email.toLowerCase())
       .single()
 
     if (existingProfile) {
@@ -323,6 +368,7 @@ export async function inviteTeamMember(
     const { data: newInvite, error } = await supabase.from('team_invites').insert({
       email: email.toLowerCase(),
       role,
+      job_title: jobTitle,
       invited_by: user.id,
       status: 'pending',
       expires_at: expiresAt.toISOString()
@@ -338,7 +384,8 @@ export async function inviteTeamMember(
       to: email.toLowerCase(),
       role,
       inviteId: newInvite.id,
-      invitedByEmail: user.email || 'A team member'
+      invitedByEmail: user.email || 'A team member',
+      jobTitle
     })
 
     return { success: true }
@@ -367,6 +414,8 @@ export async function cancelInvite(inviteId: string): Promise<{ success: boolean
       return { success: false, error: error.message }
     }
 
+    revalidatePath('/lab/teams')
+    revalidatePath('/lab/settings')
     return { success: true }
   } catch (error) {
     console.error('Error canceling invite:', error)
@@ -415,7 +464,7 @@ export async function getInviteDetails(inviteId: string) {
   try {
     const { data: invite, error } = await supabaseAdmin
       .from('team_invites')
-      .select('email, role, status, expires_at')
+      .select('email, role, job_title, status, expires_at')
       .eq('id', inviteId)
       .single()
 
@@ -425,7 +474,7 @@ export async function getInviteDetails(inviteId: string) {
       return null
     }
 
-    return { email: invite.email, role: invite.role }
+    return { email: invite.email, role: invite.role, job_title: invite.job_title }
   } catch {
     return null
   }
@@ -441,7 +490,7 @@ export async function acceptTeamInvite(inviteId: string, userId: string, fullNam
   try {
     const { data: invite } = await supabaseAdmin
       .from('team_invites')
-      .select('role')
+      .select('role, job_title')
       .eq('id', inviteId)
       .single()
 
@@ -450,6 +499,7 @@ export async function acceptTeamInvite(inviteId: string, userId: string, fullNam
     // Update their profile role based on the invite
     await supabaseAdmin.from('profiles').update({
       role: invite.role,
+      job_title: invite.job_title,
       full_name: fullName
     }).eq('id', userId)
 

@@ -20,6 +20,7 @@ export default function MeetingDetailPage({ params }: MeetingPageProps) {
   const [loading, setLoading] = useState(true)
   const [isEditing, setIsEditing] = useState(false)
   const [saving, setSaving] = useState(false)
+  const [saveError, setSaveError] = useState<string | null>(null)
   const [deleting, setDeleting] = useState(false)
   
   const [formData, setFormData] = useState({
@@ -37,6 +38,7 @@ export default function MeetingDetailPage({ params }: MeetingPageProps) {
     if (meetingId) {
       loadData()
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [meetingId])
 
   async function loadData() {
@@ -91,7 +93,10 @@ export default function MeetingDetailPage({ params }: MeetingPageProps) {
 
     if (result.success) {
       setIsEditing(false)
+      setSaveError(null)
       loadData()
+    } else {
+      setSaveError(result.error || 'Failed to save changes')
     }
     setSaving(false)
   }
@@ -236,18 +241,25 @@ export default function MeetingDetailPage({ params }: MeetingPageProps) {
                   className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white resize-none focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent font-sans"
                 />
               </div>
+              {saveError && <div className="p-3 bg-rose-500/10 border border-rose-500/20 text-rose-400 text-sm font-mono">{saveError}</div>}
               <div className="flex gap-3">
                 <LabButton onClick={handleSave} disabled={saving}>
                   {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Edit3 className="w-4 h-4" />}
                   Save Changes
                 </LabButton>
-                <LabButton variant="ghost" onClick={() => setIsEditing(false)}>
+                <LabButton variant="ghost" onClick={() => { setIsEditing(false); setSaveError(null) }}>
                   Cancel
                 </LabButton>
               </div>
             </div>
           ) : (
             <div>
+              {new Date(meeting.scheduled_at) < new Date() && (
+                <div className="flex items-center gap-2 p-3 mb-4 bg-amber-500/10 border border-amber-500/20 text-amber-400 text-sm font-sans">
+                  <Clock className="w-4 h-4 shrink-0" />
+                  This meeting has already taken place.
+                </div>
+              )}
               <div className="flex items-start justify-between gap-4 mb-4">
                 <h1 className="text-2xl font-bold text-white font-sans">{meeting.title}</h1>
                 <div className="flex gap-2">
@@ -308,7 +320,13 @@ export default function MeetingDetailPage({ params }: MeetingPageProps) {
                     </div>
                     <div>
                       <p className="text-xs text-white/50 font-sans">Project</p>
-                      <p className="text-sm font-sans">{(meeting.project as { name: string }).name}</p>
+                      {meeting.project_id ? (
+                        <Link href={`/lab/projects/${meeting.project_id}`} className="text-sm text-accent hover:text-accent/80 transition-colors font-sans">
+                          {(meeting.project as { name: string }).name}
+                        </Link>
+                      ) : (
+                        <p className="text-sm font-sans">{(meeting.project as { name: string }).name}</p>
+                      )}
                     </div>
                   </div>
                 )}

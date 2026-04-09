@@ -119,7 +119,6 @@ export default function MethodologyPage() {
   return (
     <PageWrapper>
       <div ref={containerRef} className="pt-48 pb-16 relative overflow-hidden">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(120,119,198,0.15),transparent_50%)]" />
         
         <div className="absolute inset-0">
           {[...Array(20)].map((_, i) => (
@@ -362,7 +361,7 @@ export default function MethodologyPage() {
           </motion.div>
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-12">
-            {stats.map((stat, index) => (
+            {stats.map((stat) => (
               <AnimatedCounter key={stat.label} {...stat} />
             ))}
           </div>

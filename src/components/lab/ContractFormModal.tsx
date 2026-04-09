@@ -5,7 +5,6 @@ import { LabButton } from '@/components/ui/LabButton'
 import { getContractTemplates, createContract, uploadContractFile, generateContractFromTemplate } from '@/lib/actions/contract-actions'
 import { ContractTemplate, ContractStatus } from '@/types/lab'
 import { X, Upload, FileText, Wand2, Loader2, Check, Eye, ArrowLeft } from 'lucide-react'
-import { cn } from '@/lib/utils'
 import { substituteVariables, getDefaultVariables } from '@/lib/contract-template-engine'
 
 interface ContractFormModalProps {
@@ -20,7 +19,7 @@ export function ContractFormModal({ onClose, onSuccess, clientId, clientData }: 
   const [templates, setTemplates] = useState<ContractTemplate[]>([])
   const [loading, setLoading] = useState(false)
   const [selectedTemplate, setSelectedTemplate] = useState<ContractTemplate | null>(null)
-  const [uploadedFile, setUploadedFile] = useState<File | null>(null)
+  const [uploadedFile] = useState<File | null>(null)
   const [previewContent, setPreviewContent] = useState('')
 
   const [title, setTitle] = useState('')
@@ -40,13 +39,14 @@ export function ContractFormModal({ onClose, onSuccess, clientId, clientData }: 
     setStep('form')
   }
 
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (file && file.type === 'application/pdf') {
-      setUploadedFile(file)
-      setStep('form')
-    }
-  }
+  // File upload handler (currently unused - could be used for direct file upload)
+  // const _handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+  //   const file = e.target.files?.[0]
+  //   if (file && file.type === 'application/pdf') {
+  //     setUploadedFile(file)
+  //     setStep('form')
+  //   }
+  // }
 
   const handlePreview = () => {
     if (!selectedTemplate) return

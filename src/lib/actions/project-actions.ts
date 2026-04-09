@@ -2,6 +2,32 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
+import { createNotification } from './notification-actions'
+import { createClient as createServiceClient } from '@supabase/supabase-js'
+
+async function requireAdminOrLead(userId: string, teamId?: string | null) {
+  const service = createServiceClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  )
+
+  const { data: profile } = await service
+    .from('profiles')
+    .select('role')
+    .eq('id', userId)
+    .single()
+
+  if (profile?.role === 'admin') return true
+  if (!teamId) return false
+
+  const { data: team } = await service
+    .from('teams')
+    .select('lead_id')
+    .eq('id', teamId)
+    .single()
+
+  return team?.lead_id === userId
+}
 
 export interface ProjectUpdateData {
   name?: string
@@ -26,6 +52,70 @@ export interface ExpenseData {
   amount: number
 }
 
+export interface ProjectCreateData {
+  name: string
+  description?: string | null
+  client_id?: string | null
+  team_id?: string | null
+  status?: 'active' | 'on_hold' | 'completed' | 'archived'
+  type?: 'website' | 'mobile' | 'branding' | 'consulting' | 'other'
+  start_date?: string | null
+  deadline?: string | null
+  budget?: number | null
+  color?: string
+}
+
+export async function createProject(data: ProjectCreateData): Promise<{ success: boolean; error?: string; projectId?: string }> {
+  const supabase = await createClient()
+
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { success: false, error: 'You must be logged in' }
+
+  if (!data.name?.trim()) return { success: false, error: 'Project name is required' }
+
+  const allowed = await requireAdminOrLead(user.id, data.team_id)
+  if (!allowed) return { success: false, error: 'Only admins or team leads can create projects' }
+
+  try {
+    const { data: project, error } = await supabase
+      .from('projects')
+      .insert({
+        name: data.name.trim(),
+        description: data.description || null,
+        client_id: data.client_id || null,
+        team_id: data.team_id || null,
+        status: data.status || 'active',
+        type: data.type || 'other',
+        start_date: data.start_date || null,
+        deadline: data.deadline || null,
+        budget: data.budget || null,
+        color: data.color || null,
+        created_by: user.id,
+        progress: 0,
+      })
+      .select('id')
+      .single()
+
+    if (error) return { success: false, error: error.message }
+
+    try {
+      await supabase.from('activities').insert({
+        user_id: user.id,
+        action: 'created project',
+        entity_type: 'project',
+        entity_id: project.id,
+        metadata: { name: data.name },
+      })
+    } catch { /* non-critical */ }
+
+    revalidatePath('/lab/projects')
+    return { success: true, projectId: project.id }
+  } catch (error) {
+    console.error('Error creating project:', error)
+    return { success: false, error: 'An unexpected error occurred' }
+  }
+}
+
 export async function updateProject(
   projectId: string,
   data: ProjectUpdateData,
@@ -40,6 +130,17 @@ export async function updateProject(
   }
 
   try {
+    const { data: oldProject } = await supabase
+      .from('projects')
+      .select('name, status, team_id')
+      .eq('id', projectId)
+      .single()
+
+    const allowed = await requireAdminOrLead(user.id, oldProject?.team_id)
+    if (!allowed) {
+      return { success: false, error: 'Only admins or team leads can update this project' }
+    }
+
     // Update project
     const { error: projectError } = await supabase
       .from('projects')
@@ -103,14 +204,11 @@ export async function updateProject(
     if (milestones && milestones.length > 0) {
       const totalWeight = milestones.reduce((sum, m) => sum + (m.weight || 0), 0)
       const completedWeight = milestones.filter(m => m.completed).reduce((sum, m) => sum + (m.weight || 0), 0)
-      
-      if (totalWeight > 0) {
-        const calculatedProgress = Math.round((completedWeight / totalWeight) * 100)
-        await supabase
-          .from('projects')
-          .update({ progress: calculatedProgress })
-          .eq('id', projectId)
-      }
+      const calculatedProgress = totalWeight > 0 ? Math.round((completedWeight / totalWeight) * 100) : 0
+      await supabase
+        .from('projects')
+        .update({ progress: calculatedProgress })
+        .eq('id', projectId)
     }
 
     // Log activity (don't fail if this fails)
@@ -128,6 +226,27 @@ export async function updateProject(
 
     revalidatePath(`/lab/projects/${projectId}`)
     revalidatePath('/lab/projects')
+
+    // Notify team members on status change
+    if (data.status && oldProject && data.status !== oldProject.status) {
+      const { data: members } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('team_id', oldProject.team_id)
+
+      if (members) {
+        await Promise.all(members
+          .filter(m => m.id !== user.id)
+          .map(m => createNotification({
+            userId: m.id,
+            type: 'project',
+            title: `${oldProject.name} status updated`,
+            message: `Status changed to ${data.status?.replace('_', ' ') || data.status}`,
+            link: `/lab/projects/${projectId}`
+          }))
+        )
+      }
+    }
 
     return { success: true }
 
@@ -150,9 +269,14 @@ export async function deleteProject(projectId: string): Promise<{ success: boole
     // Get project name for activity log
     const { data: project } = await supabase
       .from('projects')
-      .select('name')
+      .select('name, team_id')
       .eq('id', projectId)
       .single()
+
+    const allowed = await requireAdminOrLead(user.id, project?.team_id)
+    if (!allowed) {
+      return { success: false, error: 'Only admins or team leads can delete this project' }
+    }
 
     // Delete project (cascades to milestones, tasks, expenses)
     const { error: deleteError } = await supabase

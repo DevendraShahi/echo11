@@ -8,7 +8,7 @@ This file contains guidelines and commands for agentic coding agents working in 
 
 ### Development
 ```bash
-npm run dev        # Start development server (http://localhost:3000)
+npm run dev        # Start development server (https://echo11.tech)
 npm run start      # Start production server
 ```
 

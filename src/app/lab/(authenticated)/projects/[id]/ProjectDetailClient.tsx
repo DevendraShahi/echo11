@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { LabCard, LabCardHeader, LabCardTitle, LabCardContent } from '@/components/ui/LabCard'
 import { LabButton } from '@/components/ui/LabButton'
@@ -33,18 +33,19 @@ export function ProjectDetailClient({
   const [loading, setLoading] = useState(false)
   const [showExpenseForm, setShowExpenseForm] = useState(false)
   const [inviting, setInviting] = useState(false)
-  const [newExpense, setNewExpense] = useState({ 
-    service_id: '', 
-    description: '', 
-    quantity: 1, 
-    rate: 0 
+  const [newExpense, setNewExpense] = useState({
+    service_id: '',
+    description: '',
+    quantity: 1,
+    rate: 0
   })
+  const [expenseError, setExpenseError] = useState<string | null>(null)
+
+  useEffect(() => {
+    setNewExpense(prev => ({ ...prev, service_id: '' }))
+  }, [projectId])
 
   const totalBudget = expenses.reduce((sum, e) => sum + (e.amount || 0), 0)
-
-  const totalWeight = milestones.reduce((sum, m) => sum + (m.weight || 0), 0)
-  const completedWeight = milestones.filter(m => m.completed).reduce((sum, m) => sum + (m.weight || 0), 0)
-  const progress = totalWeight > 0 ? Math.round((completedWeight / totalWeight) * 100) : 0
 
   const hasClient = !!client
   const clientHasPortalAccess = client?.auth_id
@@ -71,6 +72,10 @@ export function ProjectDetailClient({
 
   const addExpense = async () => {
     if (!newExpense.description.trim() && !newExpense.service_id) return
+    if (newExpense.quantity <= 0 || newExpense.rate <= 0) {
+      setExpenseError('Quantity and rate must both be greater than 0.')
+      return
+    }
     setLoading(true)
     try {
       const { data, error } = await supabase
@@ -90,25 +95,36 @@ export function ProjectDetailClient({
         setExpenses([...expenses, data as ProjectExpense])
         setNewExpense({ service_id: '', description: '', quantity: 1, rate: 0 })
         setShowExpenseForm(false)
+        setExpenseError(null)
         router.refresh()
       } else if (error) {
         console.error('Error adding expense:', error)
+        setExpenseError(error.message || 'Failed to add expense')
       }
     } catch (err) {
       console.error('Error adding expense:', err)
+      setExpenseError('Failed to add expense')
     } finally {
       setLoading(false)
     }
   }
 
   const deleteExpense = async (id: string) => {
+    if (!confirm('Delete this expense?')) return
     setLoading(true)
     try {
-      await supabase.from('project_expenses').delete().eq('id', id)
-      setExpenses(expenses.filter(e => e.id !== id))
-      router.refresh()
+      const { error } = await supabase.from('project_expenses').delete().eq('id', id)
+      if (error) {
+        console.error('Error deleting expense:', error)
+        setExpenseError(error.message || 'Failed to delete expense')
+      } else {
+        setExpenses(expenses.filter(e => e.id !== id))
+        setExpenseError(null)
+        router.refresh()
+      }
     } catch (err) {
       console.error('Error deleting expense:', err)
+      setExpenseError('Failed to delete expense')
     } finally {
       setLoading(false)
     }
@@ -196,7 +212,7 @@ export function ProjectDetailClient({
                   <div>
                     <p className="text-sm text-foreground font-sans">{expense.description || expense.service?.name}</p>
                     <p className="text-xs text-white/40 font-mono">
-                      {expense.quantity} × ${expense.rate.toFixed(2)}
+                      {expense.quantity} × ${(expense.rate ?? 0).toFixed(2)}
                     </p>
                   </div>
                   <div className="flex items-center gap-3">
@@ -272,6 +288,10 @@ export function ProjectDetailClient({
                 <Plus className="w-4 h-4 mr-2" />
                 Add Service
               </LabButton>
+            )}
+
+            {expenseError && (
+              <p className="text-sm text-rose-400 font-mono mt-2">{expenseError}</p>
             )}
 
             {expenses.length > 0 && (

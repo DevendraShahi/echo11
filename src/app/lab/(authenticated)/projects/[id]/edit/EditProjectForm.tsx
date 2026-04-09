@@ -2,7 +2,6 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { createClient } from '@/lib/supabase/client'
 import { updateProject, deleteProject } from '@/lib/actions/project-actions'
 import { LabButton } from '@/components/ui/LabButton'
 import { LabCard, LabCardHeader, LabCardTitle, LabCardContent } from '@/components/ui/LabCard'
@@ -57,7 +56,6 @@ interface EditProjectFormProps {
 
 export function EditProjectForm({ project, clients, services, expenses: initialExpenses }: EditProjectFormProps) {
   const router = useRouter()
-  const supabase = createClient()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
@@ -86,8 +84,6 @@ export function EditProjectForm({ project, clients, services, expenses: initialE
       amount: e.amount,
     }))
   )
-
-  const totalBudget = expenses.reduce((sum, e) => sum + e.amount, 0)
   const statusOptions: DropdownOption[] = STATUS_OPTIONS
 
   const handleSubmit = async (e: React.FormEvent) => {

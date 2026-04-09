@@ -1,11 +1,12 @@
 'use client'
+/* eslint-disable jsx-a11y/alt-text */
 
 import { useState, useEffect, useRef } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { updateTask, deleteTask, addTaskComment, deleteTaskComment, logTime, getProjectsForTaskForm, getTeamMembers, uploadTaskAttachment, deleteTaskAttachment } from '@/lib/actions/task-actions'
+import { updateTask, deleteTask, addTaskComment, deleteTaskComment, logTime, getTeamMembers, uploadTaskAttachment, deleteTaskAttachment } from '@/lib/actions/task-actions'
 import { LabButton } from '@/components/ui/LabButton'
 import { X, Loader2, Trash2, Clock, MessageSquare, User, Projector, Send, Plus, Paperclip, Download, File, Image, FileText, Eye } from 'lucide-react'
-import { Task, TaskStatus, TaskPriority, TaskComment, TimeLog, Project, Profile, TaskAttachment } from '@/types/lab'
+import { Task, TaskStatus, TaskPriority, TaskComment, TimeLog, Profile, TaskAttachment } from '@/types/lab'
 import { format } from 'date-fns'
 
 interface TaskDetailModalProps {
@@ -55,11 +56,11 @@ export function TaskDetailModal({ taskId, isOpen, onClose, onDelete }: TaskDetai
   const [newTimeLog, setNewTimeLog] = useState({ hours: '', date: '', notes: '' })
   const [members, setMembers] = useState<Pick<Profile, 'id' | 'full_name'>[]>([])
 
-  useEffect(() => {
+  useEffect(function() {
     if (isOpen && taskId) {
-      loadData()
+      loadData() // eslint-disable-line react-hooks/exhaustive-deps
     }
-  }, [isOpen, taskId])
+  }, [isOpen, taskId]) // eslint-disable-line react-hooks/exhaustive-deps
 
   async function loadData() {
     setLoading(true)

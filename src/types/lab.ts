@@ -9,6 +9,7 @@ export interface Profile {
   avatar_url: string | null
   role: UserRole
   team_id: string | null
+  job_title?: string | null
   created_at: string
   updated_at: string
 }
@@ -36,6 +37,7 @@ export interface Client {
   profile_id: string | null
   invitation_sent_at: string | null
   invitation_token: string | null
+  invitation_token_expires_at: string | null
   invitation_accepted_at: string | null
   created_by: string | null
   created_at: string
@@ -317,6 +319,10 @@ export interface Invoice {
   created_by: string | null
   created_at: string
   updated_at: string
+  target_currency?: string | null
+  exchange_rate?: number | null
+  converted_total?: number | null
+  conversion_date?: string | null
   project?: Project
   client?: Client
   items?: InvoiceItem[]

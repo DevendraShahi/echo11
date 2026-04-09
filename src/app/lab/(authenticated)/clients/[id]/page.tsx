@@ -5,18 +5,19 @@ import { createClient } from '@/lib/supabase/client'
 import { LabButton } from '@/components/ui/LabButton'
 import { ClientFormModal } from '@/components/lab/ClientFormModal'
 import { ContractFormModal } from '@/components/lab/ContractFormModal'
-import { ClientContact, ClientNote, ClientDocument, Contract, Project, Invoice, Activity, ContactRole, ContractStatus } from '@/types/lab'
+import { ClientContact, ClientNote, ClientDocument, Contract, Project, Invoice, Activity, ContactRole } from '@/types/lab'
 import { createContact, deleteContact, setPrimaryContact, updateContact } from '@/lib/actions/contact-actions'
 import { uploadDocument, deleteDocument, getClientDocuments } from '@/lib/actions/document-actions'
 import { createNote, deleteNote, getClientNotes, updateNote } from '@/lib/actions/note-actions'
-import { createContract, deleteContract } from '@/lib/actions/contract-actions'
-import { deleteClient, ClientWithRelations } from '@/lib/actions/client-actions'
-import { 
-  ArrowLeft, Mail, Phone, Building, 
+import { deleteContract } from '@/lib/actions/contract-actions'
+import { deleteClient, ClientWithRelations, sendClientPortalInvite } from '@/lib/actions/client-actions'
+import {
+  ArrowLeft, Mail, Phone, Building,
   Trash2, AlertCircle, Edit3, Plus, FolderKanban, FileText,
   TrendingUp, File, Download,
   Upload, X,
-  Globe, Tags, Star, StarOff, ExternalLink
+  Globe, Tags, Star, StarOff, ExternalLink,
+  Send, Loader2, CheckCircle
 } from 'lucide-react'
 import Link from 'next/link'
 import { format } from 'date-fns'
@@ -51,7 +52,9 @@ export default function ClientDetailPage({ params }: ClientPageProps) {
   const [editingNote, setEditingNote] = useState<NoteWithUser | null>(null)
   const [showAddContract, setShowAddContract] = useState(false)
   const [uploading, setUploading] = useState(false)
-  
+  const [invitingPortal, setInvitingPortal] = useState(false)
+  const [canEdit, setCanEdit] = useState(false)
+
   const [contacts, setContacts] = useState<ClientContact[]>([])
   const [projects, setProjects] = useState<Project[]>([])
   const [invoices, setInvoices] = useState<Invoice[]>([])
@@ -71,12 +74,25 @@ export default function ClientDetailPage({ params }: ClientPageProps) {
 
   useEffect(() => {
     if (clientId) loadData()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [clientId])
 
   async function loadData() {
     setLoading(true)
     try {
       const supabase = createClient()
+
+      // Role check (client-side)
+      const { data: { user: authUser } } = await supabase.auth.getUser()
+      if (authUser) {
+        const { data: profile } = await supabase.from('profiles').select('role').eq('id', authUser.id).single()
+        if (profile?.role === 'admin') {
+          setCanEdit(true)
+        } else {
+          const { count } = await supabase.from('teams').select('*', { count: 'exact', head: true }).eq('lead_id', authUser.id)
+          setCanEdit((count ?? 0) > 0)
+        }
+      }
       
       const { data: clientData } = await supabase
         .from('clients')
@@ -165,6 +181,7 @@ export default function ClientDetailPage({ params }: ClientPageProps) {
       }
     } catch (error) {
       console.error('Error deleting client:', error)
+      alert('An unexpected error occurred while deleting the client')
     }
   }
 
@@ -252,12 +269,38 @@ export default function ClientDetailPage({ params }: ClientPageProps) {
                 </div>
               </div>
               <div className="flex gap-2">
-                <LabButton variant="ghost" onClick={() => setShowEditModal(true)} className="font-mono text-xs uppercase tracking-wider">
-                  <Edit3 className="w-3 h-3 mr-2" />Edit
-                </LabButton>
-                <button onClick={handleDelete} className="px-4 py-2 border border-white/10 hover:border-rose-500/30 hover:text-rose-400 text-white/40 transition-colors font-mono text-xs">
-                  <Trash2 className="w-3 h-3" />
-                </button>
+                {canEdit && client.email && !client.invitation_sent_at && (
+                  <LabButton variant="ghost" disabled={invitingPortal} onClick={async () => {
+                    setInvitingPortal(true)
+                    const result = await sendClientPortalInvite(client.id)
+                    setInvitingPortal(false)
+                    if (!result.success) alert(result.error || 'Failed to send invite')
+                    else loadData()
+                  }} className="font-mono text-xs uppercase tracking-wider">
+                    {invitingPortal ? <Loader2 className="w-3 h-3 mr-2 animate-spin" /> : <Send className="w-3 h-3 mr-2" />}
+                    Invite to Portal
+                  </LabButton>
+                )}
+                {client.invitation_sent_at && !client.invitation_accepted_at && (
+                  <span className="inline-flex items-center gap-1.5 px-3 py-2 border border-amber-500/20 text-amber-400 font-mono text-xs">
+                    <Send className="w-3 h-3" />Invite Sent
+                  </span>
+                )}
+                {client.invitation_accepted_at && (
+                  <span className="inline-flex items-center gap-1.5 px-3 py-2 border border-emerald-500/20 text-emerald-400 font-mono text-xs">
+                    <CheckCircle className="w-3 h-3" />Portal Active
+                  </span>
+                )}
+                {canEdit && (
+                  <>
+                    <LabButton variant="ghost" onClick={() => setShowEditModal(true)} className="font-mono text-xs uppercase tracking-wider">
+                      <Edit3 className="w-3 h-3 mr-2" />Edit
+                    </LabButton>
+                    <button onClick={handleDelete} className="px-4 py-2 border border-white/10 hover:border-rose-500/30 hover:text-rose-400 text-white/40 transition-colors font-mono text-xs">
+                      <Trash2 className="w-3 h-3" />
+                    </button>
+                  </>
+                )}
               </div>
             </div>
           </div>
@@ -361,11 +404,13 @@ export default function ClientDetailPage({ params }: ClientPageProps) {
 
         {activeTab === 'contacts' && (
           <div className="space-y-4">
-            <div className="flex justify-end">
-              <LabButton onClick={() => setShowAddContact(true)} className="font-mono text-xs uppercase tracking-wider">
-                <Plus className="w-3 h-3 mr-2" />Add Contact
-              </LabButton>
-            </div>
+            {canEdit && (
+              <div className="flex justify-end">
+                <LabButton onClick={() => setShowAddContact(true)} className="font-mono text-xs uppercase tracking-wider">
+                  <Plus className="w-3 h-3 mr-2" />Add Contact
+                </LabButton>
+              </div>
+            )}
             {contacts.length === 0 ? (
               <div className="text-center py-12 text-white/30 font-mono text-sm border border-white/5 bg-[#0a0a0a]">No contacts yet</div>
             ) : (
@@ -384,19 +429,30 @@ export default function ClientDetailPage({ params }: ClientPageProps) {
                         <p className="text-sm text-white/40 font-mono">{contact.email || '—'} · {contact.role?.replace('_', ' ') || 'No role'}</p>
                       </div>
                     </div>
-                    <div className="flex items-center gap-1">
-                      <button onClick={() => setEditingContact(contact)} className="p-2 border border-white/10 hover:border-white/20 text-white/40 hover:text-white transition-colors">
-                        <Edit3 className="w-3 h-3" />
-                      </button>
-                      {!contact.is_primary && (
-                        <button onClick={() => { setPrimaryContact(contact.id, clientId); loadData() }} className="p-2 border border-white/10 hover:border-white/20 text-white/40 hover:text-white transition-colors">
-                          <StarOff className="w-3 h-3" />
+                    {canEdit && (
+                      <div className="flex items-center gap-1">
+                        <button onClick={() => setEditingContact(contact)} className="p-2 border border-white/10 hover:border-white/20 text-white/40 hover:text-white transition-colors">
+                          <Edit3 className="w-3 h-3" />
                         </button>
-                      )}
-                      <button onClick={() => { if (confirm('Delete contact?')) { deleteContact(contact.id, clientId).then(loadData) } }} className="p-2 border border-white/10 hover:border-rose-500/30 text-white/40 hover:text-rose-400 transition-colors">
-                        <Trash2 className="w-3 h-3" />
-                      </button>
-                    </div>
+                        {!contact.is_primary && (
+                          <button onClick={async () => {
+                            const result = await setPrimaryContact(contact.id, clientId)
+                            if (!result.success) alert(result.error || 'Failed to set primary contact')
+                            else loadData()
+                          }} className="p-2 border border-white/10 hover:border-white/20 text-white/40 hover:text-white transition-colors">
+                            <StarOff className="w-3 h-3" />
+                          </button>
+                        )}
+                        <button onClick={async () => {
+                          if (!confirm('Delete contact?')) return
+                          const result = await deleteContact(contact.id, clientId)
+                          if (!result.success) alert(result.error || 'Failed to delete contact')
+                          else loadData()
+                        }} className="p-2 border border-white/10 hover:border-rose-500/30 text-white/40 hover:text-rose-400 transition-colors">
+                          <Trash2 className="w-3 h-3" />
+                        </button>
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
@@ -406,13 +462,15 @@ export default function ClientDetailPage({ params }: ClientPageProps) {
 
         {activeTab === 'projects' && (
           <div className="space-y-4">
-            <div className="flex justify-end">
-              <Link href={`/lab/projects/new?client=${clientId}`}>
-                <LabButton className="font-mono text-xs uppercase tracking-wider">
-                  <Plus className="w-3 h-3 mr-2" />Add Project
-                </LabButton>
-              </Link>
-            </div>
+            {canEdit && (
+              <div className="flex justify-end">
+                <Link href={`/lab/projects/new?client=${clientId}`}>
+                  <LabButton className="font-mono text-xs uppercase tracking-wider">
+                    <Plus className="w-3 h-3 mr-2" />Add Project
+                  </LabButton>
+                </Link>
+              </div>
+            )}
             {projects.length === 0 ? (
               <div className="text-center py-12 text-white/30 font-mono text-sm border border-white/5 bg-[#0a0a0a]">No projects yet</div>
             ) : (
@@ -437,13 +495,15 @@ export default function ClientDetailPage({ params }: ClientPageProps) {
 
         {activeTab === 'invoices' && (
           <div className="space-y-4">
-            <div className="flex justify-end">
-              <Link href={`/lab/invoices/new?client=${clientId}`}>
-                <LabButton className="font-mono text-xs uppercase tracking-wider">
-                  <Plus className="w-3 h-3 mr-2" />Create Invoice
-                </LabButton>
-              </Link>
-            </div>
+            {canEdit && (
+              <div className="flex justify-end">
+                <Link href={`/lab/invoices/new?client=${clientId}`}>
+                  <LabButton className="font-mono text-xs uppercase tracking-wider">
+                    <Plus className="w-3 h-3 mr-2" />Create Invoice
+                  </LabButton>
+                </Link>
+              </div>
+            )}
             {invoices.length === 0 ? (
               <div className="text-center py-12 text-white/30 font-mono text-sm border border-white/5 bg-[#0a0a0a]">No invoices yet</div>
             ) : (
@@ -471,11 +531,13 @@ export default function ClientDetailPage({ params }: ClientPageProps) {
 
         {activeTab === 'contracts' && (
           <div className="space-y-4">
-            <div className="flex justify-end">
-              <LabButton onClick={() => setShowAddContract(true)} className="font-mono text-xs uppercase tracking-wider">
-                <Plus className="w-3 h-3 mr-2" />Add Contract
-              </LabButton>
-            </div>
+            {canEdit && (
+              <div className="flex justify-end">
+                <LabButton onClick={() => setShowAddContract(true)} className="font-mono text-xs uppercase tracking-wider">
+                  <Plus className="w-3 h-3 mr-2" />Add Contract
+                </LabButton>
+              </div>
+            )}
             {contracts.length === 0 ? (
               <div className="text-center py-12 text-white/30 font-mono text-sm border border-white/5 bg-[#0a0a0a]">No contracts yet</div>
             ) : (
@@ -509,9 +571,16 @@ export default function ClientDetailPage({ params }: ClientPageProps) {
                           <Download className="w-3.5 h-3.5" />
                         </a>
                       )}
-                      <button onClick={() => { if (confirm('Delete contract?')) { deleteContract(contract.id, clientId).then(loadData) } }} className="p-1.5 border border-white/10 hover:border-rose-500/30 text-white/40 hover:text-rose-400 transition-colors">
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
+                      {canEdit && (
+                        <button onClick={async () => {
+                          if (!confirm('Delete contract?')) return
+                          const result = await deleteContract(contract.id, clientId)
+                          if (!result.success) alert(result.error || 'Failed to delete contract')
+                          else loadData()
+                        }} className="p-1.5 border border-white/10 hover:border-rose-500/30 text-white/40 hover:text-rose-400 transition-colors">
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      )}
                     </div>
                   </div>
                 ))}
@@ -522,21 +591,30 @@ export default function ClientDetailPage({ params }: ClientPageProps) {
 
         {activeTab === 'documents' && (
           <div className="space-y-4">
-            <div className="flex justify-end">
-              <label className="cursor-pointer">
-                <input type="file" className="hidden" onChange={async (e) => {
-                  const file = e.target.files?.[0]
-                  if (!file) return
-                  setUploading(true)
-                  await uploadDocument({ client_id: clientId, file })
-                  setUploading(false)
-                  loadData()
-                }} />
-                <span className="inline-flex items-center gap-2 px-4 py-2 border border-accent/30 bg-accent/10 text-accent hover:bg-accent/20 transition-colors font-mono text-xs uppercase tracking-wider">
-                  <Upload className="w-3 h-3" />{uploading ? 'Uploading...' : 'Upload'}
-                </span>
-              </label>
-            </div>
+            {canEdit && (
+              <div className="flex justify-end">
+                <label className="cursor-pointer">
+                  <input type="file" className="hidden" accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg,.gif,.zip,.txt" onChange={async (e) => {
+                    const file = e.target.files?.[0]
+                    if (!file) return
+                    const MAX_SIZE = 10 * 1024 * 1024
+                    if (file.size > MAX_SIZE) {
+                      alert('File size must be under 10MB')
+                      e.target.value = ''
+                      return
+                    }
+                    setUploading(true)
+                    const result = await uploadDocument({ client_id: clientId, file })
+                    setUploading(false)
+                    if (!result?.success && result?.error) alert(result.error)
+                    else loadData()
+                  }} />
+                  <span className="inline-flex items-center gap-2 px-4 py-2 border border-accent/30 bg-accent/10 text-accent hover:bg-accent/20 transition-colors font-mono text-xs uppercase tracking-wider">
+                    <Upload className="w-3 h-3" />{uploading ? 'Uploading...' : 'Upload'}
+                  </span>
+                </label>
+              </div>
+            )}
             {documents.length === 0 ? (
               <div className="text-center py-12 text-white/30 font-mono text-sm border border-white/5 bg-[#0a0a0a]">No documents yet</div>
             ) : (
@@ -553,9 +631,16 @@ export default function ClientDetailPage({ params }: ClientPageProps) {
                           <p className="text-xs text-white/30 font-mono">{doc.file_type?.split('/')[1] || 'file'} · {doc.file_size ? `${(doc.file_size / 1024).toFixed(1)} KB` : '—'}</p>
                         </div>
                       </div>
-                      <button onClick={() => { deleteDocument(doc.id, clientId).then(loadData) }} className="p-1 border border-white/10 hover:border-rose-500/30 text-white/40 hover:text-rose-400 transition-colors">
-                        <Trash2 className="w-3 h-3" />
-                      </button>
+                      {canEdit && (
+                        <button onClick={async () => {
+                          if (!confirm('Delete document?')) return
+                          const result = await deleteDocument(doc.id, clientId)
+                          if (!result.success) alert(result.error || 'Failed to delete document')
+                          else loadData()
+                        }} className="p-1 border border-white/10 hover:border-rose-500/30 text-white/40 hover:text-rose-400 transition-colors">
+                          <Trash2 className="w-3 h-3" />
+                        </button>
+                      )}
                     </div>
                     <a href={doc.file_url} target="_blank" className="text-xs text-accent hover:text-accent/80 font-mono uppercase tracking-wider flex items-center gap-1">
                       View <ExternalLink className="w-3 h-3" />
@@ -569,11 +654,13 @@ export default function ClientDetailPage({ params }: ClientPageProps) {
 
         {activeTab === 'notes' && (
           <div className="space-y-4">
-            <div className="flex justify-end">
-              <LabButton onClick={() => setShowAddNote(true)} className="font-mono text-xs uppercase tracking-wider">
-                <Plus className="w-3 h-3 mr-2" />Add Note
-              </LabButton>
-            </div>
+            {canEdit && (
+              <div className="flex justify-end">
+                <LabButton onClick={() => setShowAddNote(true)} className="font-mono text-xs uppercase tracking-wider">
+                  <Plus className="w-3 h-3 mr-2" />Add Note
+                </LabButton>
+              </div>
+            )}
             {notes.length === 0 ? (
               <div className="text-center py-12 text-white/30 font-mono text-sm border border-white/5 bg-[#0a0a0a]">No notes yet</div>
             ) : (
@@ -583,14 +670,21 @@ export default function ClientDetailPage({ params }: ClientPageProps) {
                     <p className="text-white whitespace-pre-wrap font-mono text-sm">{note.content}</p>
                     <div className="flex items-center justify-between mt-3 pt-3 border-t border-white/5">
                       <span className="text-xs text-white/30 font-mono">{note.user?.full_name || 'Unknown'} · {format(new Date(note.created_at), 'MMM d, yyyy')}</span>
-                      <div className="flex items-center gap-1">
-                        <button onClick={() => setEditingNote(note)} className="p-1 border border-white/10 hover:border-white/20 text-white/40 hover:text-white transition-colors">
-                          <Edit3 className="w-3 h-3" />
-                        </button>
-                        <button onClick={() => { deleteNote(note.id, clientId).then(loadData) }} className="p-1 border border-white/10 hover:border-rose-500/30 text-white/40 hover:text-rose-400 transition-colors">
-                          <Trash2 className="w-3 h-3" />
-                        </button>
-                      </div>
+                      {canEdit && (
+                        <div className="flex items-center gap-1">
+                          <button onClick={() => setEditingNote(note)} className="p-1 border border-white/10 hover:border-white/20 text-white/40 hover:text-white transition-colors">
+                            <Edit3 className="w-3 h-3" />
+                          </button>
+                          <button onClick={async () => {
+                            if (!confirm('Delete note?')) return
+                            const result = await deleteNote(note.id, clientId)
+                            if (!result.success) alert(result.error || 'Failed to delete note')
+                            else loadData()
+                          }} className="p-1 border border-white/10 hover:border-rose-500/30 text-white/40 hover:text-rose-400 transition-colors">
+                            <Trash2 className="w-3 h-3" />
+                          </button>
+                        </div>
+                      )}
                     </div>
                   </div>
                 ))}
@@ -642,11 +736,20 @@ function AddContactModal({ clientId, onClose, onSuccess }: { clientId: string; o
   const [isPrimary, setIsPrimary] = useState(false)
   const [loading, setLoading] = useState(false)
 
+  const [error, setError] = useState<string | null>(null)
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
-    await createContact({ client_id: clientId, name, email, phone, role: role as ContactRole, is_primary: isPrimary })
+    setError(null)
+    const result = await createContact({ client_id: clientId, name, email, phone, role: role as ContactRole, is_primary: isPrimary })
     setLoading(false)
+    
+    if (!result.success) {
+      setError(result.error || 'Failed to add contact')
+      return
+    }
+    
     onSuccess()
     onClose()
   }
@@ -662,6 +765,7 @@ function AddContactModal({ clientId, onClose, onSuccess }: { clientId: string; o
           </button>
         </div>
         <form onSubmit={handleSubmit} className="p-4 space-y-4">
+          {error && <div className="p-3 bg-red-500/10 border border-red-500/20 rounded text-red-500 text-xs font-mono">{error}</div>}
           <input type="text" placeholder="Name *" value={name} onChange={e => setName(e.target.value)} required className="w-full px-4 py-2.5 bg-[#0a0a0a] border border-white/10 text-white text-sm font-mono placeholder:text-white/30 focus:border-accent focus:outline-none" />
           <input type="email" placeholder="Email" value={email} onChange={e => setEmail(e.target.value)} className="w-full px-4 py-2.5 bg-[#0a0a0a] border border-white/10 text-white text-sm font-mono placeholder:text-white/30 focus:border-accent focus:outline-none" />
           <input type="tel" placeholder="Phone" value={phone} onChange={e => setPhone(e.target.value)} className="w-full px-4 py-2.5 bg-[#0a0a0a] border border-white/10 text-white text-sm font-mono placeholder:text-white/30 focus:border-accent focus:outline-none" />
@@ -695,11 +799,20 @@ function EditContactModal({ contact, clientId, onClose, onSuccess }: { contact: 
   const [isPrimary, setIsPrimary] = useState(contact.is_primary)
   const [loading, setLoading] = useState(false)
 
+  const [error, setError] = useState<string | null>(null)
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
-    await updateContact(contact.id, clientId, { name, email, phone, role: role as ContactRole, is_primary: isPrimary })
+    setError(null)
+    const result = await updateContact(contact.id, clientId, { name, email, phone, role: role as ContactRole, is_primary: isPrimary })
     setLoading(false)
+    
+    if (!result.success) {
+      setError(result.error || 'Failed to update contact')
+      return
+    }
+    
     onSuccess()
     onClose()
   }
@@ -715,6 +828,7 @@ function EditContactModal({ contact, clientId, onClose, onSuccess }: { contact: 
           </button>
         </div>
         <form onSubmit={handleSubmit} className="p-4 space-y-4">
+          {error && <div className="p-3 bg-red-500/10 border border-red-500/20 rounded text-red-500 text-xs font-mono">{error}</div>}
           <input type="text" placeholder="Name *" value={name} onChange={e => setName(e.target.value)} required className="w-full px-4 py-2.5 bg-[#0a0a0a] border border-white/10 text-white text-sm font-mono placeholder:text-white/30 focus:border-accent focus:outline-none" />
           <input type="email" placeholder="Email" value={email} onChange={e => setEmail(e.target.value)} className="w-full px-4 py-2.5 bg-[#0a0a0a] border border-white/10 text-white text-sm font-mono placeholder:text-white/30 focus:border-accent focus:outline-none" />
           <input type="tel" placeholder="Phone" value={phone} onChange={e => setPhone(e.target.value)} className="w-full px-4 py-2.5 bg-[#0a0a0a] border border-white/10 text-white text-sm font-mono placeholder:text-white/30 focus:border-accent focus:outline-none" />
@@ -743,12 +857,18 @@ function EditContactModal({ contact, clientId, onClose, onSuccess }: { contact: 
 function AddNoteModal({ clientId, onClose, onSuccess }: { clientId: string; onClose: () => void; onSuccess: () => void }) {
   const [content, setContent] = useState('')
   const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
-    await createNote({ client_id: clientId, content })
+    setError(null)
+    const result = await createNote({ client_id: clientId, content })
     setLoading(false)
+    if (!result.success) {
+      setError(result.error || 'Failed to save note')
+      return
+    }
     onSuccess()
     onClose()
   }
@@ -764,6 +884,7 @@ function AddNoteModal({ clientId, onClose, onSuccess }: { clientId: string; onCl
           </button>
         </div>
         <form onSubmit={handleSubmit} className="p-4 space-y-4">
+          {error && <div className="p-3 bg-red-500/10 border border-red-500/20 rounded text-red-500 text-xs font-mono">{error}</div>}
           <textarea rows={4} placeholder="Write your note..." value={content} onChange={e => setContent(e.target.value)} required className="w-full px-4 py-2.5 bg-[#0a0a0a] border border-white/10 text-white text-sm font-mono placeholder:text-white/30 focus:border-accent focus:outline-none resize-none" />
           <div className="flex gap-2 pt-2">
             <LabButton type="button" variant="ghost" onClick={onClose} className="flex-1 font-mono text-xs uppercase tracking-wider">Cancel</LabButton>
@@ -780,12 +901,18 @@ function AddNoteModal({ clientId, onClose, onSuccess }: { clientId: string; onCl
 function EditNoteModal({ note, clientId, onClose, onSuccess }: { note: NoteWithUser; clientId: string; onClose: () => void; onSuccess: () => void }) {
   const [content, setContent] = useState(note.content)
   const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
-    await updateNote(note.id, clientId, content)
+    setError(null)
+    const result = await updateNote(note.id, clientId, content)
     setLoading(false)
+    if (!result.success) {
+      setError(result.error || 'Failed to update note')
+      return
+    }
     onSuccess()
     onClose()
   }
@@ -801,6 +928,7 @@ function EditNoteModal({ note, clientId, onClose, onSuccess }: { note: NoteWithU
           </button>
         </div>
         <form onSubmit={handleSubmit} className="p-4 space-y-4">
+          {error && <div className="p-3 bg-red-500/10 border border-red-500/20 rounded text-red-500 text-xs font-mono">{error}</div>}
           <textarea rows={4} placeholder="Write your note..." value={content} onChange={e => setContent(e.target.value)} required className="w-full px-4 py-2.5 bg-[#0a0a0a] border border-white/10 text-white text-sm font-mono placeholder:text-white/30 focus:border-accent focus:outline-none resize-none" />
           <div className="flex gap-2 pt-2">
             <LabButton type="button" variant="ghost" onClick={onClose} className="flex-1 font-mono text-xs uppercase tracking-wider">Cancel</LabButton>

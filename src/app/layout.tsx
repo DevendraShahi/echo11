@@ -22,6 +22,10 @@ export const metadata: Metadata = {
   title: "echo11 | Premium Web & App Development Studio",
   description: "echo11 designs, builds, and maintains high-quality websites and applications. Based in Nepal.",
   robots: "index, follow",
+  icons: {
+    icon: "/echo11-logo-white.svg",
+    apple: "/echo11-logo-white.png",
+  },
   openGraph: {
     type: "website",
     locale: "en_US",

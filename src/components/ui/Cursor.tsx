@@ -2,11 +2,31 @@
 
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
+import { getOnboardingProgress } from "@/components/onboarding/OnboardingChecklist";
 
 export function Cursor() {
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const [isHovered, setIsHovered] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
+  const [isOnboardingCompleted, setIsOnboardingCompleted] = useState(false);
+
+  useEffect(() => {
+    const checkOnboarding = () => {
+      const progress = getOnboardingProgress();
+      if (progress.total > 0 && progress.completed >= progress.total) {
+        setIsOnboardingCompleted(true);
+      } else {
+        setIsOnboardingCompleted(false);
+      }
+    };
+    
+    // Check initially
+    checkOnboarding();
+    
+    // Listen for onboarding updates
+    window.addEventListener('echo11:onboarding:update', checkOnboarding);
+    return () => window.removeEventListener('echo11:onboarding:update', checkOnboarding);
+  }, []);
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
@@ -42,7 +62,7 @@ export function Cursor() {
     };
   }, []);
 
-  if (!isVisible) return null;
+  if (!isVisible || isOnboardingCompleted) return null;
 
   return (
     <>

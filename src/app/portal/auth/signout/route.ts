@@ -6,5 +6,5 @@ export async function POST() {
   
   await supabase.auth.signOut()
   
-  return NextResponse.redirect(new URL('/portal/auth/login', new URL(process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000').origin))
+  return NextResponse.redirect(new URL('/portal/auth/login', new URL(process.env.NEXT_PUBLIC_APP_URL || 'https://echo11.tech').origin))
 }

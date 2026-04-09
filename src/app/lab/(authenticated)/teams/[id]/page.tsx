@@ -3,15 +3,14 @@
 import { useState, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import { getTeam, getTeamMembers, assignUserToTeam, removeUserFromTeam, setTeamLead, assignProjectToTeam, removeProjectFromTeam } from '@/lib/actions/team-actions'
-import { Team, Profile, Project } from '@/types/lab'
+import { getTeam, assignUserToTeam, removeUserFromTeam, setTeamLead, assignProjectToTeam, removeProjectFromTeam } from '@/lib/actions/team-actions'
+import { Team, Profile } from '@/types/lab'
 import { LabButton } from '@/components/ui/LabButton'
-import { PageHeader } from '@/components/ui/PageHeader'
 import { LabCard, LabCardHeader, LabCardTitle, LabCardContent } from '@/components/ui/LabCard'
-import { EmptyState } from '@/components/ui/EmptyState'
-import { ArrowLeft, Users, FolderKanban, Building2, Plus, X, Trash2, UserPlus, Crown } from 'lucide-react'
+import { ArrowLeft, Users, FolderKanban, Plus, X, UserPlus, Crown, Settings } from 'lucide-react'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
+import { TeamFormModal } from '@/components/lab/TeamForm'
 
 interface ProjectWithClient {
   id: string
@@ -44,9 +43,11 @@ export default function TeamDetailPage() {
   const [allProjects, setAllProjects] = useState<ProjectWithClient[]>([])
   const [showAddMember, setShowAddMember] = useState(false)
   const [showAddProject, setShowAddProject] = useState(false)
+  const [showEditModal, setShowEditModal] = useState(false)
 
   useEffect(() => {
     loadData()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [teamId])
 
   async function loadData() {
@@ -79,7 +80,7 @@ export default function TeamDetailPage() {
     const { data: profiles } = await supabase
       .from('profiles')
       .select('id, full_name, email, role, team_id')
-      .neq('team_id', teamId)
+      .or(`team_id.neq.${teamId},team_id.is.null`)
       .order('full_name', { ascending: true })
     setAllProfiles(profiles || [])
 
@@ -87,7 +88,7 @@ export default function TeamDetailPage() {
     const { data: projData } = await supabase
       .from('projects')
       .select('id, name, status, client:clients(id, company_name)')
-      .neq('team_id', teamId)
+      .or(`team_id.neq.${teamId},team_id.is.null`)
       .order('name', { ascending: true })
     
     const mappedProjects = (projData || []).map((p: { id: string; name: string; status: string; client: { id: string; company_name: string }[] }) => ({
@@ -116,6 +117,8 @@ export default function TeamDetailPage() {
     const result = await removeUserFromTeam(profileId)
     if (result.success) {
       loadData()
+    } else {
+      alert(result.error || 'Failed to remove member')
     }
   }
 
@@ -123,6 +126,8 @@ export default function TeamDetailPage() {
     const result = await setTeamLead(teamId, profileId)
     if (result.success) {
       loadData()
+    } else {
+      alert(result.error || 'Failed to set team lead')
     }
   }
 
@@ -131,6 +136,8 @@ export default function TeamDetailPage() {
     if (result.success) {
       loadData()
       setShowAddProject(false)
+    } else {
+      alert(result.error || 'Failed to add project to team')
     }
   }
 
@@ -139,6 +146,8 @@ export default function TeamDetailPage() {
     const result = await removeProjectFromTeam(projectId)
     if (result.success) {
       loadData()
+    } else {
+      alert(result.error || 'Failed to remove project from team')
     }
   }
 
@@ -197,6 +206,19 @@ export default function TeamDetailPage() {
             </div>
           </div>
         </div>
+        <div className="flex items-center gap-2">
+          <Link
+            href={`/lab/teams/${teamId}/moodboard`}
+            className="font-mono text-xs uppercase px-3 py-2 border border-white/10 hover:border-white/20 text-white/40 hover:text-white transition-colors"
+          >
+            Moodboard
+          </Link>
+          {(isAdmin || isLead) && (
+            <LabButton variant="outline" onClick={() => setShowEditModal(true)} className="font-mono text-xs uppercase">
+              <Settings className="w-3 h-3 mr-2" />Edit Team
+            </LabButton>
+          )}
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -240,7 +262,7 @@ export default function TeamDetailPage() {
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
-                        {isAdmin && team.lead_id !== member.id && (
+                        {(isAdmin || isLead) && team.lead_id !== member.id && (
                           <>
                             <button 
                               onClick={() => handleSetLead(member.id)}
@@ -421,6 +443,19 @@ export default function TeamDetailPage() {
             </div>
           </div>
         </div>
+      )}
+
+      {showEditModal && team && (
+        <TeamFormModal
+          isOpen={showEditModal}
+          onClose={() => setShowEditModal(false)}
+          onSuccess={() => loadData()}
+          onDelete={() => {
+            setShowEditModal(false)
+            router.push('/lab/teams')
+          }}
+          editTeam={team}
+        />
       )}
     </div>
   )

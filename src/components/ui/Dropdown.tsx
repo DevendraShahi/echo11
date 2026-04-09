@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-import { ChevronDown, X, Search, Check } from 'lucide-react'
+import { ChevronDown, Search, Check } from 'lucide-react'
 import { clsx } from 'clsx'
 
 export interface DropdownOption {
@@ -18,7 +18,6 @@ interface DropdownProps {
   onChange: (value: string) => void
   placeholder?: string
   searchable?: boolean
-  multiple?: boolean
   disabled?: boolean
   className?: string
   error?: string
@@ -30,7 +29,6 @@ export function Dropdown({
   onChange,
   placeholder = 'Select option',
   searchable = false,
-  multiple = false,
   disabled = false,
   className = '',
   error,

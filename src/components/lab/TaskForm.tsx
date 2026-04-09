@@ -5,7 +5,6 @@ import { createTask, getProjectsForTaskForm, getTeamMembers } from '@/lib/action
 import { LabButton } from '@/components/ui/LabButton'
 import { X, Loader2, CheckCircle, Projector, User, Calendar, Flag, AlignLeft } from 'lucide-react'
 import { Project, Profile, TaskStatus, TaskPriority } from '@/types/lab'
-import { cn } from '@/lib/utils'
 
 interface TaskFormModalProps {
   isOpen: boolean

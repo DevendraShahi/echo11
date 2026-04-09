@@ -40,7 +40,7 @@ export default function PortalLoginPage() {
     const { error: magicError } = await supabase.auth.signInWithOtp({
       email,
       options: {
-        emailRedirectTo: `${window.location.origin}/portal/auth/callback`,
+        emailRedirectTo: `${process.env.NEXT_PUBLIC_APP_URL || 'https://echo11.tech'}/portal/auth/callback`,
       }
     })
 

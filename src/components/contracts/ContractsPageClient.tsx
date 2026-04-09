@@ -6,7 +6,7 @@ import { PageHeader } from '@/components/ui/PageHeader'
 import { SearchInput } from '@/components/ui/SearchInput'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { LabButton } from '@/components/ui/LabButton'
-import { Plus, FileText, Calendar, DollarSign, Search, Eye, Download, Send, Trash2, File } from 'lucide-react'
+import { Plus, FileText, Calendar, Eye, Download, Trash2, File } from 'lucide-react'
 import { ContractFormModal } from '@/components/lab/ContractFormModal'
 import { deleteContract } from '@/lib/actions/contract-actions'
 import { format } from 'date-fns'
@@ -16,6 +16,7 @@ import { useRouter } from 'next/navigation'
 
 interface ContractsPageClientProps {
   initialContracts: Contract[]
+  canEdit?: boolean
 }
 
 const statusColors: Record<string, string> = {
@@ -26,7 +27,7 @@ const statusColors: Record<string, string> = {
   terminated: 'bg-white/5 border-white/10 text-white/30',
 }
 
-export function ContractsPageClient({ initialContracts }: ContractsPageClientProps) {
+export function ContractsPageClient({ initialContracts, canEdit = false }: ContractsPageClientProps) {
   const [contracts, setContracts] = useState(initialContracts)
   const [searchQuery, setSearchQuery] = useState('')
   const [statusFilter, setStatusFilter] = useState<string>('all')
@@ -54,8 +55,13 @@ export function ContractsPageClient({ initialContracts }: ContractsPageClientPro
 
   async function handleDelete(id: string, clientId: string) {
     if (!confirm('Delete this contract?')) return
-    await deleteContract(id, clientId)
+    const result = await deleteContract(id, clientId)
+    if (!result.success) {
+      alert(result.error || 'Failed to delete contract')
+      return
+    }
     setContracts(prev => prev.filter(c => c.id !== id))
+    router.refresh()
   }
 
   const statusTabs = [
@@ -72,7 +78,7 @@ export function ContractsPageClient({ initialContracts }: ContractsPageClientPro
         title="Contracts" 
         description="Manage client contracts and agreements"
         icon={FileText}
-        action={<LabButton onClick={() => setShowCreateModal(true)} data-tour="new-contract"><Plus className="w-3 h-3 mr-2" />New Contract</LabButton>}
+        action={canEdit ? <LabButton onClick={() => setShowCreateModal(true)} data-tour="new-contract"><Plus className="w-3 h-3 mr-2" />New Contract</LabButton> : undefined}
       />
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-px bg-white/5 border border-white/5">
@@ -126,7 +132,7 @@ export function ContractsPageClient({ initialContracts }: ContractsPageClientPro
           icon={FileText}
           title="No contracts found"
           description={searchQuery ? "Try adjusting your search" : "Create your first contract to get started"}
-          action={searchQuery ? undefined : { label: 'Create Contract', onClick: () => setShowCreateModal(true) }}
+          action={searchQuery || !canEdit ? undefined : { label: 'Create Contract', onClick: () => setShowCreateModal(true) }}
         />
       ) : (
         <div className="space-y-px bg-white/5 border border-white/5">
@@ -183,9 +189,11 @@ export function ContractsPageClient({ initialContracts }: ContractsPageClientPro
                         <Download className="w-3.5 h-3.5" />
                       </a>
                     )}
-                    <button onClick={() => handleDelete(contract.id, contract.client_id)} className="p-1.5 border border-white/10 hover:border-rose-500/30 text-white/40 hover:text-rose-400 transition-colors" title="Delete">
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </button>
+                    {canEdit && (
+                      <button onClick={() => handleDelete(contract.id, contract.client_id)} className="p-1.5 border border-white/10 hover:border-rose-500/30 text-white/40 hover:text-rose-400 transition-colors" title="Delete">
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    )}
                   </div>
                 </div>
               </div>
@@ -194,7 +202,7 @@ export function ContractsPageClient({ initialContracts }: ContractsPageClientPro
         </div>
       )}
 
-      {showCreateModal && (
+      {canEdit && showCreateModal && (
         <ContractFormModal
           onClose={() => setShowCreateModal(false)}
           onSuccess={() => {

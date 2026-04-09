@@ -3,6 +3,9 @@
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { ServiceCategory, ServiceUnit } from '@/types/lab'
+import { sendInvoiceEmail } from '@/lib/email'
+import { createNotification } from './notification-actions'
+import { requireAdminOrLead } from './role-helpers'
 
 export interface InvoiceItemData {
   description: string
@@ -17,6 +20,10 @@ export interface InvoiceFormData {
   items: InvoiceItemData[]
   tax_rate: number
   notes?: string | null
+  target_currency?: string | null
+  exchange_rate?: number | null
+  converted_total?: number | null
+  conversion_date?: string | null
 }
 
 async function getUserId(supabase: Awaited<ReturnType<typeof createClient>>) {
@@ -30,6 +37,11 @@ export async function createInvoice(data: InvoiceFormData): Promise<{ success: b
 
   if (!userId) {
     return { success: false, error: 'You must be logged in' }
+  }
+
+  const allowed = await requireAdminOrLead(userId)
+  if (!allowed) {
+    return { success: false, error: 'Only admins or team leads can create invoices' }
   }
 
   try {
@@ -59,7 +71,11 @@ export async function createInvoice(data: InvoiceFormData): Promise<{ success: b
         total,
         due_date: data.due_date,
         notes: data.notes || null,
-        created_by: userId
+        created_by: userId,
+        target_currency: data.target_currency || null,
+        exchange_rate: data.exchange_rate || null,
+        converted_total: data.converted_total || null,
+        conversion_date: data.conversion_date || null
       })
       .select()
       .single()
@@ -97,6 +113,15 @@ export async function createInvoice(data: InvoiceFormData): Promise<{ success: b
         entity_id: invoice.id,
         metadata: { invoice_number: invoiceNumber, total }
       })
+
+      // Push notification
+      await createNotification({
+        userId,
+        type: 'invoice',
+        title: 'Invoice Draft Created',
+        message: `${invoiceNumber} has been successfully generated for ${data.target_currency || 'USD'} ${total.toFixed(2)}.`,
+        link: `/lab/invoices/${invoice.id}`
+      })
     } catch (activityError) {
       console.warn('Failed to log activity:', activityError)
     }
@@ -116,6 +141,11 @@ export async function updateInvoice(id: string, data: Partial<InvoiceFormData>):
 
   if (!userId) {
     return { success: false, error: 'You must be logged in' }
+  }
+
+  const allowed = await requireAdminOrLead(userId)
+  if (!allowed) {
+    return { success: false, error: 'Only admins or team leads can update invoices' }
   }
 
   try {
@@ -197,6 +227,11 @@ export async function deleteInvoice(id: string): Promise<{ success: boolean; err
     return { success: false, error: 'You must be logged in' }
   }
 
+  const allowed = await requireAdminOrLead(userId)
+  if (!allowed) {
+    return { success: false, error: 'Only admins or team leads can delete invoices' }
+  }
+
   try {
     // Delete items first
     await supabase.from('invoice_items').delete().eq('invoice_id', id)
@@ -227,7 +262,31 @@ export async function updateInvoiceStatus(id: string, status: 'draft' | 'sent' |
     return { success: false, error: 'You must be logged in' }
   }
 
+  const allowed = await requireAdminOrLead(userId)
+  if (!allowed) {
+    return { success: false, error: 'Only admins or team leads can update invoice status' }
+  }
+
   try {
+    // Validate status transition
+    const { data: current } = await supabase
+      .from('invoices')
+      .select('status')
+      .eq('id', id)
+      .single()
+
+    const validTransitions: Record<string, string[]> = {
+      draft: ['sent', 'cancelled'],
+      sent: ['paid', 'overdue', 'cancelled'],
+      overdue: ['paid', 'cancelled'],
+      paid: [],
+      cancelled: ['draft'],
+    }
+
+    if (current?.status && validTransitions[current.status] !== undefined && !validTransitions[current.status].includes(status)) {
+      return { success: false, error: `Cannot change invoice status from "${current.status}" to "${status}"` }
+    }
+
     const updateData: {
       status: string
       updated_at: string
@@ -257,6 +316,64 @@ export async function updateInvoiceStatus(id: string, status: 'draft' | 'sent' |
   } catch (error) {
     console.error('Error updating invoice status:', error)
     return { success: false, error: 'An unexpected error occurred' }
+  }
+}
+
+export async function emailInvoiceAction({
+  invoiceId,
+  clientName,
+  clientEmail,
+  invoiceNumber,
+  totalAmount,
+  dueDate,
+  pdfBase64
+}: {
+  invoiceId: string
+  clientName: string
+  clientEmail: string
+  invoiceNumber: string
+  totalAmount: string
+  dueDate: string
+  pdfBase64?: string
+}): Promise<{ success: boolean; error?: string }> {
+  const supabase = await createClient()
+  const userId = await getUserId(supabase)
+  if (!userId) return { success: false, error: 'You must be logged in' }
+
+  const allowed = await requireAdminOrLead(userId)
+  if (!allowed) {
+    return { success: false, error: 'Only admins or team leads can send invoices' }
+  }
+
+  try {
+    const emailResult = await sendInvoiceEmail({
+      to: clientEmail,
+      clientName,
+      invoiceNumber,
+      totalAmount,
+      dueDate,
+      pdfBase64
+    })
+
+    if (!emailResult.success) {
+      return { success: false, error: emailResult.error }
+    }
+
+    // Auto update status to sent
+    await updateInvoiceStatus(invoiceId, 'sent')
+
+    // Auto push notification (reuse existing supabase + userId from top of function)
+    await createNotification({
+      userId,
+      type: 'invoice',
+      title: 'Invoice Emailed Successfully',
+      message: `${invoiceNumber} has been officially dispatched to ${clientEmail}.`,
+      link: `/lab/invoices/${invoiceId}`
+    })
+
+    return { success: true }
+  } catch (e) {
+    return { success: false, error: e instanceof Error ? e.message : 'Failed to email invoice' }
   }
 }
 

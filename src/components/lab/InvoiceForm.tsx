@@ -27,6 +27,7 @@ export function InvoiceFormModal({ isOpen, onClose, onSuccess }: InvoiceFormModa
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
+  const [validationError, setValidationError] = useState<string | null>(null)
   const [clients, setClients] = useState<Pick<Client, 'id' | 'company_name' | 'contact_name'>[]>([])
   const [projects, setProjects] = useState<Pick<Project, 'id' | 'name'>[]>([])
   const [services, setServices] = useState<ServiceWithFlag[]>([])
@@ -38,6 +39,7 @@ export function InvoiceFormModal({ isOpen, onClose, onSuccess }: InvoiceFormModa
     due_date: '',
     tax_rate: 0,
     notes: '',
+    currency: 'USD'
   })
 
   const [items, setItems] = useState<LineItem[]>([
@@ -104,8 +106,38 @@ export function InvoiceFormModal({ isOpen, onClose, onSuccess }: InvoiceFormModa
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+
+    const validItems = items.filter(item => item.description.trim() && item.rate > 0 && item.quantity > 0)
+    if (validItems.length === 0) {
+      setValidationError('At least one line item with a description, quantity, and rate greater than 0 is required.')
+      return
+    }
+    setValidationError(null)
+
     setLoading(true)
     setError(null)
+
+    const targetCurrency = formData.currency
+    let exchangeRate = 1
+    let convertedTotal = total
+    let conversionDate = null
+
+    if (targetCurrency !== 'USD') {
+      try {
+        const res = await fetch('https://www.floatrates.com/daily/usd.json')
+        if (res.ok) {
+          const ratesInfo = await res.json()
+          const code = targetCurrency.toLowerCase()
+          if (ratesInfo[code] && ratesInfo[code].rate) {
+            exchangeRate = ratesInfo[code].rate
+            convertedTotal = total * exchangeRate
+            conversionDate = new Date().toISOString()
+          }
+        }
+      } catch (err) {
+        console.error('Failed to parse exchange rate', err)
+      }
+    }
 
     const result = await createInvoice({
       client_id: formData.client_id,
@@ -114,6 +146,10 @@ export function InvoiceFormModal({ isOpen, onClose, onSuccess }: InvoiceFormModa
       items: items.filter(item => item.description && item.rate > 0),
       tax_rate: formData.tax_rate,
       notes: formData.notes || null,
+      target_currency: targetCurrency !== 'USD' ? targetCurrency : undefined,
+      exchange_rate: targetCurrency !== 'USD' ? exchangeRate : undefined,
+      converted_total: targetCurrency !== 'USD' ? convertedTotal : undefined,
+      conversion_date: targetCurrency !== 'USD' ? conversionDate : undefined,
     })
 
     if (result.success) {
@@ -126,6 +162,7 @@ export function InvoiceFormModal({ isOpen, onClose, onSuccess }: InvoiceFormModa
           due_date: '',
           tax_rate: 0,
           notes: '',
+          currency: 'USD'
         })
         setItems([{ service_id: '', description: '', quantity: 1, rate: 0 }])
         onSuccess?.()
@@ -211,7 +248,7 @@ export function InvoiceFormModal({ isOpen, onClose, onSuccess }: InvoiceFormModa
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-3 gap-4">
               <div>
                 <label className="block text-sm text-white/70 mb-2 font-sans">
                   <Calendar className="w-4 h-4 inline mr-1.5" />
@@ -240,6 +277,19 @@ export function InvoiceFormModal({ isOpen, onClose, onSuccess }: InvoiceFormModa
                   onChange={(e) => setFormData({ ...formData, tax_rate: parseFloat(e.target.value) || 0 })}
                   className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-none text-white focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent font-sans"
                 />
+              </div>
+              <div>
+                <label className="block text-sm text-white/70 mb-2 font-sans">Currency</label>
+                <select
+                  value={formData.currency}
+                  onChange={(e) => setFormData({ ...formData, currency: e.target.value })}
+                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-none text-white focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent font-sans"
+                >
+                  <option value="USD" className="bg-black">USD - US Dollar</option>
+                  <option value="CAD" className="bg-black">CAD - Canadian Dollar</option>
+                  <option value="INR" className="bg-black">INR - Indian Rupee</option>
+                  <option value="NPR" className="bg-black">NPR - Nepalese Rupee</option>
+                </select>
               </div>
             </div>
 
@@ -346,6 +396,9 @@ export function InvoiceFormModal({ isOpen, onClose, onSuccess }: InvoiceFormModa
             </div>
 
             <div className="flex justify-end gap-3 pt-2">
+              {validationError && (
+                <p className="text-sm text-rose-400 font-mono">{validationError}</p>
+              )}
               <LabButton type="button" variant="ghost" onClick={onClose}>
                 Cancel
               </LabButton>
