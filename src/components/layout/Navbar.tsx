@@ -36,14 +36,14 @@ export function Navbar() {
 
   return (
     <header
-      className={`fixed top-0 z-50 w-full transition-all duration-300 ${
+      className={`fixed inset-x-0 top-0 z-50 w-full overflow-x-clip transition-all duration-300 ${
         scrolled
           ? "glass !bg-black/40 border-b border-white/10"
           : "bg-transparent border-b border-transparent"
       }`}
     >
-      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-6 lg:px-8">
-        <Link href="/" className="flex items-center gap-2 transition-opacity hover:opacity-80">
+      <div className="mx-auto flex h-16 w-full min-w-0 max-w-7xl items-center gap-3 px-4 sm:px-6 lg:px-8">
+        <Link href="/" className="flex shrink-0 items-center gap-2 transition-opacity hover:opacity-80">
           <div className="relative w-24 h-8">
             <Image 
               src="/echo11-logo-white.svg" 
@@ -56,7 +56,7 @@ export function Navbar() {
         </Link>
 
         {/* Desktop Nav */}
-        <nav className="hidden md:flex items-center gap-8">
+        <nav className="hidden xl:flex min-w-0 flex-1 items-center justify-center gap-5 2xl:gap-8">
           {navItems.map((item) => (
             <Link
               key={item.name}
@@ -76,7 +76,7 @@ export function Navbar() {
           ))}
         </nav>
 
-        <div className="hidden md:flex items-center gap-4">
+        <div className="hidden xl:flex shrink-0 items-center gap-4">
           <Button 
             asChild 
             variant="outline" 
@@ -92,7 +92,7 @@ export function Navbar() {
 
         {/* Mobile menu toggle */}
         <button
-          className="md:hidden text-foreground ml-auto"
+          className="xl:hidden ml-auto shrink-0 text-foreground"
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
         >
           {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
@@ -106,7 +106,7 @@ export function Navbar() {
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
-            className="md:hidden overflow-hidden glass border-b border-white/10"
+            className="xl:hidden overflow-hidden glass border-b border-white/10"
           >
             <div className="px-6 py-4 flex flex-col gap-4">
               {navItems.map((item) => (

@@ -62,7 +62,7 @@ npx tsc --noEmit   # TypeScript type checking only
 ### Portal Auth Structure
 - `/portal/layout.tsx` — Server-side layout checks auth, redirects to `/portal/auth/login` if unauthenticated
 - Checks `profiles.role` for admin/member/client access
-- Portal uses indigo/purple accent; Lab uses cyan (`#00E5FF`)
+- Portal uses cyan accent (`#00E5FF`) — same as Lab
 
 ### Entry Points
 - Root layout (`src/app/layout.tsx`) applies `Cursor`, `Navbar`, `Footer` globally — lab and portal override with their own full-screen layouts
@@ -83,6 +83,11 @@ src/
 │   │   └── layout.tsx           # pass-through
 │   └── portal/
 │       ├── auth/                # login, callback, verify, signout
+│       ├── contracts/            # view client contracts
+│       ├── messages/             # client-team messaging
+│       ├── settings/            # client settings
+│       ├── invoices/            # view invoices with PDF download
+│       ├── projects/            # view projects with milestones/tasks
 │       └── layout.tsx           # server-side auth check
 ├── components/
 │   ├── ui/                      # 17 reusable UI primitives (Button, Card, Badge, LabButton, LabCard, etc.)
@@ -166,11 +171,11 @@ export async function doSomething(param: string): Promise<{ success: boolean; er
 }
 ```
 
-### Server Action Files (12 total)
+### Server Action Files (13 total)
 - `client-actions.ts` — Client CRUD, portal invites
 - `project-actions.ts` — Project CRUD, task toggling, milestone-based progress
 - `task-actions.ts` — Task CRUD
-- `invoice-actions.ts` — Invoice CRUD
+- `invoice-actions.ts` — Invoice CRUD, PDF generation
 - `contract-actions.ts` — Contract CRUD, generation, sending
 - `meeting-actions.ts` — Meeting CRUD
 - `team-actions.ts` — Team management
@@ -179,12 +184,13 @@ export async function doSomething(param: string): Promise<{ success: boolean; er
 - `notification-actions.ts` — Notifications
 - `settings-actions.ts` — User preferences
 - `contact-actions.ts` — Contact form
+- `client-message-actions.ts` — Client portal messaging
 
 ### Tailwind CSS
 - Use design tokens: `accent`, `background`, `foreground`, `card`, `muted`, `border`
 - Use `cn()` utility for conditional classes
 - `font-sans` = Syne, `font-mono` = JetBrains Mono
-- Dark-first: black background, cyan accent (`#00E5FF`) for lab, indigo/purple for portal
+- Dark-first: black background, cyan accent (`#00E5FF`) for both lab and portal
 - Sharp edges (no rounded corners unless specified)
 - Glassmorphism: `bg-white/5 backdrop-blur-md border border-white/10`
 
@@ -213,7 +219,21 @@ CREATE POLICY "Users can delete" ON table_name FOR DELETE USING (auth.uid() = us
 - `contracts` bucket: public read, authenticated write/delete
 
 ### Key Tables
-`profiles`, `user_preferences`, `clients`, `client_contacts`, `client_documents`, `activities`, `projects`, `milestones`, `project_expenses`, `tasks`, `task_comments`, `task_attachments`, `time_logs`, `teams`, `meetings`, `meeting_attendees`, `contracts`, `contract_templates`, `invoices`, `invoice_items`, `services`, `notifications`
+`profiles`, `user_preferences`, `clients`, `client_contacts`, `client_documents`, `activities`, `projects`, `milestones`, `project_expenses`, `tasks`, `task_comments`, `task_attachments`, `time_logs`, `teams`, `meetings`, `meeting_attendees`, `contracts`, `contract_templates`, `invoices`, `invoice_items`, `services`, `notifications`, `client_messages`
+
+---
+
+## 8. Pending Migrations
+
+Run these when Supabase is linked:
+```bash
+npx supabase link --project-ref hwddfqgxmdhsmjzydywz
+npx supabase db push
+```
+
+Pending migrations in `supabase/migrations/`:
+- `20260415000000_add_created_by_to_teams.sql` — adds `created_by` column to teams
+- `20260415000001_add_client_messages.sql` — creates client messaging table
 
 ---
 
@@ -240,9 +260,31 @@ CREATE POLICY "Users can delete" ON table_name FOR DELETE USING (auth.uid() = us
 - `ProjectStatusChart`, `RevenueChart`, `TaskCompletionChart`
 - `DateRangePicker`
 
+### Portal Components (`src/app/portal/`)
+- `PortalActivityFeed` — Activity feed on dashboard
+- `PortalNotifications` — Bell icon with notifications dropdown
+- `PortalInvoicesClient` — Invoice list with PDF download
+- `PortalContractsClient` — Contracts list
+- `PortalMessagesClient` — Chat interface
+- `PortalSettingsForm` — Settings form
+
 ---
 
-## 8. Important Notes
+## 8. Pending Migrations
+
+Run these when Supabase is linked:
+```bash
+npx supabase link --project-ref hwddfqgxmdhsmjzydywz
+npx supabase db push
+```
+
+Pending migrations in `supabase/migrations/`:
+- `20260415000000_add_created_by_to_teams.sql` — adds `created_by` column to teams
+- `20260415000001_add_client_messages.sql` — creates client messaging table
+
+---
+
+## 9. Important Notes
 
 - **Always run `npm run build`** after meaningful changes
 - **Remove `console.log`** before committing
@@ -256,7 +298,25 @@ CREATE POLICY "Users can delete" ON table_name FOR DELETE USING (auth.uid() = us
 
 ---
 
-## 9. Environment Variables
+## 10. Portal Features
+
+The client-facing portal (`/portal`) includes:
+- **Dashboard** — Project overview, activity feed, stats
+- **Projects** — View projects with milestones, tasks, budget, deadline
+- **Invoices** — View invoices, download PDF (via `@react-pdf/renderer`)
+- **Contracts** — View contracts, status, values, dates
+- **Messages** — Real-time chat with team (uses `client_messages` table)
+- **Settings** — Edit contact name, phone, address, website
+- **Notifications** — Bell icon with unread count
+
+### Portal Design
+- Uses same cyan accent (`#00E5FF`) as Lab
+- Dark-first: black background
+- Sharp edges, mono typography for labels
+
+---
+
+## 11. Environment Variables
 
 Required in `.env.local`:
 ```
@@ -264,6 +324,20 @@ NEXT_PUBLIC_SUPABASE_URL=
 NEXT_PUBLIC_SUPABASE_ANON_KEY=
 SUPABASE_SERVICE_ROLE_KEY=     # server-only (not currently used by server client)
 ```
+
+---
+
+## 12. Portfolio Narrative Memory
+
+Use these as canonical project narratives for marketing copy (homepage selected works + `src/data/caseStudies.ts`):
+
+- **The Leaders NP** — A Nepal history, political, and social platform that publishes articles, ideas, and data-backed context.
+- **Green Lifestyle** — A sustainability platform where users share, read, and interact around day-to-day practices to build a greener environment.
+- **StudentStack** — A student benefits platform for discovering deals/offers/subscriptions, with details and clear step-by-step claim guidance.
+
+When updating portfolio copy:
+- Keep these narratives consistent across `src/components/sections/SelectedWork.tsx` and `src/data/caseStudies.ts`.
+- Prefer factual, domain-accurate language over generic agency phrasing.
 
 ---
 

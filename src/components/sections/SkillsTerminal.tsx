@@ -6,20 +6,20 @@ import { X, Minus, Maximize2 } from "lucide-react";
 
 const skillCategories = [
   {
-    name: "Frontend Architecture",
-    items: ["React.js", "Next.js 14/15", "TypeScript Strict", "Framer Motion", "Tailwind CSS"],
+    name: "Product Frontend",
+    items: ["React", "Next.js 15", "TypeScript (Strict)", "Framer Motion", "Tailwind CSS"],
   },
   {
-    name: "Backend Engineering",
-    items: ["Node.js", "Python Fast API", "PostgreSQL", "Prisma ORM", "Redis"],
+    name: "Backend Systems",
+    items: ["Node.js", "FastAPI", "PostgreSQL", "Prisma ORM", "Redis"],
   },
   {
-    name: "Design & UX",
-    items: ["Figma UI/UX", "Design Systems", "Interactive Prototyping", "Wireframing"],
+    name: "Design Direction",
+    items: ["Product UX", "Design Systems", "Interactive Prototyping", "Interface Specs"],
   },
   {
-    name: "Cloud & DevOps",
-    items: ["Vercel Edge", "AWS Services", "Docker", "CI/CD Pipelines", "Git"],
+    name: "Cloud & Delivery",
+    items: ["Vercel Edge", "AWS", "Docker", "CI/CD Pipelines", "Git"],
   },
 ];
 
@@ -65,11 +65,11 @@ export function SkillsTerminal() {
               transition={{ delay: 0.6 }}
               className="mb-8 text-white/50"
             >
-              [System]: Initializing core competency matrix...
+              [System]: Mapping product requirements...
               <br />
-              [System]: Loading tech stack modules...
+              [System]: Loading delivery capabilities...
               <br />
-              <span className="text-green-400">[Success]: All modules operational.</span>
+              <span className="text-green-400">[Ready]: Strategy, design, and engineering online.</span>
             </motion.div>
 
             <div className="flex flex-col gap-6">

@@ -3,7 +3,7 @@ import { SelectedWork } from "@/components/sections/SelectedWork";
 
 export const metadata = {
   title: "Work | echo11",
-  description: "A selection of our best work.",
+  description: "Case studies from shipped products across commerce, SaaS, content, and creative platforms.",
 };
 
 export default function WorkPage() {

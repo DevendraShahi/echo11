@@ -19,6 +19,11 @@ export interface TeamUpdateData {
   color?: string
 }
 
+function isMissingCreatedBySchemaError(error: { code?: string; message?: string } | null): boolean {
+  if (!error) return false
+  return error.code === 'PGRST204' && error.message?.includes("'created_by' column of 'teams'") === true
+}
+
 async function getUserId(supabase: Awaited<ReturnType<typeof createClient>>) {
   const { data: { user } } = await supabase.auth.getUser()
   return user?.id || null
@@ -37,17 +42,32 @@ export async function createTeam(data: TeamFormData): Promise<{ success: boolean
   }
 
   try {
-    const { data: team, error } = await supabase
+    const teamPayload = {
+      name: data.name.trim(),
+      description: data.description || null,
+      lead_id: data.lead_id || null,
+      color: data.color || '#6366f1',
+    }
+
+    let insertResult = await supabase
       .from('teams')
       .insert({
-        name: data.name.trim(),
-        description: data.description || null,
-        lead_id: data.lead_id || null,
-        color: data.color || '#6366f1',
+        ...teamPayload,
         created_by: userId,
       })
       .select()
       .single()
+
+    // Backward compatibility for environments where the migration adding teams.created_by is pending.
+    if (isMissingCreatedBySchemaError(insertResult.error)) {
+      insertResult = await supabase
+        .from('teams')
+        .insert(teamPayload)
+        .select()
+        .single()
+    }
+
+    const { data: team, error } = insertResult
 
     if (error) {
       return { success: false, error: error.message }

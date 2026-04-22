@@ -5,15 +5,16 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Container } from "@/components/ui/Container";
 import { Button } from "@/components/ui/Button";
 import Link from "next/link";
+import Image from "next/image";
 import { ArrowRight } from "lucide-react";
 
 const projects = [
-  { id: "trueluxe", title: "TrueLuxe Nepal", category: "E-Commerce", desc: "Skincare ecommerce with advanced filtering.", link: "https://trueluxe-nepal.vercel.app" },
-  { id: "prika", title: "Prika Couture", category: "Fashion", desc: "Lifestyle and fashion brand digital storefront.", link: "https://prika.vercel.app" },
-  { id: "leaders", title: "The Leaders NP", category: "Corporate", desc: "Corporate platform for the-leadersnp.com.", link: "https://the-leadersnp.com" },
-  { id: "green", title: "Green Lifestyle", category: "Blog", desc: "Sustainability blog with optimized reading experience.", link: "https://devendrashahi.pythonanywhere.com/" },
-  { id: "studentstack", title: "StudentStack", category: "SaaS", desc: "EdTech SaaS platform for students.", link: "https://studentstack.vercel.app" },
-  { id: "3am3d", title: "3am3d", category: "Creative", desc: "3D and creative studio portfolio.", link: "https://3am3d.vercel.app" },
+  { id: "trueluxe", title: "TrueLuxe Nepal", category: "E-Commerce", desc: "Skincare commerce rebuilt around guided discovery, faster checkout, and stronger mobile conversion.", link: "https://trueluxe-nepal.vercel.app", heroImage: "/work/TrueLuxe-Nepal-Premium-Beauty-Skincare-TrueLuxe-Nepal-hero.webp" },
+  { id: "prika", title: "Prika Couture", category: "Fashion", desc: "A luxury storefront blending editorial brand storytelling with strict performance budgets.", link: "https://prika.vercel.app", heroImage: "/work/Prika-Luxury-Bridal-Evening-Couture-hero.webp" },
+  { id: "leaders", title: "The Leaders NP", category: "Civic Media", desc: "A Nepal-focused history, political, and social publishing platform with idea-led articles and structured data.", link: "https://the-leadersnp.com", heroImage: "/work/The-Leaders-LeadersNP-hero.webp" },
+  { id: "green", title: "Green Lifestyle", category: "Sustainability", desc: "A community platform where users share, read, and discuss daily sustainable practices for a greener environment.", link: "https://devendrashahi.pythonanywhere.com/", heroImage: null },
+  { id: "studentstack", title: "StudentStack", category: "Student Deals", desc: "A student benefits platform for finding verified deals, offers, and subscriptions with clear claim steps.", link: "https://studentstack.vercel.app", heroImage: "/work/StudentStack-hero.webp" },
+  { id: "3am3d", title: "3am3d", category: "Creative", desc: "A WebGL studio platform balancing immersive portfolio experiences with clear booking conversion.", link: "https://3am3d.vercel.app", heroImage: "/work/3AM3D-Premium-Digital-Assets-hero.webp" },
 ];
 
 
@@ -33,7 +34,7 @@ export function SelectedWork({ standalone = false }: { standalone?: boolean } = 
               Selected <span className="text-accent text-glow">Works.</span>
             </h2>
             <p className="text-lg text-muted-foreground font-mono leading-relaxed max-w-xl">
-              A curated index of highly engineered digital interfaces.
+              Six case studies showing how brand clarity and engineering rigor translated into measurable business results.
             </p>
           </div>
           <Button asChild variant="outline" className="hidden md:flex font-mono h-12 px-6 rounded-none border-white/10 hover:border-white/30 hover:bg-white/5">
@@ -57,14 +58,14 @@ export function SelectedWork({ standalone = false }: { standalone?: boolean } = 
                 {/* Background hover light */}
                 <div className={`absolute inset-0 bg-gradient-to-r from-accent/0 via-accent/5 to-transparent opacity-0 transition-opacity duration-500 pointer-events-none ${isActive ? 'opacity-100' : ''}`} />
 
-                <div className="py-8 md:py-12 px-2 flex flex-col md:flex-row items-start md:items-center justify-between gap-6 relative z-10 cursor-pointer">
+                <div className="relative z-10 flex cursor-pointer flex-col items-start justify-between gap-6 px-2 py-8 md:flex-row md:items-center md:py-12">
                   {/* Title & Index */}
-                  <div className="flex items-center gap-6 md:gap-12 w-full md:w-1/2">
+                  <div className="flex w-full min-w-0 items-center gap-6 md:w-1/2 md:gap-12">
                     <span className={`font-mono text-sm transition-colors duration-500 ${isActive ? 'text-accent' : 'text-white/20'}`}>
                       0{index + 1}
                     </span>
-                    <h3 className={`text-3xl md:text-5xl font-sans font-bold tracking-tight transition-all duration-500 origin-left 
-                      ${isActive ? 'text-white translate-x-4' : 'text-white/40 group-hover:text-white/70'}`}
+                    <h3 className={`min-w-0 pr-2 text-3xl font-sans font-bold tracking-tight transition-all duration-500 origin-left md:text-5xl 
+                      ${isActive ? 'text-white md:translate-x-4' : 'text-white/40 group-hover:text-white/70'}`}
                     >
                       {project.title}
                     </h3>
@@ -117,21 +118,21 @@ export function SelectedWork({ standalone = false }: { standalone?: boolean } = 
                           <div className="grain-overlay mix-blend-overlay absolute inset-0 opacity-[0.25] z-20 pointer-events-none" />
                           <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent opacity-0 group-hover/img:opacity-100 transition-opacity duration-700 blur z-20 pointer-events-none" />
                           
-                          {project.link ? (
-                            <div 
-                              className="absolute top-0 left-0 w-[400%] md:w-[250%] lg:w-[200%] h-[400%] md:h-[250%] lg:h-[200%] origin-top-left scale-[0.25] md:scale-[0.4] lg:scale-[0.5] opacity-40 group-hover/img:opacity-100 transition-all duration-1000 ease-out z-10 grayscale group-hover/img:grayscale-0 blur-[2px] group-hover/img:blur-0 pointer-events-none group-hover/img:pointer-events-auto overflow-hidden rounded-none"
-                            >
-                              <iframe 
-                                src={project.link} 
-                                className="w-full h-full border-none bg-black"
-                                sandbox="allow-scripts allow-same-origin"
-                                loading="lazy"
-                                tabIndex={-1}
-                              />
-                            </div>
+                          {project.heroImage ? (
+                            <Image
+                              src={project.heroImage}
+                              alt={`${project.title} hero preview`}
+                              fill
+                              sizes="(min-width: 768px) 60vw, 100vw"
+                              className="object-cover object-top z-10 opacity-60 group-hover/img:opacity-100 transition-all duration-700 grayscale group-hover/img:grayscale-0 scale-100 group-hover/img:scale-[1.02]"
+                              loading="lazy"
+                            />
                           ) : (
                             <div className="absolute inset-0 flex items-center justify-center z-10 opacity-5 group-hover/img:opacity-20 transition-opacity duration-700">
-                               <span className="font-sans font-black text-white text-[15rem] leading-none tracking-tighter">0{index + 1}</span>
+                              <div className="text-center">
+                                <span className="font-sans font-black text-white text-[10rem] md:text-[15rem] leading-none tracking-tighter block">0{index + 1}</span>
+                                <span className="font-mono text-xs uppercase tracking-[0.2em] text-white/60">Hero Preview Pending</span>
+                              </div>
                             </div>
                           )}
                         </div>

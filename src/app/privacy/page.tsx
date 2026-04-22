@@ -46,7 +46,10 @@ export default function PrivacyPage() {
               Privacy Policy
             </h1>
             
-            <p className="text-muted-foreground font-mono text-sm mb-2">Last updated: March 2026</p>
+            <p className="text-muted-foreground font-mono text-sm mb-2">Last updated: April 2026</p>
+            <p className="text-muted-foreground font-mono text-sm max-w-2xl leading-relaxed">
+              This page explains what information we collect, why we collect it, and how we handle it when you engage with echo11.
+            </p>
           </motion.div>
         </Container>
       </div>

@@ -1,11 +1,11 @@
 import { Resend } from 'resend'
 
-const resend = process.env.RESEND_API_KEY 
+const resend = process.env.RESEND_API_KEY
   ? new Resend(process.env.RESEND_API_KEY)
   : null
 
 const FROM_EMAIL = process.env.FROM_EMAIL || 'echo11 (no-reply) <onboarding@echo11.com>'
-const PORTAL_URL = process.env.NEXT_PUBLIC_PORTAL_URL || 'https://echo11.tech/portal'
+const PORTAL_URL = process.env.NEXT_PUBLIC_PORTAL_URL || 'http://echo11.tech/portal'
 
 interface InvitationEmailParams {
   to: string
@@ -31,7 +31,7 @@ export async function sendClientInvitation({
   }
 
   try {
-    const loginLink = token 
+    const loginLink = token
       ? `${PORTAL_URL}/auth/verify?token=${token}&email=${encodeURIComponent(to)}`
       : PORTAL_URL
 
@@ -363,7 +363,7 @@ export async function sendTeamInvitation({
   invitedByEmail,
   jobTitle
 }: TeamInvitationParams): Promise<{ success: boolean; error?: string }> {
-const LAB_URL = process.env.NEXT_PUBLIC_LAB_URL || 'https://echo11.tech/lab'
+  const LAB_URL = process.env.NEXT_PUBLIC_LAB_URL || 'http://localhost:3000/lab'
   const signupLink = `${LAB_URL}/auth/team-signup?invite=${inviteId}`
 
   if (!resend) {
@@ -492,8 +492,10 @@ export async function sendInvoiceEmail({
     })
 
     return { success: true }
-  } catch (e) {
+  } catch (e: unknown) {
     console.error('Resend error:', e)
-    return { success: false, error: e instanceof Error ? e.message : 'Failed to send invoice' }
+    const message = e instanceof Error ? e.message : 'Failed to send invoice'
+    return { success: false, error: message }
   }
 }
+

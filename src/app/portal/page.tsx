@@ -1,8 +1,9 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
-import { FolderKanban, CheckSquare, DollarSign, Clock, ArrowRight } from 'lucide-react'
+import { FolderKanban, CheckSquare, DollarSign, Clock, ArrowRight, Activity } from 'lucide-react'
 import { format } from 'date-fns'
+import { PortalActivityFeed } from './PortalActivityFeed'
 
 type ProjectWithClient = {
   id: string
@@ -234,37 +235,10 @@ export default async function PortalDashboard() {
       </div>
 
       {/* Recent Activity */}
-      {tasks.length > 0 && (
-        <div>
-          <h2 className="text-xl font-semibold text-white font-sans mb-4">Recent Tasks</h2>
-          <div className="bg-white/5 border border-white/10 rounded-xl overflow-hidden">
-            {tasks.slice(0, 5).map((task) => (
-              <div 
-                key={task.id}
-                className="flex items-center gap-3 p-4 border-b border-white/5 last:border-0"
-              >
-                <div className={`w-4 h-4 rounded border ${
-                  task.status === 'done' ? 'bg-emerald-500 border-emerald-500' : 'border-white/20'
-                }`} />
-                <div className="flex-1">
-                  <p className={`text-sm ${
-                    task.status === 'done' ? 'text-white/40 line-through' : 'text-white'
-                  }`}>
-                    {task.title}
-                  </p>
-                </div>
-                <span className={`px-2 py-0.5 text-xs rounded ${
-                  task.priority === 'urgent' ? 'bg-red-500/10 text-red-400' :
-                  task.priority === 'high' ? 'bg-amber-500/10 text-amber-400' :
-                  'bg-white/10 text-white/50'
-                }`}>
-                  {task.priority}
-                </span>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
+      <div>
+        <h2 className="text-xl font-semibold text-white font-sans mb-4">Recent Activity</h2>
+        <PortalActivityFeed />
+      </div>
     </div>
   )
 }

@@ -7,6 +7,7 @@ import { PhilosophyGrid } from "@/components/sections/PhilosophyGrid";
 
 export const metadata = {
   title: "About | echo11",
+  description: "Meet the product engineering studio behind echo11's strategy-first, quality-driven digital delivery.",
 };
 
 export default function AboutPage() {
@@ -18,17 +19,17 @@ export default function AboutPage() {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 lg:gap-8 items-center">
              <div className="lg:col-span-7">
                 <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold font-sans tracking-tight text-foreground mb-8 leading-[1.1]">
-                  We build for the <span className="text-accent text-glow">future.</span>
+                  We build products that <span className="text-accent text-glow">earn trust.</span>
                 </h1>
                 <p className="text-xl text-muted-foreground font-mono leading-relaxed mb-12">
-                  echo11 is a premium web & app development studio based in Nepal. Our mission is to engineer high-quality digital products for clients across the globe. We combine deep technical expertise with state-of-the-art interactive design to create things that work fast and look even better.
+                  echo11 is a Nepal-based product engineering studio partnering with founders and teams worldwide. We combine clear product strategy, premium interface design, and robust engineering so your product launches strong and scales without chaos.
                 </p>
                 <div className="flex flex-col sm:flex-row gap-4">
                   <Button size="lg" className="font-mono bg-white text-black hover:bg-white/90 shadow-[0_0_20px_rgba(255,255,255,0.2)]">
-                    <Link href="/contact">Get in Touch</Link>
+                    <Link href="/contact">Book Discovery</Link>
                   </Button>
                   <Button size="lg" variant="outline" className="font-mono border-white/20 text-white">
-                    <Link href="/work">View Case Studies</Link>
+                    <Link href="/work">See Our Work</Link>
                   </Button>
                 </div>
              </div>

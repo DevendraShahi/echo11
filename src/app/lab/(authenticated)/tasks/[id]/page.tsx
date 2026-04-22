@@ -168,7 +168,14 @@ export default function TaskDetailPage({ params }: TaskPageProps) {
         }
 
         setCanEdit(isAdmin || isLead || isAssignee)
-        setTeamMembers([])
+        
+        const { data: profilesData } = await supabase
+          .from('profiles')
+          .select('id, full_name')
+          .neq('role', 'client')
+          .order('full_name', { ascending: true })
+        
+        setTeamMembers(profilesData || [])
       }
 
       setComments(commentsData.data || [])

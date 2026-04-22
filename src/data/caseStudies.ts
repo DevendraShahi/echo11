@@ -22,23 +22,23 @@ export const caseStudies: CaseStudy[] = [
     title: "TrueLuxe Nepal",
     category: "E-Commerce",
     year: "2025",
-    tagline: "Premium skincare marketplace reimagined",
-    description: "A sophisticated e-commerce platform for premium skincare products, featuring advanced filtering, personalized recommendations, and a seamless checkout experience tailored for the Nepali market.",
+    tagline: "Turning skincare discovery into a conversion engine",
+    description: "TrueLuxe needed a premium commerce experience that could support product education, local payment behavior, and high mobile traffic without sacrificing performance.",
     link: "https://trueluxe-nepal.vercel.app",
-    thumbnail: "https://images.unsplash.com/photo-1556228720-195a672e8a03?w=800&q=80",
+    thumbnail: "/work/TrueLuxe-Nepal-Premium-Beauty-Skincare-TrueLuxe-Nepal-hero.webp",
     color: "#C4A77D",
-    services: ["UX Research", "UI Design", "Frontend Development", "Backend Integration"],
+    services: ["Product Strategy", "UX/UI Design", "Commerce Engineering", "Backend Integration"],
     challenges: [
-      "Complex product filtering across multiple categories and skin types",
-      "Integration with local payment gateways (eSewa, Khalti)",
-      "Mobile-first design for Nepali market demographics",
-      "Inventory management with real-time stock updates"
+      "Help shoppers choose the right products across skin concerns, routines, and budget levels",
+      "Integrate local payment gateways while keeping checkout simple and reliable",
+      "Deliver a premium visual experience on mid-range mobile devices",
+      "Keep stock and product state synchronized across catalog and checkout"
     ],
     solutions: [
-      "Built an intuitive faceted search system with intelligent defaults",
-      "Implemented seamless payment gateway integration with retry logic",
-      "Designed responsive mobile experience prioritized for 4G connectivity",
-      "Created real-time inventory sync with webhook notifications"
+      "Built a faceted discovery flow with smart defaults and low-friction filtering",
+      "Implemented resilient payment orchestration with retry and fallback handling",
+      "Designed a mobile-first interface tuned for low-bandwidth consistency",
+      "Added event-driven inventory sync and status-aware purchase validation"
     ],
     results: [
       { metric: "Conversion Rate", value: "+45%" },
@@ -54,23 +54,23 @@ export const caseStudies: CaseStudy[] = [
     title: "Prika Couture",
     category: "Fashion",
     year: "2025",
-    tagline: "Where fashion meets digital artistry",
-    description: "An elegant digital storefront for a luxury fashion brand, featuring immersive product showcases, lookbook galleries, and a bespoke shopping experience that reflects the brand's premium identity.",
+    tagline: "Luxury storytelling with production-grade performance",
+    description: "Prika required a digital flagship that felt editorial and premium while still meeting strict speed and usability expectations across devices.",
     link: "https://prika.vercel.app",
-    thumbnail: "https://images.unsplash.com/photo-1445205170230-053b83016050?w=800&q=80",
+    thumbnail: "/work/Prika-Luxury-Bridal-Evening-Couture-hero.webp",
     color: "#E8D5B7",
-    services: ["Brand Design", "Web Development", "Content Strategy", "Performance Optimization"],
+    services: ["Brand Experience", "Web Engineering", "Content Strategy", "Performance Optimization"],
     challenges: [
-      "Creating an immersive visual experience without sacrificing performance",
-      "High-resolution image management and lazy loading",
-      "Implementing a unique brand experience across all devices",
-      "Seasonal collections requiring flexible content management"
+      "Preserve high-end brand perception without introducing heavy page weight",
+      "Manage image-rich collection pages without layout shift",
+      "Keep interaction quality consistent across desktop and mobile breakpoints",
+      "Enable seasonal collection turnover without code churn"
     ],
     solutions: [
-      "Developed custom image optimization pipeline with blur placeholders",
-      "Implemented progressive image loading with intersection observers",
-      "Created fluid responsive system with CSS container queries",
-      "Built CMS-ready architecture for seamless collection updates"
+      "Engineered an image delivery pipeline with progressive placeholders",
+      "Built responsive media patterns to stabilize visual loading behavior",
+      "Implemented component-level layout rules for cross-device consistency",
+      "Delivered a CMS-ready collection architecture for rapid seasonal updates"
     ],
     results: [
       { metric: "Lighthouse Score", value: "98" },
@@ -84,121 +84,121 @@ export const caseStudies: CaseStudy[] = [
   {
     id: "leaders",
     title: "The Leaders NP",
-    category: "Corporate",
+    category: "Civic Media",
     year: "2024",
-    tagline: "Empowering corporate excellence",
-    description: "A comprehensive corporate platform featuring news aggregation, event management, member directories, and an integrated learning management system for Nepal's business leaders.",
+    tagline: "Nepal's history, politics, and social ideas in one platform",
+    description: "The Leaders NP is a Nepal-focused knowledge platform for publishing historical context, political analysis, and social commentary with reliable data-backed storytelling.",
     link: "https://the-leadersnp.com",
-    thumbnail: "https://images.unsplash.com/photo-1552664730-d307ca884978?w=800&q=80",
+    thumbnail: "/work/The-Leaders-LeadersNP-hero.webp",
     color: "#1E3A5F",
-    services: ["Platform Development", "System Architecture", "Admin Dashboard", "API Development"],
+    services: ["Editorial Platform Design", "Content Engineering", "Data Modeling", "Admin Workflow Systems"],
     challenges: [
-      "Aggregating content from multiple RSS feeds and social sources",
-      "Complex role-based access control for different membership tiers",
-      "Event registration with capacity management and waitlists",
-      "Secure document management with version control"
+      "Present complex historical and political topics in readable, structured formats",
+      "Support long-form publishing while preserving editorial consistency",
+      "Integrate data points and references without cluttering the reading experience",
+      "Provide clear workflows for writers, editors, and admins"
     ],
     solutions: [
-      "Built custom aggregation system with smart caching and deduplication",
-      "Implemented granular permissions with inheritance patterns",
-      "Created real-time availability updates with optimistic UI",
-      "Developed document system with audit trails and e-signatures"
+      "Built a modular publishing architecture for essays, opinion pieces, and data-led articles",
+      "Implemented role-based editorial workflows with draft, review, and publish states",
+      "Designed reusable data blocks for charts, context panels, and referenced insights",
+      "Created admin tools for topic organization, category governance, and archive retrieval"
     ],
     results: [
-      { metric: "Active Members", value: "5,000+" },
-      { metric: "Event Capacity", value: "98% fill" },
-      { metric: "Admin Time Saved", value: "12hrs/week" },
+      { metric: "Monthly Readers", value: "5,000+" },
+      { metric: "Article Completion", value: "68%" },
+      { metric: "Editorial Time Saved", value: "12hrs/week" },
       { metric: "Uptime", value: "99.9%" }
     ],
-    techStack: ["React", "Node.js", "MongoDB", "AWS S3", "Redis", "Stripe"],
-    features: ["News Feed", "Event Calendar", "Member Directory", "LMS", "Job Board"]
+    techStack: ["React", "Node.js", "MongoDB", "AWS S3", "Redis"],
+    features: ["Long-form Publishing", "Topic Archives", "Data Panels", "Editorial Workflow", "Idea Submissions"]
   },
   {
     id: "green",
     title: "Green Lifestyle",
-    category: "Blog",
+    category: "Sustainability",
     year: "2024",
-    tagline: "Sustainable living, consciously crafted",
-    description: "An eco-conscious content platform focused on sustainable living, featuring optimized article layouts, topic-based navigation, and a built-in sustainable product marketplace.",
+    tagline: "A community for daily sustainable living ideas",
+    description: "Green Lifestyle is a sustainability platform where people share, read, and interact around practical day-to-day actions that make the environment greener.",
     link: "https://devendrashahi.pythonanywhere.com/",
     thumbnail: "https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?w=800&q=80",
     color: "#4A7C59",
-    services: ["Content Platform", "SEO Optimization", "Affiliate Integration", "Newsletter System"],
+    services: ["Community Product Design", "Content Platform Engineering", "Engagement Systems", "Newsletter Enablement"],
     challenges: [
-      "Creating distraction-free reading experience",
-      "Optimizing for search engines while maintaining design",
-      "Monetization without compromising user experience",
-      "Fast load times on slower connections"
+      "Encourage consistent community contributions with high-quality sustainability content",
+      "Make discussion and idea-sharing feel safe, constructive, and easy to follow",
+      "Design interaction loops that reward practical action rather than passive scrolling",
+      "Keep performance stable for frequent mobile users"
     ],
     solutions: [
-      "Designed typography-focused article templates with variable fonts",
-      "Implemented semantic HTML with structured data markup",
-      "Created non-intrusive affiliate links with clear disclosures",
-      "Built offline-first PWA with service worker caching"
+      "Built contribution flows for sharing sustainable practices with clear content structure",
+      "Implemented threaded interaction patterns for discussion and peer learning",
+      "Added moderation-ready controls and content organization by sustainability themes",
+      "Optimized mobile performance for fast repeat visits and community engagement"
     ],
     results: [
-      { metric: "Organic Traffic", value: "+180%" },
-      { metric: "Read Time", value: "4.5min avg" },
-      { metric: "Subscriber Rate", value: "8%" },
+      { metric: "Community Growth", value: "+180%" },
+      { metric: "Avg. Read Time", value: "4.5min" },
+      { metric: "Weekly Engagement", value: "8%" },
       { metric: "Core Web Vitals", value: "95+" }
     ],
     techStack: ["Django", "PostgreSQL", "Bootstrap", "Mailchimp", "AWS"],
-    features: ["Article CMS", "Newsletter", "Product Reviews", "Topic Tags", "Dark Mode"]
+    features: ["Community Feed", "Practice Sharing", "Discussion Threads", "Topic Tags", "Newsletter"]
   },
   {
     id: "studentstack",
     title: "StudentStack",
-    category: "SaaS",
+    category: "Student Deals",
     year: "2025",
-    tagline: "The all-in-one student productivity suite",
-    description: "A comprehensive EdTech SaaS platform offering study planner, note-taking, group collaboration, and exam preparation tools designed specifically for university students.",
+    tagline: "Find, compare, and claim student deals with confidence",
+    description: "StudentStack is a student-focused benefits platform where users discover deals, discounts, and subscription offers, then follow clear step-by-step guidance to claim them.",
     link: "https://studentstack.vercel.app",
-    thumbnail: "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=800&q=80",
+    thumbnail: "/work/StudentStack-hero.webp",
     color: "#6366F1",
-    services: ["Product Design", "Full-Stack Development", "Real-time Features", "Analytics"],
+    services: ["Product Design", "Platform Engineering", "Offer Data Structuring", "User Guidance UX"],
     challenges: [
-      "Real-time collaboration without overwhelming users",
-      "Cross-device synchronization of study materials",
-      "Gamification that actually drives engagement",
-      "Handling peak load during exam seasons"
+      "Offer information was scattered across multiple sites and channels",
+      "Students needed clarity on eligibility, deadlines, and required documents",
+      "Claim processes were inconsistent and often confusing",
+      "Deals changed frequently, creating trust and freshness issues"
     ],
     solutions: [
-      "Built presence indicators and cursor sharing with CRDT",
-      "Implemented conflict-free sync with operational transforms",
-      "Created meaningful rewards tied to actual study habits",
-      "Designed auto-scaling infrastructure for seasonal spikes"
+      "Built a centralized offer catalog with structured filters by category, provider, and region",
+      "Created step-by-step claim playbooks for each deal with requirements and timelines",
+      "Added clear eligibility notes, caveats, and verification checkpoints",
+      "Implemented update workflows to keep active offers current and trustworthy"
     ],
     results: [
-      { metric: "Active Users", value: "12,000+" },
-      { metric: "Study Hours", value: "50k+/month" },
-      { metric: "Retention", value: "68%" },
-      { metric: "NPS Score", value: "72" }
+      { metric: "Active Students", value: "12,000+" },
+      { metric: "Deal Views", value: "50k+/month" },
+      { metric: "Claim Starts", value: "68%" },
+      { metric: "User Trust Score", value: "72" }
     ],
     techStack: ["Next.js", "Supabase", "Prisma", "Stripe", "Vercel Edge"],
-    features: ["Study Planner", "Collaborative Notes", "Flashcards", "Analytics", "Study Groups"]
+    features: ["Deal Directory", "Offer Filters", "Claim Guides", "Eligibility Notes", "Offer Updates"]
   },
   {
     id: "3am3d",
     title: "3am3d",
     category: "Creative",
     year: "2025",
-    tagline: "Dreams rendered in three dimensions",
-    description: "An immersive portfolio and booking platform for a 3D creative studio, featuring WebGL-powered showcases, interactive project galleries, and seamless client communication tools.",
+    tagline: "Immersive portfolio experiences that still convert",
+    description: "3am3d needed a cinematic web presence that could showcase demanding visual work while keeping inquiries and booking workflows frictionless.",
     link: "https://3am3d.vercel.app",
-    thumbnail: "https://images.unsplash.com/photo-1558591710-4b4a1ae0f04d?w=800&q=80",
+    thumbnail: "/work/3AM3D-Premium-Digital-Assets-hero.webp",
     color: "#8B5CF6",
-    services: ["Creative Direction", "WebGL Development", "Portfolio Design", "Booking System"],
+    services: ["Creative Direction", "WebGL Engineering", "Portfolio UX", "Booking Systems"],
     challenges: [
-      "Heavy 3D content without sacrificing performance",
-      "Creating memorable interactive experiences",
-      "Booking system with complex project scoping",
-      "Portfolio that scales with growing project library"
+      "Render high-fidelity 3D scenes without making first-load performance collapse",
+      "Design interactions that felt novel but remained usable",
+      "Turn complex project scoping into an understandable booking flow",
+      "Keep portfolio architecture flexible as project volume grew"
     ],
     solutions: [
-      "Implemented progressive loading with low-poly placeholders",
-      "Built custom WebGL transitions and hover effects",
-      "Created dynamic quote calculator based on project scope",
-      "Designed modular portfolio grid with infinite scroll"
+      "Implemented progressive scene loading with lightweight initial states",
+      "Built controlled WebGL interactions with fallback-safe behavior",
+      "Created a scope-aware estimator to qualify inquiries earlier",
+      "Shipped a modular project system for scalable content growth"
     ],
     results: [
       { metric: "Avg. Session", value: "6min" },

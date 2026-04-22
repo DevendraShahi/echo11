@@ -2,10 +2,16 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
-import { ServiceCategory, ServiceUnit } from '@/types/lab'
+import { ServiceCategory, ServiceUnit, Invoice, Client, Project, InvoiceItem } from '@/types/lab'
 import { sendInvoiceEmail } from '@/lib/email'
 import { createNotification } from './notification-actions'
 import { requireAdminOrLead } from './role-helpers'
+
+export type InvoiceWithRelations = Invoice & {
+  project?: Pick<Project, 'name'> | null
+  client?: Pick<Client, 'company_name' | 'contact_name' | 'email'> | null
+  items?: InvoiceItem[]
+}
 
 export interface InvoiceItemData {
   description: string
@@ -462,4 +468,34 @@ export async function getServicesForInvoice(projectId?: string | null) {
     created_at: s.created_at || new Date().toISOString(),
     isProjectSpecific: s.isProjectSpecific || false
   }))
+}
+
+export async function getInvoiceWithDetails(invoiceId: string): Promise<InvoiceWithRelations | null> {
+  const supabase = await createClient()
+  
+  const { data: invoice, error } = await supabase
+    .from('invoices')
+    .select(`
+      *,
+      client:clients(id, company_name, contact_name, email),
+      project:projects(id, name)
+    `)
+    .eq('id', invoiceId)
+    .single()
+
+  if (error || !invoice) {
+    console.error('Error fetching invoice:', error)
+    return null
+  }
+
+  const { data: items } = await supabase
+    .from('invoice_items')
+    .select('*')
+    .eq('invoice_id', invoiceId)
+    .order('sort_order', { ascending: true })
+
+  return {
+    ...invoice,
+    items: items || []
+  } as InvoiceWithRelations
 }

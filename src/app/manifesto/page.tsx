@@ -11,39 +11,39 @@ import { ArrowRight, Target, Heart, Eye, Sparkles, Quote, ArrowUpRight } from "l
 const pillars = [
   {
     icon: Target,
-    title: "Precision Over Speed",
-    quote: "Fast and wrong is worse than slow and right.",
-    desc: "We would rather deliver one exceptional feature than five mediocre ones. Every pixel, every line of code, every interaction is intentional."
+    title: "Clarity Before Velocity",
+    quote: "Fast execution only matters when direction is correct.",
+    desc: "We prioritize sharp problem definition and deliberate decisions so shipping speed compounds instead of creating rework."
   },
   {
     icon: Heart,
-    title: "User-Centric Design",
-    quote: "Technology exists to serve people, not the other way around.",
-    desc: "We start every project by understanding who will use it and why. Beautiful design means nothing if it does not solve real problems for real people."
+    title: "Useful by Design",
+    quote: "Beautiful products still need to solve real problems.",
+    desc: "Every interface decision is anchored in user intent, task clarity, and measurable outcomes."
   },
   {
     icon: Eye,
-    title: "Radical Transparency",
-    quote: "No hidden fees, no surprises, no vague timelines.",
-    desc: "You will always know exactly where your project stands. We communicate clearly, honestly, and frequently—good news and bad."
+    title: "Transparent Delivery",
+    quote: "No mystery timelines. No hidden tradeoffs.",
+    desc: "We communicate scope, progress, risks, and decisions clearly so teams can move confidently."
   },
   {
     icon: Sparkles,
-    title: "Craftsmanship Matters",
-    quote: "Good enough is not good enough.",
-    desc: "We care deeply about the details that others overlook. The code others call over-engineered, we call well-engineered. Your users feel the difference."
+    title: "Craft Is Strategy",
+    quote: "Details are not decoration; they shape trust.",
+    desc: "Strong engineering and refined interaction design create products that feel credible from first click to daily use."
   }
 ];
 
 const beliefs = [
-  { text: "The best interface is no interface—solve problems before they reach the screen." },
-  { text: "Performance is a feature. Every 100ms matters." },
-  { text: "Accessibility is not an add-on; it is a design requirement." },
-  { text: "Technical debt is real debt. We do not compound interest." },
-  { text: "The simplest solution is usually the right one—until it is not." },
-  { text: "Launching imperfect work is better than perfecting work that never launches." },
-  { text: "Documentation is love. Future-you will thank present-you." },
-  { text: "The best tools are the ones your team will actually use." }
+  { text: "Product decisions should tie back to one clear business objective." },
+  { text: "Performance is part of user experience, not a post-launch checklist." },
+  { text: "Accessibility is a baseline quality standard, not an optional feature." },
+  { text: "Technical debt should be measured, tracked, and repaid intentionally." },
+  { text: "Simplicity wins, unless complexity clearly returns more value." },
+  { text: "Ship early, but only with quality bars that protect user trust." },
+  { text: "Documentation protects velocity across teams and time." },
+  { text: "Great tooling is the tooling your team can sustain." }
 ];
 
 export default function ManifestoPage() {
@@ -90,7 +90,7 @@ export default function ManifestoPage() {
                   animate={{ width: 32 }}
                   transition={{ delay: 0.4, duration: 0.6 }}
                 />
-                <span className="font-mono text-xs text-accent uppercase tracking-[0.3em]">Our Manifesto</span>
+                <span className="font-mono text-xs text-accent uppercase tracking-[0.3em]">Studio Manifesto</span>
               </motion.div>
               
               <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold font-sans tracking-tight text-foreground mb-8 leading-[1.1]">
@@ -98,7 +98,7 @@ export default function ManifestoPage() {
               </h1>
               
               <p className="text-xl text-muted-foreground font-mono leading-relaxed mb-12 max-w-2xl">
-                This is what we believe. These principles guide every decision we make, every line of code we write, and every product we ship.
+                These principles shape how we scope, design, build, and support every product we take on.
               </p>
             </motion.div>
           </Container>
@@ -126,7 +126,7 @@ export default function ManifestoPage() {
                 <h2 className="text-3xl md:text-4xl font-bold font-sans text-white mb-2">
                   The Four Pillars
                 </h2>
-                <p className="text-muted-foreground font-mono">What we stand for.</p>
+                <p className="text-muted-foreground font-mono">The standards behind our decisions.</p>
               </div>
             </div>
           </motion.div>
@@ -192,7 +192,7 @@ export default function ManifestoPage() {
             <h2 className="text-4xl md:text-5xl font-bold font-sans tracking-tight text-foreground mb-4">
               Small truths that shape <span className="text-accent text-glow">big decisions.</span>
             </h2>
-            <p className="text-muted-foreground font-mono">The principles that drive every line of code.</p>
+            <p className="text-muted-foreground font-mono">Operational beliefs we apply on every engagement.</p>
           </motion.div>
 
           <motion.div
@@ -252,11 +252,11 @@ export default function ManifestoPage() {
             </motion.div>
             
             <h2 className="text-3xl md:text-4xl font-bold font-sans text-white mb-6">
-              Live these values?
+              Building with these standards?
             </h2>
             
             <p className="text-lg text-muted-foreground font-mono mb-10">
-              Let&apos;s build something exceptional together.
+              Let&apos;s define the right product and execute it with discipline.
             </p>
             
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -267,7 +267,7 @@ export default function ManifestoPage() {
                 <Button size="lg" className="font-mono group relative overflow-hidden">
                   <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
                   <Link href="/contact" className="flex items-center gap-2 relative z-10">
-                    Get in Touch <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+                    Start a Conversation <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
                   </Link>
                 </Button>
               </motion.div>
@@ -278,7 +278,7 @@ export default function ManifestoPage() {
               >
                 <Button size="lg" variant="outline" className="font-mono group">
                   <Link href="/work" className="flex items-center gap-2">
-                    View Our Work <ArrowUpRight className="w-4 h-4 transition-transform group-hover:translate-x-1 group-hover:-translate-y-1" />
+                    Review Case Studies <ArrowUpRight className="w-4 h-4 transition-transform group-hover:translate-x-1 group-hover:-translate-y-1" />
                   </Link>
                 </Button>
               </motion.div>

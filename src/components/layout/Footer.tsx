@@ -48,7 +48,7 @@ export function Footer() {
               </div>
             </Link>
             <p className="text-white/40 max-w-sm text-sm font-mono leading-relaxed">
-              A premium technical studio based in Nepal. We engineer highly scalable architectures and design uncompromised digital products.
+              A product engineering studio based in Nepal. We help ambitious teams ship clear, fast, and durable digital products.
             </p>
 
             {/* Real-time Status */}
@@ -71,8 +71,8 @@ export function Footer() {
               <h4 className="font-bold text-white/80 font-sans uppercase tracking-[0.2em] text-[11px]">Execution</h4>
               <nav className="flex flex-col gap-4 text-[13px]">
                 <Link href="/services" className="text-white/40 hover:text-white transition-colors">Architecture</Link>
-                <Link href="/services" className="text-white/40 hover:text-white transition-colors">Product Design</Link>
-                <Link href="/services" className="text-white/40 hover:text-white transition-colors">Core Engineering</Link>
+                <Link href="/services" className="text-white/40 hover:text-white transition-colors">Interface Design</Link>
+                <Link href="/services" className="text-white/40 hover:text-white transition-colors">Product Engineering</Link>
                 <Link href="/services" className="text-white/40 hover:text-white transition-colors">Infrastructure</Link>
               </nav>
             </div>

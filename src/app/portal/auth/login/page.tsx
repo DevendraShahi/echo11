@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
-import { Mail, Lock, ArrowRight, Loader2 } from 'lucide-react'
+import { Mail, Lock, ArrowRight, Loader2, Eye, EyeOff } from 'lucide-react'
 
 export default function PortalLoginPage() {
   const router = useRouter()
@@ -12,6 +12,7 @@ export default function PortalLoginPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
+  const [showPassword, setShowPassword] = useState(false)
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -54,22 +55,22 @@ export default function PortalLoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#0a0a0f] flex items-center justify-center p-4">
+    <div className="min-h-screen bg-black flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         {/* Logo */}
         <div className="text-center mb-8">
-          <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center mx-auto mb-4">
-            <span className="text-white font-bold text-3xl">e</span>
+          <div className="w-16 h-16 bg-accent flex items-center justify-center mx-auto mb-4">
+            <span className="text-black font-bold text-3xl font-mono">e</span>
           </div>
-          <h1 className="text-2xl font-bold text-white">echo11 Client Portal</h1>
-          <p className="text-white/50 mt-2">Sign in to view your projects</p>
+          <h1 className="text-2xl font-bold text-white font-sans">echo11 Client Portal</h1>
+          <p className="text-white/50 mt-2 font-mono text-sm">Sign in to view your projects</p>
         </div>
 
         {/* Login Form */}
-        <div className="p-8 bg-white/5 border border-white/10 rounded-2xl">
+        <div className="p-8 bg-[#0a0a0a] border border-white/10">
           <form onSubmit={handleLogin} className="space-y-5">
             <div>
-              <label className="block text-white/70 text-sm font-medium mb-2">Email</label>
+              <label className="block text-white/50 text-xs font-mono uppercase tracking-wider mb-2">Email</label>
               <div className="relative">
                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-white/30" />
                 <input
@@ -78,28 +79,35 @@ export default function PortalLoginPage() {
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="you@company.com"
                   required
-                  className="w-full pl-11 pr-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder:text-white/30 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 transition-all"
+                  className="w-full pl-11 pr-4 py-3 bg-white/5 border border-white/10 text-white placeholder:text-white/30 focus:border-accent focus:outline-none font-mono text-sm transition-all"
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-white/70 text-sm font-medium mb-2">Password</label>
+              <label className="block text-white/50 text-xs font-mono uppercase tracking-wider mb-2">Password</label>
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-white/30" />
                 <input
-                  type="password"
+                  type={showPassword ? 'text' : 'password'}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
                   required
-                  className="w-full pl-11 pr-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder:text-white/30 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 transition-all"
+                  className="w-full pl-11 pr-12 py-3 bg-white/5 border border-white/10 text-white placeholder:text-white/30 focus:border-accent focus:outline-none font-mono text-sm transition-all"
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-white/30 hover:text-white/60 transition-colors"
+                >
+                  {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                </button>
               </div>
             </div>
 
             {error && (
-              <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-sm">
+              <div className="p-3 bg-rose-500/10 border border-rose-500/20 text-rose-400 text-sm font-mono">
                 {error}
               </div>
             )}
@@ -107,7 +115,7 @@ export default function PortalLoginPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full flex items-center justify-center gap-2 py-3 bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white font-medium rounded-xl transition-all disabled:opacity-50"
+              className="w-full flex items-center justify-center gap-2 py-3 bg-accent hover:bg-accent/90 text-black font-mono uppercase tracking-wider text-sm transition-all disabled:opacity-50"
             >
               {loading ? (
                 <Loader2 className="w-5 h-5 animate-spin" />
@@ -125,7 +133,7 @@ export default function PortalLoginPage() {
               <div className="w-full border-t border-white/10" />
             </div>
             <div className="relative flex justify-center text-sm">
-              <span className="px-4 bg-white/5 text-white/30">or</span>
+              <span className="px-4 bg-[#0a0a0a] text-white/30 font-mono text-xs">or</span>
             </div>
           </div>
 
@@ -133,13 +141,13 @@ export default function PortalLoginPage() {
             type="button"
             onClick={handleMagicLink}
             disabled={loading || !email}
-            className="w-full py-3 border border-white/10 hover:border-white/20 text-white/70 hover:text-white font-medium rounded-xl transition-all disabled:opacity-50"
+            className="w-full py-3 border border-white/10 hover:border-white/20 text-white/70 hover:text-white font-mono text-sm uppercase tracking-wider transition-all disabled:opacity-50"
           >
             Send Magic Link
           </button>
         </div>
 
-        <p className="text-center text-white/30 text-sm mt-6">
+        <p className="text-center text-white/30 text-sm mt-6 font-mono">
           Contact echo11 if you do not have login credentials
         </p>
       </div>

@@ -126,30 +126,30 @@ const DeploymentVisual = () => (
 export const steps = [
   { 
     num: "01", 
-    title: "Discovery & Arch", 
-    desc: "We analyze business objectives, map out the technical architecture, and define strict data models before a single line of code is written.",
-    specs: ["System Design", "Database Schema", "Tech Stack Selection"],
+    title: "Discovery & Architecture", 
+    desc: "We align on outcomes, user intent, and product constraints, then translate that into a clear technical blueprint before development starts.",
+    specs: ["Product Scope", "System Blueprint", "Data Model"],
     visual: ArchitectureVisual
   },
   { 
     num: "02", 
-    title: "Design & Motion", 
-    desc: "Crafting extremely high-fidelity wireframes, premium dark-first UI designs, and physics-based fluid motion prototypes.",
-    specs: ["Component Library", "Framer Physics", "Design Tokens"],
+    title: "Design & Interaction", 
+    desc: "We shape interface direction, interaction patterns, and component language so the product feels precise, branded, and easy to use.",
+    specs: ["Interface Direction", "Component System", "Motion Rules"],
     visual: DesignVisual
   },
   { 
     num: "03", 
-    title: "Core Engineering", 
-    desc: "Developing the platform with scalable edge architecture, rigorous testing, and cleanly typed React codebases.",
-    specs: ["Next.js 15 (App Router)", "TypeScript Strict", "Tailwind CSS"],
+    title: "Product Engineering", 
+    desc: "We build clean, testable systems with dependable release practices, balancing delivery speed with long-term maintainability.",
+    specs: ["Typed Codebase", "Reliable Delivery", "Quality Gates"],
     visual: EngineeringVisual
   },
   { 
     num: "04", 
-    title: "Scale & Deploy", 
-    desc: "Shipping to global edge networks, establishing robust CI/CD pipelines, and continuously monitoring Core Web Vitals.",
-    specs: ["Vercel Edge Network", "CI/CD Workflows", "Lighthouse 100"],
+    title: "Launch & Scale", 
+    desc: "We launch with confidence, monitor performance continuously, and iterate based on real user behavior and business feedback.",
+    specs: ["Production Rollout", "Observability", "Iteration Loop"],
     visual: DeploymentVisual
   },
 ];
@@ -213,12 +213,12 @@ export function ProcessTimeline({ standalone = false }: { standalone?: boolean }
               The <span className="text-accent text-glow">Engine.</span>
             </h2>
             <p className="text-lg text-muted-foreground font-mono leading-relaxed">
-              Our uncompromising protocol for building high-performance digital products completely eliminating layout shift.
+              A structured delivery system that keeps strategy, design, and engineering aligned from kickoff to scale.
             </p>
           </div>
           <div className="flex items-center gap-3 bg-white/5 border border-white/10 px-4 py-2 rounded-none mb-4 md:mb-0">
             <span className="w-2 h-2 rounded-none bg-accent animate-pulse shadow-[0_0_10px_var(--accent-glow)]" />
-            <span className="font-mono text-[10px] md:text-xs tracking-widest text-white uppercase mt-0.5">Protocol Active</span>
+            <span className="font-mono text-[10px] md:text-xs tracking-widest text-white uppercase mt-0.5">Delivery System Active</span>
           </div>
         </div>
 

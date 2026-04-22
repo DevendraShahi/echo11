@@ -50,7 +50,10 @@ export default function TermsPage() {
               Terms of Service
             </h1>
             
-            <p className="text-muted-foreground font-mono text-sm mb-2">Last updated: March 2026</p>
+            <p className="text-muted-foreground font-mono text-sm mb-2">Last updated: April 2026</p>
+            <p className="text-muted-foreground font-mono text-sm max-w-2xl leading-relaxed">
+              These terms describe the legal framework for working with echo11, including scope, payment, responsibilities, and delivery expectations.
+            </p>
           </motion.div>
         </Container>
       </div>

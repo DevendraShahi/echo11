@@ -24,7 +24,7 @@ const services = [
   {
     id: "web",
     title: "Website Design & Build",
-    description: "High-performance, accessible, and stunning websites that convert visitors into customers.",
+    description: "Conversion-focused websites built for speed, trust, and long-term growth.",
     icon: MonitorSmartphone,
     color: "#6366F1",
     features: [
@@ -40,7 +40,7 @@ const services = [
   {
     id: "app",
     title: "App Development",
-    description: "Native and cross-platform applications for web and mobile that deliver exceptional user experiences.",
+    description: "Web and mobile products engineered for reliability, adoption, and scale.",
     icon: Smartphone,
     color: "#EC4899",
     features: [
@@ -56,7 +56,7 @@ const services = [
   {
     id: "perf",
     title: "Performance & SEO",
-    description: "Deep technical audits and optimizations to rank higher and load faster.",
+    description: "Technical optimization that improves discoverability, speed, and retention.",
     icon: Search,
     color: "#10B981",
     features: [
@@ -72,7 +72,7 @@ const services = [
   {
     id: "maintain",
     title: "Maintenance Retainer",
-    description: "Ongoing support and maintenance to keep your digital products running smoothly.",
+    description: "Continuous support to keep releases stable, secure, and momentum high.",
     icon: RefreshCw,
     color: "#F59E0B",
     features: [
@@ -88,11 +88,11 @@ const services = [
 ];
 
 const process = [
-  { step: "01", title: "Discovery", desc: "Deep dive into your goals, users, and technical requirements." },
-  { step: "02", title: "Strategy", desc: "Architect the solution with the right tech stack and timeline." },
-  { step: "03", title: "Design", desc: "Create pixel-perfect designs that match your brand identity." },
-  { step: "04", title: "Develop", desc: "Build production-grade code with continuous integration." },
-  { step: "05", title: "Launch", desc: "Deploy with confidence and monitor for optimal performance." }
+  { step: "01", title: "Discovery", desc: "Align on business goals, users, constraints, and success metrics." },
+  { step: "02", title: "Planning", desc: "Define architecture, delivery phases, and technical priorities." },
+  { step: "03", title: "Design", desc: "Translate strategy into clear interface systems and interaction rules." },
+  { step: "04", title: "Build", desc: "Ship production-grade features through disciplined engineering cycles." },
+  { step: "05", title: "Launch", desc: "Release, monitor, and iterate based on product and business signals." }
 ];
 
 const techStack = [
@@ -113,19 +113,19 @@ const techStack = [
 const faqs = [
   {
     q: "How long does a typical project take?",
-    a: "Most projects take 4-12 weeks depending on complexity. We provide detailed timelines during the discovery phase."
+    a: "Most engagements run 4-12 weeks depending on scope and dependencies. We set timeline ranges and milestones during discovery."
   },
   {
     q: "What's included in the pricing?",
-    a: "Everything from design to deployment, including hosting setup, documentation, and a revision period."
+    a: "Scope typically includes planning, design, development, QA, launch support, and handover documentation."
   },
   {
     q: "Do you offer ongoing support?",
-    a: "Yes, we offer maintenance retainers for ongoing updates, monitoring, and feature additions."
+    a: "Yes. Our retainers cover monitoring, fixes, iterative improvements, and structured release support."
   },
   {
     q: "Can you work with existing codebases?",
-    a: "Absolutely. We specialize in taking over existing projects and improving them."
+    a: "Yes. We audit existing systems, stabilize risky areas, and then improve incrementally without disrupting operations."
   }
 ];
 
@@ -206,7 +206,7 @@ export default function ServicesPage() {
                   animate={{ width: 32 }}
                   transition={{ delay: 0.3, duration: 0.6 }}
                 />
-                <span className="font-mono text-xs text-accent uppercase tracking-[0.3em]">What We Do</span>
+                <span className="font-mono text-xs text-accent uppercase tracking-[0.3em]">Capabilities</span>
               </motion.div>
 
               <motion.h1 
@@ -215,7 +215,7 @@ export default function ServicesPage() {
                 transition={{ delay: 0.2, duration: 0.8 }}
                 className="text-5xl md:text-6xl lg:text-7xl font-bold font-sans tracking-tight text-foreground mb-8 leading-[1.1]"
               >
-                Services & <span className="text-accent text-glow">Expertise.</span>
+                Capabilities & <span className="text-accent text-glow">Services.</span>
               </motion.h1>
 
               <motion.p 
@@ -224,7 +224,7 @@ export default function ServicesPage() {
                 transition={{ delay: 0.3 }}
                 className="text-xl text-muted-foreground font-mono leading-relaxed mb-12 max-w-2xl"
               >
-                From concept to launch, we provide end-to-end digital engineering. Premium design, robust architecture, and flawless execution.
+                From planning to scale, we provide integrated product strategy, interface design, and engineering delivery.
               </motion.p>
 
               <motion.div
@@ -236,7 +236,7 @@ export default function ServicesPage() {
                 <Button size="lg" className="font-mono group relative overflow-hidden">
                   <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
                   <Link href="/contact" className="flex items-center gap-2 relative z-10">
-                    Start a Project <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+                    Start Your Project <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
                   </Link>
                 </Button>
                 <Button size="lg" variant="outline" className="font-mono">
@@ -350,11 +350,11 @@ export default function ServicesPage() {
           >
             <div className="flex items-center justify-center gap-3 mb-6">
               <Rocket className="w-6 h-6 text-accent" />
-              <span className="font-mono text-xs text-accent uppercase tracking-[0.3em]">How We Work</span>
+                <span className="font-mono text-xs text-accent uppercase tracking-[0.3em]">Execution Framework</span>
               <Rocket className="w-6 h-6 text-accent" />
             </div>
             <h2 className="text-4xl md:text-5xl font-bold font-sans tracking-tight text-foreground">
-              Simple <span className="text-accent text-glow">5-Step</span> Process
+              Five-Phase <span className="text-accent text-glow">Delivery</span> Model
             </h2>
           </motion.div>
 
@@ -415,7 +415,7 @@ export default function ServicesPage() {
               Our Tech Stack
             </h2>
             <p className="text-muted-foreground font-mono max-w-2xl">
-              Modern, battle-tested technologies that scale with your business.
+              Modern, proven technologies selected for performance, flexibility, and maintainability.
             </p>
           </motion.div>
 
@@ -445,7 +445,7 @@ export default function ServicesPage() {
                 Common Questions
               </h2>
               <p className="text-muted-foreground font-mono mb-8">
-                Quick answers to help you understand our process.
+                Clear answers about how we scope, deliver, and support engagements.
               </p>
             </motion.div>
 
@@ -482,10 +482,10 @@ export default function ServicesPage() {
               </div>
 
               <h2 className="text-3xl md:text-4xl font-bold font-sans text-white mb-4">
-                Ready to Start?
+                Ready to Build?
               </h2>
               <p className="text-muted-foreground font-mono mb-8 max-w-xl mx-auto">
-                Let&apos;s discuss your project and create something exceptional together.
+                Tell us what you need to achieve. We&apos;ll define a practical path from idea to launch.
               </p>
 
               <div className="flex flex-col sm:flex-row gap-4 justify-center">

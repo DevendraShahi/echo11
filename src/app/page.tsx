@@ -7,8 +7,8 @@ import { CTABanner } from "@/components/sections/CTABanner";
 import { PageWrapper } from "@/components/layout/PageWrapper";
 
 export const metadata = {
-  title: "echo11 | Premium Web & App Development Studio",
-  description: "We craft digital products that hold up.",
+  title: "echo11 | Product Engineering Studio",
+  description: "We design and engineer digital products with clear strategy, strong systems, and premium execution.",
 };
 
 const industries = [

@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { getInviteDetails, acceptTeamInvite } from '@/lib/actions/settings-actions'
-import { Lock, User, Loader2, Sparkles, AlertCircle, ArrowRight } from 'lucide-react'
+import { Lock, User, Loader2, Sparkles, AlertCircle, ArrowRight, Eye, EyeOff } from 'lucide-react'
 
 function TeamSignupForm() {
   const router = useRouter()
@@ -23,6 +23,8 @@ function TeamSignupForm() {
   const [confirmPassword, setConfirmPassword] = useState('')
   const [fullName, setFullName] = useState('')
   const [success, setSuccess] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
 
   // Verify invite token
   useEffect(() => {
@@ -229,15 +231,22 @@ function TeamSignupForm() {
               <div className="relative group">
                 <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30 group-focus-within:text-accent transition-colors" />
                 <input
-                  type="password"
+                  type={showPassword ? 'text' : 'password'}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   disabled={submitting}
-                  className="w-full pl-11 pr-4 py-3 bg-white/5 border border-white/10 text-white placeholder:text-white/20 focus:border-accent focus:bg-white/10 focus:outline-none font-mono text-sm transition-all disabled:opacity-50"
+                  className="w-full pl-11 pr-12 py-3 bg-white/5 border border-white/10 text-white placeholder:text-white/20 focus:border-accent focus:bg-white/10 focus:outline-none font-mono text-sm transition-all disabled:opacity-50"
                   placeholder="••••••••"
                   required
                   minLength={6}
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-white/30 hover:text-white/60 transition-colors"
+                >
+                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
               </div>
               <p className="text-[11px] text-white/30 mt-2 font-mono uppercase tracking-wider">Must be at least 6 characters</p>
             </div>
@@ -249,15 +258,22 @@ function TeamSignupForm() {
               <div className="relative group">
                 <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30 group-focus-within:text-accent transition-colors" />
                 <input
-                  type="password"
+                  type={showConfirmPassword ? 'text' : 'password'}
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   disabled={submitting}
-                  className="w-full pl-11 pr-4 py-3 bg-white/5 border border-white/10 text-white placeholder:text-white/20 focus:border-accent focus:bg-white/10 focus:outline-none font-mono text-sm transition-all disabled:opacity-50"
+                  className="w-full pl-11 pr-12 py-3 bg-white/5 border border-white/10 text-white placeholder:text-white/20 focus:border-accent focus:bg-white/10 focus:outline-none font-mono text-sm transition-all disabled:opacity-50"
                   placeholder="Match the password"
                   required
                   minLength={6}
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-white/30 hover:text-white/60 transition-colors"
+                >
+                  {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
               </div>
             </div>
 

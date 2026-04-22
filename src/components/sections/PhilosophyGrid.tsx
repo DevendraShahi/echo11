@@ -7,25 +7,25 @@ import { Zap, Code, Layout, Blocks } from "lucide-react";
 const features = [
   {
     title: "Performance First",
-    desc: "From millisecond interactions to flawless 100 Lighthouse scores, we engineer specifically to eliminate layout shift and latency.",
+    desc: "We design for perceived and real speed, reducing latency and interaction friction where it actually impacts users.",
     icon: Zap,
     delay: 0,
   },
   {
     title: "Typed Strictness",
-    desc: "Our codebases rely on rigorous TypeScript constraints, avoiding runtime errors and ensuring completely stable edge deployments.",
+    desc: "Strict typing and clear contracts keep delivery predictable, reduce regressions, and protect long-term maintainability.",
     icon: Code,
     delay: 0.1,
   },
   {
-    title: "Fluid Geometry",
-    desc: "Motion matters. We leverage physics-based spring dampening for every UI transition, ensuring the interaction feels fundamentally human.",
+    title: "Intentional Interaction",
+    desc: "Motion and transitions are applied with purpose so products feel coherent, branded, and easy to navigate.",
     icon: Layout,
     delay: 0.2,
   },
   {
     title: "Component Ecosystems",
-    desc: "We don't build pages. We build robust, scaleable design systems that our partners can extend and deploy across infinite contexts.",
+    desc: "We build extensible systems, not one-off screens, so your product can evolve without constant rewrites.",
     icon: Blocks,
     delay: 0.3,
   },
@@ -42,7 +42,7 @@ export function PhilosophyGrid() {
             Our Architecture.
           </h2>
           <p className="font-mono text-white/50 max-w-xl">
-            Uncompromising technical standards. Here is what we optimize for when we build your digital products.
+            The standards we enforce on every engagement to keep product quality high and delivery reliable.
           </p>
         </div>
 

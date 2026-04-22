@@ -1,7 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { notFound, redirect } from 'next/navigation'
 import Link from 'next/link'
-import { ArrowLeft, Clock, CheckSquare, Calendar } from 'lucide-react'
+import { ArrowLeft, Clock, CheckSquare, Calendar, DollarSign, ExternalLink } from 'lucide-react'
 import { format } from 'date-fns'
 
 type ProjectDetail = {
@@ -166,6 +166,37 @@ export default async function PortalProjectDetailPage({
             {project.deadline ? format(new Date(project.deadline), 'MMM d, yyyy') : 'Not set'}
           </p>
         </div>
+      </div>
+
+      {/* Budget & Link */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {project.budget && (
+          <div className="p-5 bg-white/5 border border-white/10 rounded-xl">
+            <div className="flex items-center gap-2 mb-2">
+              <DollarSign className="w-4 h-4 text-emerald-400" />
+              <span className="text-white/50 text-xs uppercase tracking-wider">Budget</span>
+            </div>
+            <p className="text-2xl font-bold text-white font-mono">${project.budget.toLocaleString()}</p>
+          </div>
+        )}
+        
+        {project.link && (
+          <div className="p-5 bg-white/5 border border-white/10 rounded-xl">
+            <div className="flex items-center gap-2 mb-2">
+              <ExternalLink className="w-4 h-4 text-indigo-400" />
+              <span className="text-white/50 text-xs uppercase tracking-wider">Project Link</span>
+            </div>
+            <a
+              href={project.link}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-indigo-400 hover:text-indigo-300 text-lg flex items-center gap-2"
+            >
+              {project.link.replace(/^https?:\/\//, '')}
+              <ExternalLink className="w-4 h-4" />
+            </a>
+          </div>
+        )}
       </div>
 
       {/* Progress */}

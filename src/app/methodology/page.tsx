@@ -11,26 +11,26 @@ import { ArrowRight, Code2, Layers, Zap, Shield, ArrowDown, Check, ChevronRight 
 const principles = [
   {
     icon: Code2,
-    title: "Technical Excellence",
-    desc: "We write production-grade code from day one. Clean architecture, comprehensive testing, and maintainable solutions that scale with your business.",
+    title: "Engineering Discipline",
+    desc: "We build with clear architecture, typed contracts, and maintainable patterns from day one.",
     number: "001"
   },
   {
     icon: Layers,
-    title: "Systematic Thinking",
-    desc: "Every project starts with understanding the whole system. We design for scalability, performance, and future growth before writing a single line of code.",
+    title: "Systems Thinking",
+    desc: "We model the full product system early so decisions stay coherent as complexity grows.",
     number: "002"
   },
   {
     icon: Zap,
-    title: "Rapid Iteration",
-    desc: "We ship MVPs fast and iterate based on real data. Continuous deployment, A/B testing, and agile sprints keep your product moving forward.",
+    title: "Focused Iteration",
+    desc: "We ship in tight cycles, validate with data, and prioritize the next highest-leverage improvements.",
     number: "003"
   },
   {
     icon: Shield,
-    title: "Security First",
-    desc: "Security is not an afterthought. We implement best practices, regular audits, and robust infrastructure to protect your users and data.",
+    title: "Risk Awareness",
+    desc: "Security, reliability, and operational risk are built into delivery instead of patched at the end.",
     number: "004"
   }
 ];
@@ -39,46 +39,46 @@ const process = [
   {
     step: "01",
     title: "Discovery",
-    desc: "Deep dive into your business goals, user needs, and technical requirements. We ask tough questions to understand the real problems that need solving.",
-    details: ["Stakeholder interviews", "User research", "Technical audit", "Competitive analysis"]
+    desc: "We align on goals, users, constraints, and outcomes so the project starts with clarity, not assumptions.",
+    details: ["Stakeholder alignment", "Problem definition", "Success metrics", "Scope framing"]
   },
   {
     step: "02",
     title: "Architecture",
-    desc: "Design the system architecture, choose the right tech stack, and create detailed specifications. We plan for scale from the beginning.",
-    details: ["System design", "Tech stack selection", "Database schema", "API design"]
+    desc: "We define system structure, data boundaries, and delivery approach before implementation begins.",
+    details: ["System design", "Data modeling", "Integration planning", "Delivery plan"]
   },
   {
     step: "03",
     title: "Prototype",
-    desc: "Rapid prototyping to validate concepts and get early user feedback. We iterate quickly until we get the UX right.",
-    details: ["Wireframes", "Interactive prototypes", "User testing", "Design iteration"]
+    desc: "We prototype key flows and interactions to reduce risk early and lock in confident design direction.",
+    details: ["Flow validation", "Interaction prototypes", "Feedback loops", "Design refinement"]
   },
   {
     step: "04",
     title: "Build",
-    desc: "Full-scale development with continuous integration, automated testing, and regular demos. You see progress every sprint.",
-    details: ["Agile sprints", "CI/CD pipeline", "Automated testing", "Weekly demos"]
+    desc: "We execute in structured engineering cycles with quality gates, continuous integration, and visible progress.",
+    details: ["Implementation sprints", "CI/CD", "Review checkpoints", "Demo cadence"]
   },
   {
     step: "05",
     title: "Launch",
-    desc: "Careful deployment, performance optimization, and monitoring setup. We ensure smooth rollouts with zero downtime strategies.",
-    details: ["DevOps setup", "Performance tuning", "Monitoring & alerts", "Launch strategy"]
+    desc: "We prepare production rollout, optimize critical paths, and instrument the product for confident operation.",
+    details: ["Release strategy", "Performance pass", "Monitoring setup", "Operational handoff"]
   },
   {
     step: "06",
     title: "Evolve",
-    desc: "Ongoing maintenance, performance monitoring, and feature iterations. We treat your product as a living system that constantly improves.",
-    details: ["24/7 monitoring", "Regular updates", "Feature additions", "Performance reports"]
+    desc: "Post-launch, we prioritize improvements using product signals so momentum continues after version one.",
+    details: ["Continuous support", "Backlog refinement", "Feature iteration", "Performance insights"]
   }
 ];
 
 const stats = [
-  { value: "50+", label: "Projects Delivered" },
-  { value: "99%", label: "Client Satisfaction" },
-  { value: "3x", label: "Faster Than Average" },
-  { value: "24/7", label: "Support Available" }
+  { value: "50+", label: "Projects Shipped" },
+  { value: "Weekly", label: "Delivery Visibility" },
+  { value: "Strict", label: "Quality Standards" },
+  { value: "Ongoing", label: "Post-Launch Support" }
 ];
 
 function AnimatedCounter({ value, label }: { value: string; label: string }) {
@@ -161,7 +161,7 @@ export default function MethodologyPage() {
                 animate={{ width: 32 }}
                 transition={{ delay: 0.4, duration: 0.6 }}
               />
-              <span className="font-mono text-xs text-accent uppercase tracking-[0.3em]">Our Methodology</span>
+              <span className="font-mono text-xs text-accent uppercase tracking-[0.3em]">Delivery Methodology</span>
             </motion.div>
             
             <motion.h1 
@@ -179,7 +179,7 @@ export default function MethodologyPage() {
               transition={{ delay: 0.4 }}
               className="text-xl text-muted-foreground font-mono leading-relaxed mb-12 max-w-2xl"
             >
-              A systematic methodology forged from years of building production systems. We combine engineering rigor with creative problem-solving to deliver exceptional results.
+              A practical framework for turning product ambition into reliable execution, without losing design quality or engineering integrity.
             </motion.p>
           </motion.div>
           
@@ -264,15 +264,15 @@ export default function MethodologyPage() {
               viewport={{ once: true }}
             >
               <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-              <span className="font-mono text-xs text-white/60">Our Proven Process</span>
+              <span className="font-mono text-xs text-white/60">Execution Blueprint</span>
             </motion.div>
             
-            <h2 className="text-4xl md:text-5xl font-bold font-sans tracking-tight text-foreground mb-6">
-              Six phases of <span className="text-accent text-glow">excellence.</span>
-            </h2>
-            <p className="text-lg text-muted-foreground font-mono max-w-2xl mx-auto">
-              Each phase builds on the last. We don&apos;t skip steps, but we stay flexible to your timeline.
-            </p>
+              <h2 className="text-4xl md:text-5xl font-bold font-sans tracking-tight text-foreground mb-6">
+              Six phases of <span className="text-accent text-glow">delivery.</span>
+              </h2>
+              <p className="text-lg text-muted-foreground font-mono max-w-2xl mx-auto">
+              Each phase removes risk, creates momentum, and keeps product decisions tied to business outcomes.
+              </p>
           </motion.div>
 
           <div className="relative">
@@ -356,8 +356,8 @@ export default function MethodologyPage() {
             viewport={{ once: true }}
             className="mb-16 text-center"
           >
-            <h2 className="text-3xl md:text-4xl font-bold font-sans text-white mb-4">Our Track Record</h2>
-            <p className="text-muted-foreground font-mono">Numbers that speak for themselves</p>
+            <h2 className="text-3xl md:text-4xl font-bold font-sans text-white mb-4">How We Operate</h2>
+            <p className="text-muted-foreground font-mono">The standards behind every engagement</p>
           </motion.div>
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-12">
@@ -387,7 +387,7 @@ export default function MethodologyPage() {
             <div className="relative p-12 md:p-16 flex flex-col md:flex-row items-center justify-between gap-8">
               <div className="text-center md:text-left">
                 <h3 className="text-2xl md:text-3xl font-bold font-sans text-white mb-2">Ready to start?</h3>
-                <p className="text-muted-foreground font-mono">Book a discovery call to discuss your project.</p>
+                <p className="text-muted-foreground font-mono">Book a discovery call and we&apos;ll map the right delivery path.</p>
               </div>
               
               <Button size="lg" className="font-mono group relative overflow-hidden min-w-[200px]">

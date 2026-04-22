@@ -9,7 +9,7 @@ import { ArrowRight } from "lucide-react";
 
 import { WavesBackground } from "@/components/ui/WavesBackground";
 
-const TITLE = "We craft digital products that hold up.";
+const TITLE = "We engineer digital products people trust.";
 
 const sentenceVariants = {
   hidden: { opacity: 0 },
@@ -83,7 +83,7 @@ export function Hero() {
               transition={{ delay: 1, duration: 0.8 }}
               className="max-w-2xl text-lg sm:text-lg text-white/50 mb-12 font-mono font-medium tracking-wide"
             >
-              Building premium interfaces for the modern web. From e-commerce to highly complex web applications. Dark-first. Refined. Purpose-built.
+              Strategy, design, and engineering in one focused team. We build fast, scalable products with clear UX, resilient architecture, and measurable business outcomes.
             </motion.p>
 
             {/* CTA Buttons */}
@@ -96,11 +96,11 @@ export function Hero() {
               <Button size="lg" className="w-full sm:w-auto gap-2 group relative overflow-hidden font-mono text-xs md:text-sm uppercase tracking-widest font-bold">
                 <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
                 <Link href="/contact" className="flex items-center gap-2">
-                  START A PROJECT <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+                  START YOUR PROJECT <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
                 </Link>
               </Button>
               <Button size="lg" variant="glass" className="w-full sm:w-auto font-mono text-xs md:text-sm uppercase tracking-widest">
-                <Link href="/work">VIEW SELECTED WORK</Link>
+                <Link href="/work">SEE CASE STUDIES</Link>
               </Button>
             </motion.div>
           </div>

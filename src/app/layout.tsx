@@ -3,6 +3,7 @@ import { Syne, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
+import { SplashScreen } from "@/components/layout/SplashScreen";
 import { Cursor } from "@/components/ui/Cursor";
 
 const syne = Syne({
@@ -19,8 +20,8 @@ const spaceMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "echo11 | Premium Web & App Development Studio",
-  description: "echo11 designs, builds, and maintains high-quality websites and applications. Based in Nepal.",
+  title: "echo11 | Product Engineering Studio",
+  description: "We design and engineer high-performance digital products with sharp brand execution and reliable systems.",
   robots: "index, follow",
   icons: {
     icon: "/echo11-logo-white.svg",
@@ -30,8 +31,8 @@ export const metadata: Metadata = {
     type: "website",
     locale: "en_US",
     url: "https://echo11.dev",
-    title: "echo11 | Premium Web & App Development Studio",
-    description: "We craft digital products that hold up.",
+    title: "echo11 | Product Engineering Studio",
+    description: "From concept to scale, echo11 builds digital products that perform, convert, and last.",
     siteName: "echo11",
   },
 };
@@ -42,8 +43,9 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="dark">
+    <html lang="en" className="dark overflow-x-hidden">
       <body className={`${syne.variable} ${spaceMono.variable} antialiased selection:bg-accent selection:text-black overflow-x-hidden w-full min-h-screen relative`}>
+        <SplashScreen />
         <Cursor />
         <Navbar />
         {children}

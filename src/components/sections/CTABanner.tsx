@@ -42,23 +42,23 @@ export function CTABanner() {
 
             {/* Title */}
             <h2 className="text-4xl md:text-7xl font-bold font-sans tracking-tight text-white mb-8">
-              Initialize Your <br className="hidden md:block" /> 
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-white via-accent/80 to-accent">Digital Product.</span>
+              Build Your Next <br className="hidden md:block" /> 
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-white via-accent/80 to-accent">Growth Product.</span>
             </h2>
 
             <p className="max-w-2xl text-white/50 font-mono text-sm md:text-lg mb-12 leading-relaxed">
-              Skip the boilerplate. Book a technical discovery session to architect your vision, discuss infrastructure requirements, and begin engineering.
+              Start with a focused discovery session. We align product goals, technical direction, and delivery plan before we write the first line of code.
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto relative z-20">
               <Button asChild size="lg" className="w-full sm:w-auto h-14 md:h-16 px-8 rounded-none bg-white text-black hover:bg-white/90 font-mono text-sm uppercase tracking-widest font-bold shadow-[0_0_30px_rgba(255,255,255,0.2)] transition-all hover:scale-105">
                 <Link href="/contact" className="flex items-center justify-center gap-3">
-                  Deploy Project <ArrowRight className="w-4 h-4" />
+                  Book Discovery <ArrowRight className="w-4 h-4" />
                 </Link>
               </Button>
               <Button asChild variant="outline" size="lg" className="w-full sm:w-auto h-14 md:h-16 px-8 rounded-none bg-transparent border-white/10 hover:bg-white/5 hover:border-white/30 text-white font-mono text-sm uppercase tracking-widest transition-all">
                 <Link href="mailto:hello@echo11.dev">
-                  System.Contact()
+                  Email Team
                 </Link>
               </Button>
             </div>

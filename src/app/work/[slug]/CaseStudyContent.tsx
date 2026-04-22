@@ -5,6 +5,7 @@ import { PageWrapper } from "@/components/layout/PageWrapper";
 import { Container } from "@/components/ui/Container";
 import { Button } from "@/components/ui/Button";
 import Link from "next/link";
+import Image from "next/image";
 import { motion, useScroll, useTransform, useInView } from "framer-motion";
 import { ArrowLeft, ArrowRight, ExternalLink, Check, ArrowUpRight, Layers, Zap, Target, Eye, MousePointer } from "lucide-react";
 import { CaseStudy } from "@/data/caseStudies";
@@ -85,7 +86,7 @@ export function CaseStudyContent({ project, prevProject, nextProject }: CaseStud
     <PageWrapper>
       <div 
         ref={heroRef}
-        className="pt-48 pb-16 relative overflow-hidden"
+        className="pt-32 sm:pt-40 md:pt-48 pb-12 md:pb-16 relative overflow-hidden"
         style={{ "--project-color": project.color } as React.CSSProperties}
       >
         <div className="absolute inset-0" style={{ background: `radial-gradient(circle_at_30%_20%, ${project.color}15, transparent_50%)` }} />
@@ -125,18 +126,18 @@ export function CaseStudyContent({ project, prevProject, nextProject }: CaseStud
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.1 }}
-                className="flex items-center gap-4 mb-6"
+                className="flex items-center gap-3 sm:gap-4 mb-6"
               >
-                <span className="font-mono text-sm text-accent px-3 py-1 border border-accent/30 bg-accent/10 rounded-sm">{project.category}</span>
+                <span className="font-mono text-xs sm:text-sm text-accent px-2.5 sm:px-3 py-1 border border-accent/30 bg-accent/10 rounded-sm">{project.category}</span>
                 <span className="text-white/20">•</span>
-                <span className="font-mono text-sm text-white/40">{project.year}</span>
+                <span className="font-mono text-xs sm:text-sm text-white/40">{project.year}</span>
               </motion.div>
               
               <motion.h1 
                 initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.2, duration: 0.8 }}
-                className="text-5xl md:text-6xl lg:text-7xl font-bold font-sans tracking-tight text-foreground mb-6 leading-[1.1]"
+                className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold font-sans tracking-tight text-foreground mb-5 sm:mb-6 leading-[1.1]"
               >
                 {project.title}
               </motion.h1>
@@ -145,7 +146,7 @@ export function CaseStudyContent({ project, prevProject, nextProject }: CaseStud
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.3 }}
-                className="text-xl text-muted-foreground font-mono leading-relaxed mb-10 max-w-2xl"
+                className="text-base sm:text-lg md:text-xl text-muted-foreground font-mono leading-relaxed mb-8 sm:mb-10 max-w-2xl"
               >
                 {project.tagline}
               </motion.p>
@@ -154,18 +155,18 @@ export function CaseStudyContent({ project, prevProject, nextProject }: CaseStud
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.4 }}
-                className="flex flex-wrap gap-4"
+                className="flex flex-col sm:flex-row sm:flex-wrap gap-3 sm:gap-4"
               >
                 {project.link && (
-                  <Button asChild className="font-mono group relative overflow-hidden">
+                  <Button asChild className="font-mono group relative overflow-hidden w-full sm:w-auto">
                     <a href={project.link} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2">
                       <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
                       Visit Site <ExternalLink className="w-4 h-4 transition-transform group-hover:translate-x-1" />
                     </a>
                   </Button>
                 )}
-                <Button asChild variant="outline" className="font-mono">
-                  <Link href="/contact">Start Similar Project</Link>
+                <Button asChild variant="outline" className="font-mono w-full sm:w-auto">
+                  <Link href="/contact">Start a Project</Link>
                 </Button>
               </motion.div>
             </motion.div>
@@ -175,7 +176,7 @@ export function CaseStudyContent({ project, prevProject, nextProject }: CaseStud
 
       <motion.div
         style={{ scale: heroScale, opacity: heroOpacity }}
-        className="pointer-events-none"
+        className=""
       >
         <Container>
           <motion.div
@@ -184,9 +185,13 @@ export function CaseStudyContent({ project, prevProject, nextProject }: CaseStud
             transition={{ delay: 0.5, duration: 0.8 }}
             className="relative aspect-video w-full overflow-hidden rounded-none border border-white/10 bg-[#050505]"
           >
-            <div 
-              className="absolute inset-0 bg-cover bg-center"
-              style={{ backgroundImage: `url(${project.thumbnail})` }}
+            <Image
+              src={project.thumbnail}
+              alt={`${project.title} cover image`}
+              fill
+              sizes="100vw"
+              className="absolute inset-0 object-cover object-top"
+              priority
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-black/20" />
             
@@ -199,12 +204,12 @@ export function CaseStudyContent({ project, prevProject, nextProject }: CaseStud
                   href={project.link}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="w-24 h-24 rounded-full border-2 border-white/20 flex items-center justify-center hover:border-white/60 hover:bg-white/10 transition-all group"
+                  className="w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 rounded-full border-2 border-white/20 flex items-center justify-center hover:border-white/60 hover:bg-white/10 transition-all group"
                 >
-                  <ExternalLink className="w-10 h-10 text-white/60 group-hover:text-white group-hover:scale-110 transition-all" />
+                  <ExternalLink className="w-7 h-7 sm:w-8 sm:h-8 md:w-10 md:h-10 text-white/60 group-hover:text-white group-hover:scale-110 transition-all" />
                 </a>
               ) : (
-                <span className="font-sans font-black text-white/10 text-[12rem] leading-none select-none">WIP</span>
+                <span className="font-sans font-black text-white/10 text-[6rem] md:text-[12rem] leading-none select-none">WIP</span>
               )}
             </motion.div>
             
@@ -224,6 +229,10 @@ export function CaseStudyContent({ project, prevProject, nextProject }: CaseStud
         />
         
         <Container className="relative">
+          <div className="mb-10 text-center">
+            <p className="font-mono text-xs text-accent uppercase tracking-[0.25em] mb-2">Measured Impact</p>
+            <h2 className="text-2xl md:text-3xl font-bold font-sans text-white">Outcomes We Tracked</h2>
+          </div>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-12">
             {project.results.map((result, index) => (
               <AnimatedMetric key={result.metric} value={result.value} label={result.metric} delay={index * 0.1} />
@@ -232,23 +241,23 @@ export function CaseStudyContent({ project, prevProject, nextProject }: CaseStud
         </Container>
       </div>
 
-      <div className="py-24 relative">
+      <div className="py-16 md:py-24 relative">
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-accent/[0.02] to-transparent" />
         
         <Container className="relative">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-16">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 md:gap-16">
             <motion.aside
               initial={{ opacity: 0, x: -30 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.4 }}
               className="lg:col-span-4"
             >
-              <div className="sticky top-32 space-y-10">
+              <div className="space-y-5 sm:space-y-6 lg:space-y-10 lg:sticky lg:top-32">
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.5 }}
-                  className="p-6 border border-white/10 bg-white/[0.02] rounded-none"
+                  className="p-4 sm:p-6 border border-white/10 bg-white/[0.02] rounded-none"
                 >
                   <div className="flex items-center gap-3 mb-4">
                     <Target className="w-5 h-5 text-accent" />
@@ -273,7 +282,7 @@ export function CaseStudyContent({ project, prevProject, nextProject }: CaseStud
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.7 }}
-                  className="p-6 border border-white/10 bg-white/[0.02] rounded-none"
+                  className="p-4 sm:p-6 border border-white/10 bg-white/[0.02] rounded-none"
                 >
                   <div className="flex items-center gap-3 mb-4">
                     <Layers className="w-5 h-5 text-accent" />
@@ -298,7 +307,7 @@ export function CaseStudyContent({ project, prevProject, nextProject }: CaseStud
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.9 }}
-                  className="p-6 border border-white/10 bg-white/[0.02] rounded-none"
+                  className="p-4 sm:p-6 border border-white/10 bg-white/[0.02] rounded-none"
                 >
                   <div className="flex items-center gap-3 mb-4">
                     <Zap className="w-5 h-5 text-accent" />
@@ -328,7 +337,7 @@ export function CaseStudyContent({ project, prevProject, nextProject }: CaseStud
               transition={{ delay: 0.5 }}
               className="lg:col-span-8"
             >
-              <div className="flex flex-col gap-20">
+              <div className="flex flex-col gap-12 md:gap-20">
                 <motion.div
                   initial={{ opacity: 0, y: 30 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -338,16 +347,16 @@ export function CaseStudyContent({ project, prevProject, nextProject }: CaseStud
                     <motion.div 
                       whileHover={{ rotate: 360 }}
                       transition={{ duration: 0.8 }}
-                      className="w-14 h-14 rounded-none border border-white/10 bg-white/[0.02] flex items-center justify-center"
+                      className="w-12 h-12 md:w-14 md:h-14 rounded-none border border-white/10 bg-white/[0.02] flex items-center justify-center"
                     >
-                      <Eye className="w-7 h-7 text-accent" />
+                      <Eye className="w-6 h-6 md:w-7 md:h-7 text-accent" />
                     </motion.div>
                     <div>
-                      <span className="font-mono text-xs text-white/30 uppercase tracking-widest">Overview</span>
-                      <h2 className="text-2xl font-bold font-sans text-white">Project Summary</h2>
+                      <span className="font-mono text-xs text-white/30 uppercase tracking-widest">Context</span>
+                      <h2 className="text-xl md:text-2xl font-bold font-sans text-white">Business Context</h2>
                     </div>
                   </div>
-                  <p className="text-lg text-muted-foreground font-mono leading-loose pl-[4.5rem]">
+                  <p className="text-base md:text-lg text-muted-foreground font-mono leading-loose pl-0 sm:pl-[4.5rem]">
                     {project.description}
                   </p>
                 </motion.div>
@@ -358,16 +367,16 @@ export function CaseStudyContent({ project, prevProject, nextProject }: CaseStud
                   transition={{ delay: 0.7 }}
                 >
                   <div className="flex items-center gap-4 mb-8">
-                    <div className="w-14 h-14 rounded-none border border-white/10 bg-white/[0.02] flex items-center justify-center">
-                      <span className="font-mono text-2xl font-bold text-accent">01</span>
+                    <div className="w-12 h-12 md:w-14 md:h-14 rounded-none border border-white/10 bg-white/[0.02] flex items-center justify-center">
+                      <span className="font-mono text-xl md:text-2xl font-bold text-accent">01</span>
                     </div>
                     <div>
                       <span className="font-mono text-xs text-white/30 uppercase tracking-widest">Phase One</span>
-                      <h2 className="text-2xl font-bold font-sans text-white">The Challenge</h2>
+                      <h2 className="text-xl md:text-2xl font-bold font-sans text-white">Problems to Solve</h2>
                     </div>
                   </div>
                   
-                  <div className="flex flex-col gap-4 pl-[4.5rem]">
+                  <div className="flex flex-col gap-4 pl-0 sm:pl-[4.5rem]">
                     {project.challenges.map((challenge, index) => (
                       <motion.div 
                         key={index} 
@@ -377,7 +386,7 @@ export function CaseStudyContent({ project, prevProject, nextProject }: CaseStud
                         whileHover={{ x: 5 }}
                         onHoverStart={() => setHoveredIndex(index)}
                         onHoverEnd={() => setHoveredIndex(null)}
-                        className="flex items-start gap-4 p-6 border border-white/10 bg-white/[0.02] rounded-none transition-colors cursor-default"
+                        className="flex items-start gap-4 p-4 sm:p-6 border border-white/10 bg-white/[0.02] rounded-none transition-colors cursor-default"
                         style={{
                           borderColor: hoveredIndex === index ? `${project.color}50` : undefined,
                           background: hoveredIndex === index ? `${project.color}08` : undefined,
@@ -396,16 +405,16 @@ export function CaseStudyContent({ project, prevProject, nextProject }: CaseStud
                   transition={{ delay: 1 }}
                 >
                   <div className="flex items-center gap-4 mb-8">
-                    <div className="w-14 h-14 rounded-none border border-white/10 bg-white/[0.02] flex items-center justify-center">
-                      <span className="font-mono text-2xl font-bold text-accent">02</span>
+                    <div className="w-12 h-12 md:w-14 md:h-14 rounded-none border border-white/10 bg-white/[0.02] flex items-center justify-center">
+                      <span className="font-mono text-xl md:text-2xl font-bold text-accent">02</span>
                     </div>
                     <div>
                       <span className="font-mono text-xs text-white/30 uppercase tracking-widest">Phase Two</span>
-                      <h2 className="text-2xl font-bold font-sans text-white">Our Solution</h2>
+                      <h2 className="text-xl md:text-2xl font-bold font-sans text-white">Execution Strategy</h2>
                     </div>
                   </div>
                   
-                  <div className="flex flex-col gap-4 pl-[4.5rem]">
+                  <div className="flex flex-col gap-4 pl-0 sm:pl-[4.5rem]">
                     {project.solutions.map((solution, index) => (
                       <motion.div 
                         key={index} 
@@ -413,7 +422,7 @@ export function CaseStudyContent({ project, prevProject, nextProject }: CaseStud
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: 1.1 + index * 0.1 }}
                         whileHover={{ x: 5 }}
-                        className="flex items-start gap-4 p-6 border border-white/10 bg-white/[0.02] rounded-none hover:border-accent/30 transition-colors cursor-default"
+                        className="flex items-start gap-4 p-4 sm:p-6 border border-white/10 bg-white/[0.02] rounded-none hover:border-accent/30 transition-colors cursor-default"
                       >
                         <Check className="w-5 h-5 mt-0.5 flex-shrink-0" style={{ color: project.color }} />
                         <p className="text-muted-foreground font-mono text-sm leading-relaxed">{solution}</p>
@@ -438,16 +447,16 @@ export function CaseStudyContent({ project, prevProject, nextProject }: CaseStud
             >
               <motion.div 
                 whileHover={{ x: -5 }}
-                className="flex items-center gap-6 p-8 border border-white/10 hover:border-accent/30 transition-all"
+                className="flex items-center gap-4 sm:gap-6 p-4 sm:p-6 md:p-8 border border-white/10 hover:border-accent/30 transition-all"
               >
-                <div className="w-16 h-16 rounded-none border border-white/10 bg-white/[0.02] flex items-center justify-center group-hover:border-accent/30 transition-colors">
-                  <ArrowLeft className="w-6 h-6 text-white/40 group-hover:text-accent transition-colors" />
+                <div className="w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 rounded-none border border-white/10 bg-white/[0.02] flex items-center justify-center group-hover:border-accent/30 transition-colors">
+                  <ArrowLeft className="w-5 h-5 sm:w-6 sm:h-6 text-white/40 group-hover:text-accent transition-colors" />
                 </div>
                 <div className="flex-1">
-                  <span className="font-mono text-xs text-white/40 block mb-1">Previous Project</span>
-                  <span className="font-sans font-bold text-xl text-white group-hover:text-accent transition-colors">{prevProject.title}</span>
+                  <span className="font-mono text-xs text-white/40 block mb-1">Previous Case Study</span>
+                  <span className="font-sans font-bold text-lg md:text-xl text-white group-hover:text-accent transition-colors">{prevProject.title}</span>
                 </div>
-                <ArrowUpRight className="w-6 h-6 text-white/20 group-hover:text-accent transition-all group-hover:translate-x-1 group-hover:-translate-y-1" />
+                <ArrowUpRight className="w-5 h-5 sm:w-6 sm:h-6 text-white/20 group-hover:text-accent transition-all group-hover:translate-x-1 group-hover:-translate-y-1" />
               </motion.div>
             </Link>
 
@@ -457,15 +466,15 @@ export function CaseStudyContent({ project, prevProject, nextProject }: CaseStud
             >
               <motion.div 
                 whileHover={{ x: 5 }}
-                className="flex items-center gap-6 p-8 border border-white/10 hover:border-accent/30 transition-all md:text-right"
+                className="flex items-center gap-4 sm:gap-6 p-4 sm:p-6 md:p-8 border border-white/10 hover:border-accent/30 transition-all md:text-right"
               >
-                <ArrowUpRight className="w-6 h-6 text-white/20 group-hover:text-accent transition-all group-hover:-translate-x-1 group-hover:-translate-y-1" />
+                <ArrowUpRight className="w-5 h-5 sm:w-6 sm:h-6 text-white/20 group-hover:text-accent transition-all group-hover:-translate-x-1 group-hover:-translate-y-1" />
                 <div className="flex-1">
-                  <span className="font-mono text-xs text-white/40 block mb-1">Next Project</span>
-                  <span className="font-sans font-bold text-xl text-white group-hover:text-accent transition-colors">{nextProject.title}</span>
+                  <span className="font-mono text-xs text-white/40 block mb-1">Next Case Study</span>
+                  <span className="font-sans font-bold text-lg md:text-xl text-white group-hover:text-accent transition-colors">{nextProject.title}</span>
                 </div>
-                <div className="w-16 h-16 rounded-none border border-white/10 bg-white/[0.02] flex items-center justify-center group-hover:border-accent/30 transition-colors">
-                  <ArrowRight className="w-6 h-6 text-white/40 group-hover:text-accent transition-colors" />
+                <div className="w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 rounded-none border border-white/10 bg-white/[0.02] flex items-center justify-center group-hover:border-accent/30 transition-colors">
+                  <ArrowRight className="w-5 h-5 sm:w-6 sm:h-6 text-white/40 group-hover:text-accent transition-colors" />
                 </div>
               </motion.div>
             </Link>

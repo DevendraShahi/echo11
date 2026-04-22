@@ -207,7 +207,11 @@ function Column({ id, title, color, tasks, onAddTask }: ColumnProps) {
   )
 }
 
-export function KanbanBoard() {
+interface KanbanBoardProps {
+  defaultProjectId?: string
+}
+
+export function KanbanBoard({ defaultProjectId }: KanbanBoardProps = {}) {
   const [tasks, setTasks] = useState<Task[]>([])
   const [activeId, setActiveId] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
@@ -216,7 +220,7 @@ export function KanbanBoard() {
   const [refreshKey, setRefreshKey] = useState(0)
   const [defaultStatus, setDefaultStatus] = useState<TaskStatus>('todo')
   
-  const [selectedProjectId, setSelectedProjectId] = useState<string>('')
+  const [selectedProjectId, setSelectedProjectId] = useState<string>(defaultProjectId || '')
   const [showFilters, setShowFilters] = useState(false)
   const [filters, setFilters] = useState({
     assignee_id: '',
@@ -226,6 +230,7 @@ export function KanbanBoard() {
   const [projects, setProjects] = useState<Pick<Project, 'id' | 'name'>[]>([])
   const [members, setMembers] = useState<Pick<Profile, 'id' | 'full_name'>[]>([])
   const [canCompleteTasks, setCanCompleteTasks] = useState(false)
+  const isExternalProject = Boolean(defaultProjectId)
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -240,6 +245,15 @@ export function KanbanBoard() {
 
   async function loadFiltersData() {
     const supabase = createClient()
+    
+    if (defaultProjectId) {
+      setSelectedProjectId(defaultProjectId)
+      const [membersRes] = await Promise.all([
+        supabase.from('profiles').select('id, full_name')
+      ])
+      setMembers(membersRes.data || [])
+      return
+    }
     
     const [projectsRes, membersRes] = await Promise.all([
       supabase.from('projects').select('id, name').eq('status', 'active'),
@@ -458,16 +472,18 @@ export function KanbanBoard() {
         icon={CheckSquare}
         action={
           <div className="flex items-center gap-3">
-            <select
-              value={selectedProjectId}
-              onChange={(e) => setSelectedProjectId(e.target.value)}
-              className="px-4 py-2.5 bg-white/5 border border-white/10 rounded-none text-white focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent transition-all font-sans min-w-[200px]"
-            >
-              <option value="" className="bg-black" disabled>Select Project</option>
-              {projects.map(p => (
-                <option key={p.id} value={p.id} className="bg-black">{p.name}</option>
-              ))}
-            </select>
+            {!isExternalProject && (
+              <select
+                value={selectedProjectId}
+                onChange={(e) => setSelectedProjectId(e.target.value)}
+                className="px-4 py-2.5 bg-white/5 border border-white/10 rounded text-white focus:border-accent focus:outline-none transition-all font-sans min-w-[200px]"
+              >
+                <option value="" className="bg-black" disabled>Select Project</option>
+                {projects.map(p => (
+                  <option key={p.id} value={p.id} className="bg-black">{p.name}</option>
+                ))}
+              </select>
+            )}
             <button 
               onClick={() => setShowFilters(!showFilters)}
               className={cn(

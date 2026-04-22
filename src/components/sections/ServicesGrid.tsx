@@ -9,28 +9,28 @@ export const services = [
   {
     id: "web",
     title: "Website Design & Build",
-    description: "High-performance, accessible, and stunning websites that convert.",
+    description: "Conversion-focused websites built for speed, clarity, and long-term maintainability.",
     icon: <MonitorSmartphone className="w-8 h-8 text-accent" />,
     features: ["Custom UI/UX", "Next.js / React", "CMS Integration", "Animations"],
   },
   {
     id: "app",
     title: "App Development",
-    description: "Native and cross-platform apps for web and mobile platforms.",
+    description: "Web and mobile apps engineered for reliable scale, strong UX, and clean release cycles.",
     icon: <Code2 className="w-8 h-8 text-accent" />,
     features: ["React Native", "PWA Architecture", "State Management", "API Design"],
   },
   {
     id: "perf",
     title: "Performance & SEO",
-    description: "Deep technical audits to rank higher and load faster.",
+    description: "Technical improvements that reduce friction, improve discoverability, and increase qualified traffic.",
     icon: <Gauge className="w-8 h-8 text-accent" />,
     features: ["Lighthouse 95+", "Core Web Vitals", "Technical SEO", "Image Optimization"],
   },
   {
     id: "maintain",
     title: "Maintenance Retainer",
-    description: "Ongoing support to keep your digital products running smoothly.",
+    description: "A proactive partnership for uptime, iteration, and predictable product evolution.",
     icon: <Wrench className="w-8 h-8 text-accent" />,
     features: ["Security Updates", "Bug Fixes", "Feature Additions", "24/7 Monitoring"],
   },
@@ -61,7 +61,7 @@ export function ServicesGrid({ standalone = false }: { standalone?: boolean } = 
               Our Core <span className="text-accent text-glow">Expertise.</span>
             </h2>
             <p className="text-lg text-muted-foreground font-mono leading-relaxed">
-              We provide end-to-end digital engineering. Focused entirely on technical architecture, performance metrics, and premium aesthetic execution.
+              We help teams move from idea to stable product with clear strategy, deliberate execution, and systems built to scale.
             </p>
           </div>
         </div>
