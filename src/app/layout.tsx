@@ -3,7 +3,6 @@ import { Syne, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
-import { SplashScreen } from "@/components/layout/SplashScreen";
 import { Cursor } from "@/components/ui/Cursor";
 
 const syne = Syne({
@@ -45,7 +44,6 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark overflow-x-hidden">
       <body className={`${syne.variable} ${spaceMono.variable} antialiased selection:bg-accent selection:text-black overflow-x-hidden w-full min-h-screen relative`}>
-        <SplashScreen />
         <Cursor />
         <Navbar />
         {children}
