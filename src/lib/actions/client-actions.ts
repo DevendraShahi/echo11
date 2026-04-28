@@ -715,22 +715,104 @@ export async function getClientInviteDetails(token: string) {
   }
 }
 
-export async function acceptClientInvite(clientId: string, authUserId: string, fullName: string) {
+export async function acceptClientInvite(
+  clientId: string,
+  authUserId: string,
+  fullName: string,
+  inviteEmail?: string
+) {
   const supabaseAdmin = createSupabaseClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.SUPABASE_SERVICE_ROLE_KEY!
   )
 
   try {
-    // 1. Update the 'profiles' role to 'client'
-    await supabaseAdmin.from('profiles').update({
+    const normalizedFullName = fullName.trim()
+    const normalizedInviteEmail = inviteEmail?.trim().toLowerCase() || null
+
+    const resolveAuthUserId = async (): Promise<string | null> => {
+      if (authUserId) {
+        const { data: userById, error: userByIdError } = await supabaseAdmin.auth.admin.getUserById(authUserId)
+        if (!userByIdError && userById?.user?.id) {
+          return userById.user.id
+        }
+      }
+
+      if (!normalizedInviteEmail) {
+        return null
+      }
+
+      let page = 1
+      const perPage = 200
+
+      while (page <= 10) {
+        const { data: usersPage, error: listUsersError } = await supabaseAdmin.auth.admin.listUsers({ page, perPage })
+        if (listUsersError) {
+          break
+        }
+
+        const match = usersPage.users.find((user) => user.email?.toLowerCase() === normalizedInviteEmail)
+        if (match?.id) {
+          return match.id
+        }
+
+        if (usersPage.users.length < perPage) {
+          break
+        }
+
+        page += 1
+      }
+
+      return null
+    }
+
+    const resolvedAuthUserId = await resolveAuthUserId()
+    if (!resolvedAuthUserId) {
+      return {
+        success: false,
+        error: 'Could not resolve a valid auth account for this invitation. Please try signing up again.',
+      }
+    }
+
+    const profilePayload: { role: 'client'; full_name?: string } = {
       role: 'client',
-      full_name: fullName
-    }).eq('id', authUserId)
+    }
+    if (normalizedFullName) {
+      profilePayload.full_name = normalizedFullName
+    }
+
+    const { data: updatedProfile, error: profileUpdateError } = await supabaseAdmin
+      .from('profiles')
+      .update(profilePayload)
+      .eq('id', resolvedAuthUserId)
+      .select('id')
+      .maybeSingle()
+
+    if (profileUpdateError) {
+      throw new Error(profileUpdateError.message)
+    }
+
+    if (!updatedProfile) {
+      const { error: profileInsertError } = await supabaseAdmin
+        .from('profiles')
+        .insert({ id: resolvedAuthUserId, ...profilePayload })
+
+      if (profileInsertError && normalizedInviteEmail && /email/i.test(profileInsertError.message)) {
+        const { error: profileInsertWithEmailError } = await supabaseAdmin
+          .from('profiles')
+          .insert({ id: resolvedAuthUserId, ...profilePayload, email: normalizedInviteEmail } as never)
+
+        if (profileInsertWithEmailError) {
+          throw new Error(profileInsertWithEmailError.message)
+        }
+      } else if (profileInsertError) {
+        throw new Error(profileInsertError.message)
+      }
+    }
 
     // 2. Link the auth_id to the clients record and clear the token
     const { error: clientUpdateError } = await supabaseAdmin.from('clients').update({
-      auth_id: authUserId,
+      auth_id: resolvedAuthUserId,
       invitation_token: null,
       invitation_token_expires_at: null,
       invitation_accepted_at: new Date().toISOString()

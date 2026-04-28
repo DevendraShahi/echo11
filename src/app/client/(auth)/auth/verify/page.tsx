@@ -80,17 +80,21 @@ function ClientVerifyForm() {
       return
     }
 
-    if (authData.user) {
-      const acceptanceResult = await acceptClientInvite(clientId, authData.user.id, fullName)
-
-      if (!acceptanceResult.success) {
-        setError(acceptanceResult.error || 'Failed to set up client access.')
-        setSubmitting(false)
-        return
-      }
-
-      setSuccess(true)
+    if (!authData.user?.id) {
+      setError('Could not create or resolve your account. Please try again.')
+      setSubmitting(false)
+      return
     }
+
+    const acceptanceResult = await acceptClientInvite(clientId, authData.user.id, fullName, inviteEmail)
+
+    if (!acceptanceResult.success) {
+      setError(acceptanceResult.error || 'Failed to set up client access.')
+      setSubmitting(false)
+      return
+    }
+
+    setSuccess(true)
 
     setSubmitting(false)
   }
