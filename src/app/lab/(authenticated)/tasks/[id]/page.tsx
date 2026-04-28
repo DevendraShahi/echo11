@@ -9,6 +9,7 @@ import { Task, TaskStatus, TaskPriority, TaskComment, TimeLog, TaskAttachment } 
 import { format } from 'date-fns'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
+import { useAppFeedback } from '@/components/ui/AppFeedbackProvider'
 
 interface TaskPageProps {
   params: Promise<{ id: string }>
@@ -44,6 +45,7 @@ const priorityLabels: Record<TaskPriority, string> = {
 
 export default function TaskDetailPage({ params }: TaskPageProps) {
   const { id: taskId } = use(params)
+  const { confirmAction } = useAppFeedback()
   const [task, setTask] = useState<Task | null>(null)
   const [comments, setComments] = useState<TaskComment[]>([])
   const [timeLogs, setTimeLogs] = useState<TimeLog[]>([])
@@ -210,7 +212,12 @@ export default function TaskDetailPage({ params }: TaskPageProps) {
   }
 
   async function handleDelete() {
-    if (!confirm('Are you sure you want to delete this task?')) return
+    const confirmed = await confirmAction('Are you sure you want to delete this task?', {
+      title: 'Delete Task',
+      confirmLabel: 'Delete',
+      tone: 'danger',
+    })
+    if (!confirmed) return
 
     const result = await deleteTask(taskId)
     if (result.success) {
@@ -235,7 +242,12 @@ export default function TaskDetailPage({ params }: TaskPageProps) {
   }
 
   async function handleDeleteComment(commentId: string) {
-    if (!confirm('Delete this comment?')) return
+    const confirmed = await confirmAction('Delete this comment?', {
+      title: 'Delete Comment',
+      confirmLabel: 'Delete',
+      tone: 'danger',
+    })
+    if (!confirmed) return
     
     const result = await deleteTaskComment(commentId)
     if (result.success) {
@@ -285,7 +297,12 @@ export default function TaskDetailPage({ params }: TaskPageProps) {
   }
 
   async function handleDeleteAttachment(attachmentId: string) {
-    if (!confirm('Delete this file?')) return
+    const confirmed = await confirmAction('Delete this file?', {
+      title: 'Delete Attachment',
+      confirmLabel: 'Delete',
+      tone: 'danger',
+    })
+    if (!confirmed) return
     
     const result = await deleteTaskAttachment(attachmentId)
     if (result.success) {

@@ -8,6 +8,7 @@ import { ArrowLeft, Calendar, Clock, Video, MapPin, Users, Edit3, Trash2, Loader
 import Link from 'next/link'
 import { format } from 'date-fns'
 import { deleteMeeting, updateMeeting, getProjectsForMeetingForm } from '@/lib/actions/meeting-actions'
+import { useAppFeedback } from '@/components/ui/AppFeedbackProvider'
 
 interface MeetingPageProps {
   params: Promise<{ id: string }>
@@ -15,6 +16,7 @@ interface MeetingPageProps {
 
 export default function MeetingDetailPage({ params }: MeetingPageProps) {
   const { id: meetingId } = use(params)
+  const { confirmAction } = useAppFeedback()
   const [meeting, setMeeting] = useState<Meeting | null>(null)
   const [projects, setProjects] = useState<Pick<Project, 'id' | 'name'>[]>([])
   const [loading, setLoading] = useState(true)
@@ -102,7 +104,12 @@ export default function MeetingDetailPage({ params }: MeetingPageProps) {
   }
 
   async function handleDelete() {
-    if (!confirm('Are you sure you want to delete this meeting?')) return
+    const confirmed = await confirmAction('Are you sure you want to delete this meeting?', {
+      title: 'Delete Meeting',
+      confirmLabel: 'Delete',
+      tone: 'danger',
+    })
+    if (!confirmed) return
     
     setDeleting(true)
     const result = await deleteMeeting(meetingId)

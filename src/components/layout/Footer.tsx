@@ -21,7 +21,7 @@ export function Footer() {
     return () => clearInterval(timer);
   }, []);
 
-  if (pathname.startsWith('/lab') || pathname.startsWith('/portal')) {
+  if (pathname.startsWith('/lab') || pathname.startsWith('/portal') || pathname.startsWith('/client')) {
     return null;
   }
 

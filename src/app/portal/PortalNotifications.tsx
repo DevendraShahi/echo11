@@ -1,9 +1,9 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import { createClient } from '@/lib/supabase/client'
+import { useCallback, useEffect, useState } from 'react'
 import { Bell, CheckCircle, Clock, FileText, FolderKanban, DollarSign, X } from 'lucide-react'
 import { format } from 'date-fns'
+import { getClientNotifications, markNotificationRead } from '@/lib/actions/portal-notification-actions'
 
 type Notification = {
   id: string
@@ -36,57 +36,23 @@ export function PortalNotifications() {
   const [loading, setLoading] = useState(true)
   const [isOpen, setIsOpen] = useState(false)
 
-  useEffect(() => {
-    async function fetchNotifications() {
-      const supabase = createClient()
-      
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) return
-
-      const { data: client } = await supabase
-        .from('clients')
-        .select('id')
-        .eq('auth_id', user.id)
-        .single()
-
-      if (!client) {
-        setLoading(false)
-        return
-      }
-
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('id')
-        .eq('auth_id', user.id)
-        .single()
-
-      if (!profile) {
-        setLoading(false)
-        return
-      }
-
-      const { data } = await supabase
-        .from('notifications')
-        .select('*')
-        .eq('user_id', profile.id)
-        .order('created_at', { ascending: false })
-        .limit(10)
-
-      setNotifications(data || [])
+  const fetchNotifications = useCallback(async () => {
+    try {
+      const data = await getClientNotifications()
+      setNotifications(data)
+    } finally {
       setLoading(false)
     }
-
-    fetchNotifications()
   }, [])
+
+  useEffect(() => {
+    void fetchNotifications()
+  }, [fetchNotifications])
 
   const unreadCount = notifications.filter(n => !n.read).length
 
   const markAsRead = async (id: string) => {
-    const supabase = createClient()
-    await supabase
-      .from('notifications')
-      .update({ read: true })
-      .eq('id', id)
+    await markNotificationRead(id)
 
     setNotifications(prev => 
       prev.map(n => n.id === id ? { ...n, read: true } : n)
@@ -96,7 +62,14 @@ export function PortalNotifications() {
   return (
     <div className="relative">
       <button
-        onClick={() => setIsOpen(!isOpen)}
+        onClick={() => {
+          const nextState = !isOpen
+          setIsOpen(nextState)
+          if (nextState) {
+            setLoading(true)
+            void fetchNotifications()
+          }
+        }}
         className="relative p-2 hover:bg-white/5 rounded-lg transition-colors"
       >
         <Bell className="w-5 h-5 text-white/60" />

@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { createNotification } from './notification-actions'
 import { createClient as createServiceClient } from '@supabase/supabase-js'
+import { revalidateClientSurface, revalidateLegacyPortalSurface } from './client-surface-revalidate'
 
 export interface TaskFormData {
   title: string
@@ -134,6 +135,8 @@ export async function createTask(data: TaskFormData): Promise<{ success: boolean
 
     revalidatePath('/lab/tasks')
     revalidatePath(`/lab/projects/${data.project_id}`)
+    revalidateClientSurface({ projectId: data.project_id })
+    revalidateLegacyPortalSurface()
 
     return { success: true, taskId: task.id }
 
@@ -235,10 +238,13 @@ export async function updateTask(
     revalidatePath('/lab/tasks')
     if (oldTask?.project_id) {
       revalidatePath(`/lab/projects/${oldTask.project_id}`)
+      revalidateClientSurface({ projectId: oldTask.project_id })
     }
     if (data.project_id && data.project_id !== oldTask?.project_id) {
       revalidatePath(`/lab/projects/${data.project_id}`)
+      revalidateClientSurface({ projectId: data.project_id })
     }
+    revalidateLegacyPortalSurface()
 
     return { success: true }
 
@@ -295,6 +301,8 @@ export async function deleteTask(taskId: string): Promise<{ success: boolean; er
     revalidatePath('/lab/tasks')
     if (task?.project_id) {
       revalidatePath(`/lab/projects/${task.project_id}`)
+      revalidateClientSurface({ projectId: task.project_id })
+      revalidateLegacyPortalSurface()
     }
 
     return { success: true }
@@ -388,6 +396,8 @@ export async function updateTaskStatus(
     revalidatePath(`/lab/tasks/${taskId}`)
     if (oldTask?.project_id) {
       revalidatePath(`/lab/projects/${oldTask.project_id}`)
+      revalidateClientSurface({ projectId: oldTask.project_id })
+      revalidateLegacyPortalSurface()
     }
 
     return { success: true }

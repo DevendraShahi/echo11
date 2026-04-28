@@ -312,7 +312,10 @@ export function SplashScreen() {
   }, [enableAudio, removeAudioUnlockListeners, stopAudio, tryPlayAudio, visible]);
 
   useEffect(() => {
-    const isAppSurface = pathname.startsWith("/lab") || pathname.startsWith("/portal");
+    const isAppSurface =
+      pathname.startsWith("/lab") ||
+      pathname.startsWith("/portal") ||
+      pathname.startsWith("/client");
 
     if (attemptedRef.current || isAppSurface) {
       return;

@@ -6,6 +6,7 @@ import { LabFooter } from '@/components/layout/lab/LabFooter'
 import { ThemeProvider } from '@/components/layout/lab/ThemeProvider'
 import { WelcomeModal } from '@/components/onboarding'
 import { Theme } from '@/types/lab'
+import { getTeamUnreadClientMessagesCount } from '@/lib/actions/client-message-actions'
 
 export default async function AuthenticatedLayout({
   children,
@@ -19,6 +20,20 @@ export default async function AuthenticatedLayout({
     redirect('/lab/auth/login')
   }
 
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('role')
+    .eq('id', user.id)
+    .single()
+
+  if (profile?.role === 'client') {
+    redirect('/client')
+  }
+
+  if (profile?.role !== 'admin' && profile?.role !== 'member') {
+    redirect('/lab/auth/login')
+  }
+
   const { data: preferences } = await supabase
     .from('user_preferences')
     .select('theme')
@@ -26,15 +41,16 @@ export default async function AuthenticatedLayout({
     .single()
 
   const theme = (preferences?.theme || 'dark') as Theme
+  const unreadClientMessagesCount = await getTeamUnreadClientMessagesCount()
 
   return (
     <ThemeProvider theme={theme}>
       <WelcomeModal />
       <div className="flex h-screen bg-background font-sans">
-        <LabSidebar />
+        <LabSidebar initialUnreadClientMessagesCount={unreadClientMessagesCount} />
         <div className="flex-1 flex flex-col overflow-hidden">
           <div className="flex-none">
-            <LabHeader />
+            <LabHeader initialUnreadClientMessagesCount={unreadClientMessagesCount} />
           </div>
           <main className="flex-1 overflow-y-auto bg-background font-sans">
             <div className="px-6 pb-14 min-h-full">

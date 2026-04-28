@@ -129,7 +129,7 @@ export function InlineClientForm({ onClientCreated, onCancel }: InlineClientForm
             className="w-4 h-4 rounded border-white/20 bg-white/5 text-accent focus:ring-accent"
           />
           <label htmlFor="sendInvitationInline" className="text-xs text-white/50 font-sans">
-            Send portal invitation
+            Send client invitation
           </label>
         </div>
 

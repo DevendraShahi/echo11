@@ -60,12 +60,12 @@ export default function DocsPage() {
         </div>
         <div className="space-y-6">
           <LabCard>
-            <LabCardHeader><LabCardTitle>Client Lifecycle & Portal</LabCardTitle></LabCardHeader>
+            <LabCardHeader><LabCardTitle>Client Lifecycle & Access</LabCardTitle></LabCardHeader>
             <LabCardContent>
               <ul className="list-disc list-inside text-sm text-white/70 space-y-2">
                 <li><strong>Lifecycle Status:</strong> Track client journey using flags like Lead, Prospect, Active, At Risk, or Inactive.</li>
                 <li><strong>Client Detail Tabbing:</strong> Every client has sub-tabs for Contacts, Projects, Invoices, Documents, and Activity history.</li>
-                <li><strong>Portal Access:</strong> You can explicitly trigger &quot;Send Invitation&quot; to create auth accounts for clients to access their own portal.</li>
+                <li><strong>Client Access:</strong> You can explicitly trigger &quot;Send Invitation&quot; to create auth accounts for clients to access their own client area.</li>
               </ul>
             </LabCardContent>
           </LabCard>

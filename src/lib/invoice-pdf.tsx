@@ -198,10 +198,47 @@ const styles = StyleSheet.create({
 
 interface InvoicePDFProps {
   invoice: Invoice & {
-    client?: Pick<Client, 'company_name' | 'contact_name' | 'email' | 'address'> | null
+    client?: Pick<Client, 'company_name' | 'contact_name' | 'email' | 'address' | 'address_line2' | 'city' | 'state' | 'country' | 'postal_code'> | null
     project?: Pick<Project, 'name'> | null
     items?: InvoiceItem[]
   }
+}
+
+function getClientAddressLines(
+  client: InvoicePDFProps['invoice']['client']
+): string[] {
+  if (!client) return []
+
+  const lines: string[] = []
+
+  const primaryLine = [client.address, client.address_line2]
+    .filter(Boolean)
+    .map((part) => String(part).trim())
+    .filter(Boolean)
+    .join(', ')
+  if (primaryLine) {
+    lines.push(primaryLine)
+  }
+
+  const locationLine = [client.city, client.state, client.postal_code]
+    .filter(Boolean)
+    .map((part) => String(part).trim())
+    .filter(Boolean)
+    .join(', ')
+  if (locationLine) {
+    lines.push(locationLine)
+  }
+
+  const countryLine = client.country?.trim()
+  if (countryLine) {
+    lines.push(countryLine)
+  }
+
+  if (lines.length === 0 && client.address?.trim()) {
+    lines.push(client.address.trim())
+  }
+
+  return lines
 }
 
 export function InvoicePDF({ invoice }: InvoicePDFProps) {
@@ -227,6 +264,7 @@ export function InvoicePDF({ invoice }: InvoicePDFProps) {
 
   const isConverted = !!(invoice.target_currency && invoice.exchange_rate)
   const cRate = invoice.exchange_rate || 1
+  const clientAddressLines = getClientAddressLines(invoice.client)
 
   return (
     <Document>
@@ -272,8 +310,16 @@ export function InvoicePDF({ invoice }: InvoicePDFProps) {
           <View style={styles.addressReceiver}>
             <Text style={styles.addressTitle}>{invoice.client?.company_name || 'Client Name'}</Text>
             {invoice.client?.contact_name && <Text style={styles.addressText}>{invoice.client.contact_name}</Text>}
-            <Text style={styles.addressText}>{invoice.client?.address || 'Address Not Provided'}</Text>
-            <Text style={styles.addressText}>{invoice.client?.email}</Text>
+            {clientAddressLines.length > 0 ? (
+              clientAddressLines.map((line, index) => (
+                <Text key={`client-address-line-${index}`} style={styles.addressText}>
+                  {line}
+                </Text>
+              ))
+            ) : (
+              <Text style={styles.addressText}>Address Not Provided</Text>
+            )}
+            {invoice.client?.email && <Text style={styles.addressText}>{invoice.client.email}</Text>}
           </View>
         </View>
 

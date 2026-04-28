@@ -14,18 +14,41 @@ export default function LoginPage() {
   const [error, setError] = useState<string | null>(null)
   const [showPassword, setShowPassword] = useState(false)
 
+  async function routeByRole(userId: string) {
+    const supabase = createClient()
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', userId)
+      .single()
+
+    if (profile?.role === 'client') {
+      router.push('/client')
+      router.refresh()
+      return true
+    }
+
+    if (profile?.role === 'admin' || profile?.role === 'member') {
+      router.push('/lab/dashboard')
+      router.refresh()
+      return true
+    }
+
+    return false
+  }
+
   useEffect(() => {
     async function checkUser() {
       const supabase = createClient()
       const { data: { user } } = await supabase.auth.getUser()
       if (user) {
-        router.push('/lab/dashboard')
-      } else {
-        setCheckingAuth(false)
+        const routed = await routeByRole(user.id)
+        if (routed) return
       }
+      setCheckingAuth(false)
     }
-    checkUser()
-  }, [router])
+    void checkUser()
+  }, [router]) // eslint-disable-line react-hooks/exhaustive-deps
 
   if (checkingAuth) {
     return (
@@ -60,8 +83,18 @@ export default function LoginPage() {
       return
     }
 
-    router.push('/lab/dashboard')
-    router.refresh()
+    const userId = data.session?.user?.id
+    if (userId) {
+      const routed = await routeByRole(userId)
+      if (routed) {
+        setLoading(false)
+        return
+      }
+    }
+
+    await supabase.auth.signOut()
+    setError('This account does not have lab access.')
+    setLoading(false)
   }
 
   return (

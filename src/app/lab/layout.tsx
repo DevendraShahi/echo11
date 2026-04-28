@@ -1,7 +1,9 @@
+import { AppFeedbackProvider } from '@/components/ui/AppFeedbackProvider'
+
 export default function LabLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
-  return <>{children}</>
+  return <AppFeedbackProvider>{children}</AppFeedbackProvider>
 }

@@ -6,6 +6,7 @@ import { revalidatePath } from 'next/cache'
 import { randomBytes } from 'crypto'
 import { getUserRoleAndTeam } from './team-actions'
 import { requireAdminOrLead } from './role-helpers'
+import { revalidateClientSurface, revalidateLegacyPortalSurface } from './client-surface-revalidate'
 
 export interface CreateClientParams {
   company_name: string
@@ -72,6 +73,9 @@ export async function createClientWithAuth(
 
     let invitationSentAt: string | null = null
     const invitationToken = params.sendInvitation ? randomBytes(32).toString('hex') : null
+    const invitationExpiresAt = params.sendInvitation
+      ? new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()
+      : null
 
     // If sendInvitation is true, send email
     if (params.sendInvitation && invitationToken) {
@@ -101,6 +105,7 @@ export async function createClientWithAuth(
         auth_id: null,
         invitation_sent_at: invitationSentAt,
         invitation_token: params.sendInvitation ? invitationToken : null,
+        invitation_token_expires_at: invitationExpiresAt,
         created_by: authUser.id,
         website: params.website || null,
         industry: params.industry || null,
@@ -127,7 +132,7 @@ export async function createClientWithAuth(
     await supabase.from('activities').insert({
       user_id: authUser.id,
       action: params.sendInvitation 
-        ? 'created client with portal access' 
+        ? 'created client with client access' 
         : 'created a new client',
       entity_type: 'client',
       entity_id: client.id,
@@ -163,7 +168,7 @@ export async function sendClientPortalInvite(clientId: string): Promise<{ succes
 
   const allowed = await requireAdminOrLead(authUser.id)
   if (!allowed) {
-    return { success: false, error: 'Only admins or team leads can send portal invitations' }
+    return { success: false, error: 'Only admins or team leads can send client invitations' }
   }
 
   try {
@@ -180,7 +185,7 @@ export async function sendClientPortalInvite(clientId: string): Promise<{ succes
 
     // Check if client already has auth account
     if (client.auth_id) {
-      return { success: false, error: 'Client already has portal access' }
+      return { success: false, error: 'Client already has client access' }
     }
 
     // Generate invitation token
@@ -215,14 +220,15 @@ export async function sendClientPortalInvite(clientId: string): Promise<{ succes
     // Log activity
     await supabase.from('activities').insert({
       user_id: authUser.id,
-      action: 'invited client to portal',
+      action: 'invited client to client area',
       entity_type: 'client',
       entity_id: clientId,
       metadata: { company_name: client.company_name }
     })
 
     revalidatePath('/lab/clients')
-    revalidatePath(`/lab/projects/${clientId}`)
+    revalidatePath(`/lab/clients/${clientId}`)
+    revalidatePath('/lab/projects')
 
     return { success: true }
 
@@ -251,6 +257,83 @@ export interface UpdateClientParams {
   postal_code?: string
   timezone?: string
   social_links?: Record<string, string>
+}
+
+export interface UpdateClientSelfProfileParams {
+  contact_name?: string
+  phone?: string
+  address?: string
+  website?: string
+}
+
+function normalizeOptionalText(value?: string): string | null {
+  const trimmed = value?.trim()
+  return trimmed ? trimmed : null
+}
+
+export async function updateClientSelfProfile(
+  params: UpdateClientSelfProfileParams
+): Promise<{ success: boolean; error?: string }> {
+  const supabase = await createClient()
+
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) {
+    return { success: false, error: 'You must be logged in' }
+  }
+
+  try {
+    const { data: client, error: clientError } = await supabase
+      .from('clients')
+      .select('id')
+      .eq('auth_id', user.id)
+      .single()
+
+    if (clientError || !client) {
+      return { success: false, error: 'Your account is not linked to a client profile' }
+    }
+
+    const payload = {
+      contact_name: normalizeOptionalText(params.contact_name),
+      phone: normalizeOptionalText(params.phone),
+      address: normalizeOptionalText(params.address),
+      website: normalizeOptionalText(params.website),
+      updated_at: new Date().toISOString(),
+    }
+
+    const { error: updateError } = await supabase
+      .from('clients')
+      .update(payload)
+      .eq('id', client.id)
+      .eq('auth_id', user.id)
+
+    if (updateError) {
+      return { success: false, error: updateError.message }
+    }
+
+    // Non-critical audit insert; ignore failures so profile updates still succeed.
+    try {
+      await supabase.from('activities').insert({
+        user_id: user.id,
+        action: 'updated client profile',
+        entity_type: 'client',
+        entity_id: client.id,
+        metadata: { source: 'client' }
+      })
+    } catch {
+      // no-op
+    }
+
+    revalidatePath('/client')
+    revalidatePath('/client/settings')
+    revalidatePath('/lab/clients')
+    revalidatePath(`/lab/clients/${client.id}`)
+    revalidateLegacyPortalSurface()
+
+    return { success: true }
+  } catch (error) {
+    console.error('Error updating client self profile:', error)
+    return { success: false, error: 'An unexpected error occurred' }
+  }
 }
 
 export async function updateClient(
@@ -309,6 +392,8 @@ export async function updateClient(
 
     revalidatePath('/lab/clients')
     revalidatePath(`/lab/clients/${clientId}`)
+    revalidateClientSurface()
+    revalidateLegacyPortalSurface()
 
     return { success: true }
 
@@ -383,6 +468,8 @@ export async function deleteClient(clientId: string): Promise<{ success: boolean
     })
 
     revalidatePath('/lab/clients')
+    revalidateClientSurface()
+    revalidateLegacyPortalSurface()
 
     return { success: true }
 
@@ -425,6 +512,7 @@ export interface ClientWithRelations {
   projects_count?: number
   total_revenue?: number
   active_invoices?: number
+  unread_client_messages?: number
 }
 
 export async function getClientsWithStats(): Promise<ClientWithRelations[]> {
@@ -463,26 +551,67 @@ export async function getClientsWithStats(): Promise<ClientWithRelations[]> {
   const { data } = await query
   const clients = (data || []) as ClientWithRelations[]
 
-  for (const client of clients) {
-    const { data: projectsData } = await supabase
-      .from('projects')
-      .select('id')
-      .eq('client_id', client.id)
-    
-    client.projects_count = projectsData?.length || 0
+  if (clients.length === 0) {
+    return []
+  }
 
-    const { data: invoicesData } = await supabase
+  const visibleClientIds = clients.map((client) => client.id)
+
+  const [
+    { data: projectsData },
+    { data: invoicesData },
+    { data: unreadMessagesData },
+  ] = await Promise.all([
+    supabase
+      .from('projects')
+      .select('client_id')
+      .in('client_id', visibleClientIds),
+    supabase
       .from('invoices')
-      .select('total, status')
-      .eq('client_id', client.id)
-    
-    client.total_revenue = invoicesData
-      ?.filter(i => i.status === 'paid')
-      .reduce((sum, i) => sum + (i.total || 0), 0) || 0
-    
-    client.active_invoices = invoicesData
-      ?.filter(i => i.status === 'sent' || i.status === 'overdue')
-      .length || 0
+      .select('client_id, total, status')
+      .in('client_id', visibleClientIds),
+    supabase
+      .from('client_messages')
+      .select('client_id')
+      .in('client_id', visibleClientIds)
+      .eq('sender_type', 'client')
+      .eq('read_by_team', false),
+  ])
+
+  const projectCounts = new Map<string, number>()
+  for (const project of projectsData || []) {
+    const projectClientId = project.client_id
+    if (!projectClientId) continue
+    projectCounts.set(projectClientId, (projectCounts.get(projectClientId) || 0) + 1)
+  }
+
+  const revenueByClient = new Map<string, number>()
+  const activeInvoicesByClient = new Map<string, number>()
+  for (const invoice of invoicesData || []) {
+    const invoiceClientId = invoice.client_id
+    if (!invoiceClientId) continue
+
+    if (invoice.status === 'paid') {
+      revenueByClient.set(invoiceClientId, (revenueByClient.get(invoiceClientId) || 0) + (invoice.total || 0))
+    }
+
+    if (invoice.status === 'sent' || invoice.status === 'overdue') {
+      activeInvoicesByClient.set(invoiceClientId, (activeInvoicesByClient.get(invoiceClientId) || 0) + 1)
+    }
+  }
+
+  const unreadMessagesByClient = new Map<string, number>()
+  for (const message of unreadMessagesData || []) {
+    const messageClientId = message.client_id
+    if (!messageClientId) continue
+    unreadMessagesByClient.set(messageClientId, (unreadMessagesByClient.get(messageClientId) || 0) + 1)
+  }
+
+  for (const client of clients) {
+    client.projects_count = projectCounts.get(client.id) || 0
+    client.total_revenue = revenueByClient.get(client.id) || 0
+    client.active_invoices = activeInvoicesByClient.get(client.id) || 0
+    client.unread_client_messages = unreadMessagesByClient.get(client.id) || 0
   }
 
   return clients

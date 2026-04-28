@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { createNotification } from './notification-actions'
 import { createClient as createServiceClient } from '@supabase/supabase-js'
+import { revalidateClientSurface, revalidateLegacyPortalSurface } from './client-surface-revalidate'
 
 async function requireAdminOrLead(userId: string, teamId?: string | null) {
   const service = createServiceClient(
@@ -109,6 +110,8 @@ export async function createProject(data: ProjectCreateData): Promise<{ success:
     } catch { /* non-critical */ }
 
     revalidatePath('/lab/projects')
+    revalidateClientSurface({ projectId: project.id })
+    revalidateLegacyPortalSurface()
     return { success: true, projectId: project.id }
   } catch (error) {
     console.error('Error creating project:', error)
@@ -174,8 +177,6 @@ export async function updateProject(
           amount: e.amount
         }))
 
-      console.log('Updating expenses:', expenseData)
-
       if (expenseData.length > 0) {
         const { error: expenseError } = await supabase
           .from('project_expenses')
@@ -226,6 +227,8 @@ export async function updateProject(
 
     revalidatePath(`/lab/projects/${projectId}`)
     revalidatePath('/lab/projects')
+    revalidateClientSurface({ projectId })
+    revalidateLegacyPortalSurface()
 
     // Notify team members on status change
     if (data.status && oldProject && data.status !== oldProject.status) {
@@ -301,6 +304,8 @@ export async function deleteProject(projectId: string): Promise<{ success: boole
     }
 
     revalidatePath('/lab/projects')
+    revalidateClientSurface({ projectId })
+    revalidateLegacyPortalSurface()
 
     return { success: true }
 
@@ -344,6 +349,8 @@ export async function toggleTaskStatus(
 
     if (task?.project_id) {
       revalidatePath(`/lab/projects/${task.project_id}`)
+      revalidateClientSurface({ projectId: task.project_id })
+      revalidateLegacyPortalSurface()
     }
 
     return { success: true }
@@ -405,6 +412,8 @@ export async function updateProjectProgress(projectId: string): Promise<{ succes
 
       revalidatePath(`/lab/projects/${projectId}`)
       revalidatePath('/lab/projects')
+      revalidateClientSurface({ projectId })
+      revalidateLegacyPortalSurface()
     }
 
     return { success: true }

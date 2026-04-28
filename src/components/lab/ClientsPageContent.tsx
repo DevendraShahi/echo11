@@ -1,9 +1,10 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo, useCallback } from 'react'
+import { useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { LabButton } from '@/components/ui/LabButton'
-import { Plus, Search, Users, DollarSign, AlertTriangle, TrendingUp, Grid, List, Filter, X } from 'lucide-react'
+import { Plus, Search, Users, DollarSign, AlertTriangle, TrendingUp, Grid, List, Filter, X, MessageSquare } from 'lucide-react'
 import { ClientFormModal } from './ClientFormModal'
 import { ClientCard } from './ClientCard'
 import { sendClientPortalInvite, deleteClient, ClientWithRelations, ClientStats } from '@/lib/actions/client-actions'
@@ -11,7 +12,7 @@ import { cn } from '@/lib/utils'
 
 type ClientWithStats = ClientWithRelations
 
-type FilterOption = 'all' | 'with_portal' | 'without_portal' | 'lead' | 'prospect' | 'active' | 'at_risk' | 'inactive'
+type FilterOption = 'all' | 'with_portal' | 'without_portal' | 'needs_reply' | 'lead' | 'prospect' | 'active' | 'at_risk' | 'inactive'
 type SortOption = 'recent' | 'name' | 'revenue' | 'projects'
 
 interface ClientsPageContentProps {
@@ -27,8 +28,9 @@ const FILTER_OPTIONS: { value: FilterOption; label: string }[] = [
   { value: 'active', label: 'Active' },
   { value: 'at_risk', label: 'At Risk' },
   { value: 'inactive', label: 'Inactive' },
-  { value: 'with_portal', label: 'With Portal' },
-  { value: 'without_portal', label: 'Without Portal' },
+  { value: 'needs_reply', label: 'Needs Reply' },
+  { value: 'with_portal', label: 'With Client Access' },
+  { value: 'without_portal', label: 'Without Client Access' },
 ]
 
 const SORT_OPTIONS: { value: SortOption; label: string }[] = [
@@ -37,6 +39,10 @@ const SORT_OPTIONS: { value: SortOption; label: string }[] = [
   { value: 'revenue', label: 'Revenue' },
   { value: 'projects', label: 'Projects' },
 ]
+
+function isFilterOption(value: string): value is FilterOption {
+  return FILTER_OPTIONS.some((option) => option.value === value)
+}
 
 export function ClientsPageContent({ initialClients, initialStats, canEdit = false }: ClientsPageContentProps) {
   const [clients, setClients] = useState(initialClients)
@@ -49,33 +55,86 @@ export function ClientsPageContent({ initialClients, initialStats, canEdit = fal
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
   const [industryFilter, setIndustryFilter] = useState<string>('all')
   const [showFilters, setShowFilters] = useState(false)
-  const supabase = createClient()
+  const searchParams = useSearchParams()
+  const supabase = useMemo(() => createClient(), [])
+
+  const refreshUnreadForClient = useCallback(async (clientId: string) => {
+    const { count, error } = await supabase
+      .from('client_messages')
+      .select('*', { count: 'exact', head: true })
+      .eq('client_id', clientId)
+      .eq('sender_type', 'client')
+      .eq('read_by_team', false)
+
+    if (error) {
+      return
+    }
+
+    setClients((prev) => prev.map((client) => (
+      client.id === clientId
+        ? { ...client, unread_client_messages: count ?? 0 }
+        : client
+    )))
+  }, [supabase])
 
   const industries = [...new Set(clients.map(c => c.industry).filter(Boolean))] as string[]
 
   useEffect(() => {
-    const channel = supabase
+    const clientsChannel = supabase
       .channel('clients-changes')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'clients' }, (payload) => {
         if (payload.eventType === 'INSERT') {
-          setClients(prev => [payload.new as ClientWithStats, ...prev])
+          const newClient = payload.new as ClientWithStats
+          setClients(prev => [{
+            ...newClient,
+            projects_count: newClient.projects_count ?? 0,
+            total_revenue: newClient.total_revenue ?? 0,
+            active_invoices: newClient.active_invoices ?? 0,
+            unread_client_messages: 0
+          }, ...prev])
         } else if (payload.eventType === 'DELETE') {
           setClients(prev => prev.filter(c => c.id !== payload.old.id))
         } else if (payload.eventType === 'UPDATE') {
-          setClients(prev => prev.map(c => c.id === payload.new.id ? { ...c, ...payload.new } : c))
+          setClients(prev => prev.map(c => c.id === payload.new.id ? { ...c, ...(payload.new as Partial<ClientWithStats>) } : c))
+        }
+      })
+      .subscribe()
+
+    const clientMessagesChannel = supabase
+      .channel('client-messages-unread-changes')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'client_messages' }, (payload) => {
+        const newRow = payload.new as { client_id?: string } | null
+        const oldRow = payload.old as { client_id?: string } | null
+        const newClientId = newRow?.client_id
+        const oldClientId = oldRow?.client_id
+
+        if (newClientId) {
+          void refreshUnreadForClient(newClientId)
+        }
+        if (oldClientId && oldClientId !== newClientId) {
+          void refreshUnreadForClient(oldClientId)
         }
       })
       .subscribe()
 
     return () => {
-      supabase.removeChannel(channel)
+      void supabase.removeChannel(clientsChannel)
+      void supabase.removeChannel(clientMessagesChannel)
     }
-  }, [supabase])
+  }, [refreshUnreadForClient, supabase])
+
+  useEffect(() => {
+    const filterFromUrl = searchParams.get('filter')
+    if (!filterFromUrl) return
+    if (!isFilterOption(filterFromUrl)) return
+    setFilterBy(filterFromUrl)
+  }, [searchParams])
 
   const filteredClients = clients
     .filter(client => {
       if (filterBy === 'with_portal') return !!client.invitation_sent_at
       if (filterBy === 'without_portal') return !client.invitation_sent_at
+      if (filterBy === 'needs_reply') return (client.unread_client_messages || 0) > 0
       if (['lead', 'prospect', 'active', 'at_risk', 'inactive'].includes(filterBy)) {
         return client.current_status?.status === filterBy
       }
@@ -380,6 +439,12 @@ export function ClientsPageContent({ initialClients, initialStats, canEdit = fal
                     <p className="text-sm text-white/50 font-mono">{client.projects_count || 0} projects</p>
                     <p className="text-sm text-emerald-400 font-mono">${(client.total_revenue || 0).toLocaleString()}</p>
                   </div>
+                  {(client.unread_client_messages || 0) > 0 && (
+                    <span className="inline-flex items-center gap-1.5 px-2 py-0.5 text-xs font-mono uppercase tracking-wider border border-accent/30 bg-accent/10 text-accent">
+                      <MessageSquare className="w-3 h-3" />
+                      {client.unread_client_messages}
+                    </span>
+                  )}
                   {client.current_status && (
                     <span className={cn(
                       "px-3 py-1 text-xs font-mono uppercase tracking-wider border",

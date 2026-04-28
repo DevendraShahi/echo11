@@ -1,5 +1,7 @@
 "use client";
 
+import { FormEvent, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { Container } from "@/components/ui/Container";
 import { X, Minus, Maximize2 } from "lucide-react";
@@ -24,6 +26,51 @@ const skillCategories = [
 ];
 
 export function SkillsTerminal() {
+  const router = useRouter();
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [command, setCommand] = useState("");
+  const [lastCommand, setLastCommand] = useState<string | null>(null);
+  const [status, setStatus] = useState<{
+    type: "hint" | "routing" | "error";
+    text: string;
+  }>({
+    type: "hint",
+    text: "[Hint]: Type 'admin' or 'client' then press Enter.",
+  });
+
+  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const normalizedCommand = command.trim().toLowerCase();
+
+    if (!normalizedCommand) return;
+
+    setLastCommand(normalizedCommand);
+    setCommand("");
+
+    if (normalizedCommand === "admin") {
+      setStatus({
+        type: "routing",
+        text: "[Routing]: Redirecting to admin login...",
+      });
+      router.push("/lab/auth/login");
+      return;
+    }
+
+    if (normalizedCommand === "client") {
+      setStatus({
+        type: "routing",
+        text: "[Routing]: Redirecting to client login...",
+      });
+      router.push("/client/auth/login");
+      return;
+    }
+
+    setStatus({
+      type: "error",
+      text: `[Error]: Command "${normalizedCommand}" not found. Try "admin" or "client".`,
+    });
+  };
+
   return (
     <section className="py-24 relative">
       <Container>
@@ -98,20 +145,56 @@ export function SkillsTerminal() {
               ))}
             </div>
 
-            <motion.div
+            <motion.form
               initial={{ opacity: 0 }}
               whileInView={{ opacity: 1 }}
               viewport={{ once: true }}
               transition={{ delay: 1.8 }}
-              className="mt-8 flex items-center gap-3"
+              className="mt-8"
+              onSubmit={handleSubmit}
             >
-              <span className="text-accent font-bold">~</span>
-              <motion.span
-                animate={{ opacity: [1, 0, 1] }}
-                transition={{ duration: 1, repeat: Infinity }}
-                className="w-2.5 h-5 bg-white block"
-              />
-            </motion.div>
+              <div
+                className="flex items-center gap-3 border border-white/10 bg-black/40 px-3 py-2 focus-within:border-accent/70 transition-colors"
+                onClick={() => inputRef.current?.focus()}
+              >
+                <span className="text-accent font-bold">~</span>
+                <span className="text-white/40">$</span>
+                <input
+                  ref={inputRef}
+                  value={command}
+                  onChange={(event) => setCommand(event.target.value)}
+                  placeholder="type admin or client"
+                  autoComplete="off"
+                  spellCheck={false}
+                  className="flex-1 bg-transparent text-white outline-none placeholder:text-white/25"
+                  aria-label="Terminal command input"
+                />
+                <motion.span
+                  animate={{ opacity: [1, 0, 1] }}
+                  transition={{ duration: 1, repeat: Infinity }}
+                  className="w-2.5 h-5 bg-white block"
+                />
+              </div>
+
+              {lastCommand && (
+                <div className="mt-3 text-white/80 break-all">
+                  <span className="text-accent">~</span> <span className="text-white/40">$</span>{" "}
+                  {lastCommand}
+                </div>
+              )}
+
+              <div
+                className={`mt-2 ${
+                  status.type === "error"
+                    ? "text-rose-400"
+                    : status.type === "routing"
+                      ? "text-green-400"
+                      : "text-white/50"
+                }`}
+              >
+                {status.text}
+              </div>
+            </motion.form>
           </div>
         </div>
       </Container>

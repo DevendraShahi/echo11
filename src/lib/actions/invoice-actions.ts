@@ -6,10 +6,11 @@ import { ServiceCategory, ServiceUnit, Invoice, Client, Project, InvoiceItem } f
 import { sendInvoiceEmail } from '@/lib/email'
 import { createNotification } from './notification-actions'
 import { requireAdminOrLead } from './role-helpers'
+import { revalidateClientSurface, revalidateLegacyPortalSurface } from './client-surface-revalidate'
 
 export type InvoiceWithRelations = Invoice & {
   project?: Pick<Project, 'name'> | null
-  client?: Pick<Client, 'company_name' | 'contact_name' | 'email'> | null
+  client?: Pick<Client, 'company_name' | 'contact_name' | 'email' | 'address' | 'address_line2' | 'city' | 'state' | 'country' | 'postal_code'> | null
   items?: InvoiceItem[]
 }
 
@@ -133,6 +134,8 @@ export async function createInvoice(data: InvoiceFormData): Promise<{ success: b
     }
 
     revalidatePath('/lab/invoices')
+    revalidateClientSurface({ projectId: data.project_id })
+    revalidateLegacyPortalSurface()
 
     return { success: true, invoiceId: invoice.id }
   } catch (error) {
@@ -217,6 +220,8 @@ export async function updateInvoice(id: string, data: Partial<InvoiceFormData>):
 
     revalidatePath('/lab/invoices')
     revalidatePath(`/lab/invoices/${id}`)
+    revalidateClientSurface({ projectId: data.project_id })
+    revalidateLegacyPortalSurface()
 
     return { success: true }
   } catch (error) {
@@ -239,6 +244,12 @@ export async function deleteInvoice(id: string): Promise<{ success: boolean; err
   }
 
   try {
+    const { data: existingInvoice } = await supabase
+      .from('invoices')
+      .select('project_id')
+      .eq('id', id)
+      .single()
+
     // Delete items first
     await supabase.from('invoice_items').delete().eq('invoice_id', id)
 
@@ -252,6 +263,8 @@ export async function deleteInvoice(id: string): Promise<{ success: boolean; err
     }
 
     revalidatePath('/lab/invoices')
+    revalidateClientSurface({ projectId: existingInvoice?.project_id || null })
+    revalidateLegacyPortalSurface()
 
     return { success: true }
   } catch (error) {
@@ -277,7 +290,7 @@ export async function updateInvoiceStatus(id: string, status: 'draft' | 'sent' |
     // Validate status transition
     const { data: current } = await supabase
       .from('invoices')
-      .select('status')
+      .select('status, project_id')
       .eq('id', id)
       .single()
 
@@ -317,6 +330,8 @@ export async function updateInvoiceStatus(id: string, status: 'draft' | 'sent' |
 
     revalidatePath('/lab/invoices')
     revalidatePath(`/lab/invoices/${id}`)
+    revalidateClientSurface({ projectId: current?.project_id || null })
+    revalidateLegacyPortalSurface()
 
     return { success: true }
   } catch (error) {
@@ -477,7 +492,7 @@ export async function getInvoiceWithDetails(invoiceId: string): Promise<InvoiceW
     .from('invoices')
     .select(`
       *,
-      client:clients(id, company_name, contact_name, email),
+      client:clients(id, company_name, contact_name, email, address, address_line2, city, state, country, postal_code),
       project:projects(id, name)
     `)
     .eq('id', invoiceId)

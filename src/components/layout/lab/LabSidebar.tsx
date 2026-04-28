@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
-import { useState } from 'react'
+import { useState, useEffect, useMemo, useCallback } from 'react'
 import { cn } from '@/lib/utils'
 import { motion } from 'framer-motion'
 import {
@@ -19,6 +19,8 @@ import {
 } from 'lucide-react'
 import { OnboardingChecklist, HelpModal } from '@/components/onboarding'
 import { setPendingTour } from '@/components/onboarding/tourState'
+import { createClient } from '@/lib/supabase/client'
+import { getTeamUnreadClientMessagesCount } from '@/lib/actions/client-message-actions'
 
 const navigation = [
   { name: 'Dashboard', href: '/lab/dashboard', icon: LayoutDashboard, pageId: 'dashboard' },
@@ -41,12 +43,38 @@ function getPageId(pathname: string): string {
   return 'dashboard'
 }
 
-export function LabSidebar() {
+interface LabSidebarProps {
+  initialUnreadClientMessagesCount?: number
+}
+
+export function LabSidebar({ initialUnreadClientMessagesCount = 0 }: LabSidebarProps) {
   const pathname = usePathname()
   const router = useRouter()
   const [helpOpen, setHelpOpen] = useState(false)
+  const [unreadClientMessagesCount, setUnreadClientMessagesCount] = useState(initialUnreadClientMessagesCount)
+  const supabase = useMemo(() => createClient(), [])
 
   const currentPageId = getPageId(pathname)
+
+  const loadUnreadClientMessagesCount = useCallback(async () => {
+    const count = await getTeamUnreadClientMessagesCount()
+    setUnreadClientMessagesCount(count)
+  }, [])
+
+  useEffect(() => {
+    void loadUnreadClientMessagesCount()
+
+    const channel = supabase
+      .channel('lab-sidebar-client-messages')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'client_messages' }, () => {
+        void loadUnreadClientMessagesCount()
+      })
+      .subscribe()
+
+    return () => {
+      void supabase.removeChannel(channel)
+    }
+  }, [loadUnreadClientMessagesCount, supabase])
 
   const handleStartTour = (pageId: string) => {
     localStorage.removeItem(`echo11_tour_${pageId}_done`)
@@ -103,6 +131,16 @@ export function LabSidebar() {
                     isActive ? 'text-accent' : 'text-white/50 group-hover:text-white'
                   )} />
                   <span className="relative z-10 font-sans">{item.name}</span>
+                  {item.pageId === 'clients' && unreadClientMessagesCount > 0 && (
+                    <span className={cn(
+                      'ml-auto px-1.5 py-0.5 text-[10px] font-mono border',
+                      isActive
+                        ? 'bg-accent/10 border-accent/30 text-accent'
+                        : 'bg-white/5 border-white/20 text-white/70 group-hover:text-accent group-hover:border-accent/30'
+                    )}>
+                      {unreadClientMessagesCount}
+                    </span>
+                  )}
                   {isActive && (
                     <motion.div
                       initial={{ opacity: 0 }}

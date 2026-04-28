@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { createTeam, updateTeam, deleteTeam } from '@/lib/actions/team-actions'
 import { LabButton } from '@/components/ui/LabButton'
+import { useAppFeedback } from '@/components/ui/AppFeedbackProvider'
 import { Team } from '@/types/lab'
 import { X, Trash2 } from 'lucide-react'
 
@@ -28,6 +29,7 @@ const TEAM_COLORS = [
 ]
 
 export function TeamFormModal({ isOpen, onClose, onSuccess, onDelete, editTeam }: TeamFormModalProps) {
+  const { confirmAction } = useAppFeedback()
   const [name, setName] = useState(editTeam?.name || '')
   const [description, setDescription] = useState(editTeam?.description || '')
   const [color, setColor] = useState(editTeam?.color || '#6366F1')
@@ -69,7 +71,14 @@ export function TeamFormModal({ isOpen, onClose, onSuccess, onDelete, editTeam }
   }
 
   async function handleDelete() {
-    if (!editTeam || !confirm('Are you sure you want to delete this team?')) return
+    if (!editTeam) return
+    const confirmed = await confirmAction('Are you sure you want to delete this team?', {
+      title: 'Delete Team',
+      confirmLabel: 'Delete',
+      tone: 'danger',
+    })
+    if (!confirmed) return
+
     setLoading(true)
     const result = await deleteTeam(editTeam.id)
     setLoading(false)

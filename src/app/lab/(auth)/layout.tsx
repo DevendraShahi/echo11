@@ -18,10 +18,24 @@ export default function AuthLayout({
       const supabase = createClient()
       const { data: { user } } = await supabase.auth.getUser()
       if (user) {
-        router.push('/lab/dashboard')
-      } else {
-        setLoading(false)
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('role')
+          .eq('id', user.id)
+          .single()
+
+        if (profile?.role === 'client') {
+          router.push('/client')
+          return
+        }
+
+        if (profile?.role === 'admin' || profile?.role === 'member') {
+          router.push('/lab/dashboard')
+          return
+        }
       }
+
+      setLoading(false)
     }
     checkUser()
   }, [router])

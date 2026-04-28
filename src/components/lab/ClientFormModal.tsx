@@ -337,7 +337,7 @@ export function ClientFormModal({ isOpen, onClose, onSuccess, editClient }: Clie
                   className="mt-0.5 w-4 h-4 border border-white/20 bg-[#0a0a0a] text-accent focus:ring-accent"
                 />
                 <div>
-                  <span className="text-sm text-white font-mono">Send portal invitation</span>
+                  <span className="text-sm text-white font-mono">Send client invitation</span>
                   <p className="text-xs text-white/40 mt-0.5 font-mono">Create a login account and send an email so the client can track their project</p>
                 </div>
               </label>

@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { createNotification } from './notification-actions'
 import { requireAdminOrLead } from './role-helpers'
+import { revalidateClientSurface, revalidateLegacyPortalSurface } from './client-surface-revalidate'
 
 export interface MeetingFormData {
   title: string
@@ -118,6 +119,8 @@ export async function createMeeting(data: MeetingFormData): Promise<{ success: b
     }
 
     revalidatePath('/lab/meetings')
+    revalidateClientSurface({ projectId: meeting.project_id })
+    revalidateLegacyPortalSurface()
 
     return { success: true, meetingId: meeting.id }
   } catch (error) {
@@ -216,6 +219,8 @@ export async function updateMeeting(id: string, data: Partial<MeetingFormData>):
 
     revalidatePath('/lab/meetings')
     revalidatePath(`/lab/meetings/${id}`)
+    revalidateClientSurface({ projectId: targetProjectId })
+    revalidateLegacyPortalSurface()
 
     return { success: true }
   } catch (error) {
@@ -294,6 +299,8 @@ export async function deleteMeeting(id: string): Promise<{ success: boolean; err
     }
 
     revalidatePath('/lab/meetings')
+    revalidateClientSurface({ projectId: meeting.project_id })
+    revalidateLegacyPortalSurface()
 
     return { success: true }
   } catch (error) {

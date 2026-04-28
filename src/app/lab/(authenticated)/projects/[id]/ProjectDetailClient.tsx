@@ -10,6 +10,7 @@ import { Milestone, ProjectExpense, Client, Service } from '@/types/lab'
 import { Plus, Trash2, Loader2, Send, CheckCircle } from 'lucide-react'
 import { Dropdown, DropdownOption } from '@/components/ui/Dropdown'
 import { useRouter } from 'next/navigation'
+import { useAppFeedback } from '@/components/ui/AppFeedbackProvider'
 
 interface ProjectDetailClientProps {
   projectId: string
@@ -26,6 +27,7 @@ export function ProjectDetailClient({
   client,
   services = []
 }: ProjectDetailClientProps) {
+  const { confirmAction } = useAppFeedback()
   const supabase = createClient()
   const router = useRouter()
   const [milestones, setMilestones] = useState(initialMilestones)
@@ -110,7 +112,13 @@ export function ProjectDetailClient({
   }
 
   const deleteExpense = async (id: string) => {
-    if (!confirm('Delete this expense?')) return
+    const confirmed = await confirmAction('Delete this expense?', {
+      title: 'Delete Expense',
+      confirmLabel: 'Delete',
+      tone: 'danger',
+    })
+    if (!confirmed) return
+
     setLoading(true)
     try {
       const { error } = await supabase.from('project_expenses').delete().eq('id', id)
@@ -142,18 +150,18 @@ export function ProjectDetailClient({
 
   return (
     <>
-      {/* Client Portal Access Card */}
+      {/* Client Access Card */}
       {hasClient && (
         <LabCard>
           <LabCardHeader>
-            <LabCardTitle className="font-sans">Client Portal</LabCardTitle>
+            <LabCardTitle className="font-sans">Client Access</LabCardTitle>
           </LabCardHeader>
           <LabCardContent>
             {clientHasPortalAccess ? (
                 <div className="flex items-center gap-3 p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-lg">
                 <CheckCircle className="w-5 h-5 text-emerald-400" />
                 <div className="flex-1">
-                  <p className="text-sm text-foreground font-sans">Client has portal access</p>
+                  <p className="text-sm text-foreground font-sans">Client has access</p>
                   <p className="text-xs text-white/50">They can view their project progress</p>
                 </div>
               </div>
@@ -176,7 +184,7 @@ export function ProjectDetailClient({
                 ) : (
                   <Send className="w-4 h-4" />
                 )}
-                <span className="font-sans">Invite to Portal</span>
+                <span className="font-sans">Invite to Client Area</span>
               </button>
             )}
           </LabCardContent>

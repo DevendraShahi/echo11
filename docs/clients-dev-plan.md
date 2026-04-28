@@ -577,3 +577,171 @@ rm -rf src/app/portal
 > **Ready for Implementation**  
 > **Next Step:** Begin Phase 1 - Foundation & Setup  
 > **Documentation Version:** 1.0
+
+---
+
+## Client + Lab Shared Source of Truth (System Design)
+
+### Answer First: Is `/client` and `/lab` using the same data source?
+
+**Yes.** Both surfaces are reading and writing against the same Supabase Postgres schema (`public`) as the source of truth.
+
+Examples from current code:
+- Client dashboard reads `projects`, `tasks`, `invoices`, `clients` via `client_id` / `auth_id`.
+- Lab server actions mutate the same entities (`projects`, `tasks`, `contracts`, `invoices`, `clients`, etc.).
+
+This is good for consistency, but only if ownership and RLS boundaries are strict.
+
+---
+
+## Edit Ownership Matrix (Who Can Edit What)
+
+| Domain Section | Tables | Lab (Agency) | Client | Notes |
+|---|---|---|---|---|
+| Client Master Profile | `clients`, `client_contacts`, `client_statuses` | Full CRUD | Limited self-service fields only | Keep `company_name`, `email`, `status`, `tags`, `auth_id` as Lab-owned |
+| Delivery Plan | `projects`, `milestones`, `tasks`, `project_expenses` | Full CRUD | Read-only | Client should not change scope/progress directly |
+| Financials | `invoices`, `invoice_items`, `services` | Full CRUD | Read-only | Client can view/download only |
+| Legal | `contracts`, `contract_templates` | Full CRUD | Read-only | Client can view signed/pending contracts |
+| Meetings | `meetings`, `meeting_attendees` | Full CRUD | Read-only (or RSVP only if added) | Keep scheduling authority in Lab |
+| Messages | `client_messages` | Insert as `team`, read own threads | Insert as `client`, read own threads | Shared domain with strict row ownership checks |
+| Notifications | `notifications` | Create system/team notifications | Mark own as read | User can only update own `read` state |
+| Activity Feed | `activities` | System/Lab inserts | Read filtered by client scope | Treat as append-only audit/event log |
+| Auth + Identity | `profiles`, `clients.auth_id` | Invite/link/unlink | Self password/login | Role changes remain Lab/admin-controlled |
+
+---
+
+## Current Gaps To Fix Before “Perfect Sync”
+
+1. Broad RLS policies exist on core tables (`SELECT USING (true)` / generic authenticated).
+2. `client_messages` policy currently allows broad reads and weak insert checks.
+3. Client settings form currently writes directly from browser to `clients` table.
+4. Some mutation logic still mixes old `/portal` and new `/client` revalidation paths.
+
+Reference points:
+- Direct client-side `clients` update in settings form.
+- Client message write/read actions.
+- Broad message RLS policy.
+- Broad authenticated policies in earlier task/project/profile migrations.
+
+---
+
+## Target Industry-Grade Architecture
+
+### 1) Single Database, Clear Command Ownership
+
+- Keep one source of truth (Supabase Postgres).
+- Define command ownership per domain:
+  - **Lab-owned commands:** delivery, finance, legal, lifecycle status.
+  - **Client-owned commands:** own contact preferences + client message send + notification read.
+- Everything else from Client side is query/read-only.
+
+### 2) Mutation Gateway Pattern (No direct browser table writes for sensitive entities)
+
+- Route all writes through server actions (or RPC/Edge functions for high-risk paths).
+- Validate:
+  - authenticated user
+  - role (`admin/member/client`)
+  - row ownership (`clients.auth_id = auth.uid()` for client scope)
+  - allowed field whitelist per actor/surface
+
+### 3) Hardened RLS by Relationship, Not by “Authenticated”
+
+- Replace broad policies with ownership checks:
+  - Client rows only for linked `clients.auth_id`.
+  - Team rows only for assigned team/client scope.
+  - Admin gets explicit override policy.
+- Make `activities` append-only for system/service paths.
+
+### 4) Event + Sync Workflow (Outbox style)
+
+Create `domain_events` (or `sync_events`) table:
+- `id`, `event_type`, `entity_type`, `entity_id`, `client_id`, `actor_id`, `source_surface` (`lab`/`client`), `payload`, `created_at`, `processed_at`.
+
+On every mutation:
+1. Write business row in transaction.
+2. Append event row.
+3. Background worker/fn consumes event and:
+   - writes notification(s)
+   - writes activity feed entry
+   - emits realtime updates (if needed)
+   - triggers cache invalidation tags
+
+This gives deterministic, debuggable sync between surfaces.
+
+### 5) Read Model Strategy
+
+- Keep normalized write tables.
+- Add query-optimized views for client surface:
+  - `client_dashboard_view` (stats + counts)
+  - `client_project_summary_view`
+  - `client_invoice_summary_view`
+- Use these for fast, consistent dashboard rendering.
+
+### 6) Concurrency + Audit
+
+- Add optimistic concurrency on mutable entities (`updated_at` check).
+- Track `updated_by`, `source_surface`.
+- Keep immutable event/activity history for auditability.
+
+---
+
+## Canonical Cross-Surface Workflows
+
+### A) Lab updates project/task/milestone
+1. Lab action validates role/team ownership.
+2. Writes domain table(s).
+3. Recomputes derived fields (progress, budget, etc.).
+4. Appends `domain_events`.
+5. Worker writes notifications + activity.
+6. `/client` dashboard/project pages refresh via tags/realtime.
+
+### B) Client sends message
+1. Client action validates linked `clients.auth_id`.
+2. Inserts `client_messages` with `sender_type='client'`.
+3. Appends `domain_events`.
+4. Worker notifies assigned Lab users/team channel.
+5. Lab inbox updates in realtime.
+
+### C) Client updates own contact preferences
+1. Client action validates ownership.
+2. Updates only whitelisted fields.
+3. Appends event + activity entry.
+4. Optional Lab notification (“Client updated profile”).
+
+---
+
+## Implementation Plan (Practical Sequence)
+
+### Phase A: Access + Ownership Hardening (Highest priority)
+- Replace broad RLS policies on:
+  - `projects`, `tasks`, `profiles`, `client_messages`, `project_expenses`, related collaboration tables.
+- Add ownership-safe policies for client-linked reads.
+- Add explicit admin/team policies.
+
+### Phase B: Mutation Surface Cleanup
+- Move client profile update to server action (remove direct browser table mutation).
+- Standardize all `/client` writes to server actions with field whitelists.
+- Remove legacy `/portal` invalidation dependencies where `/client` is canonical.
+
+### Phase C: Event/Outbox + Notification Pipeline
+- Add `domain_events` table + processor.
+- Normalize activity and notification generation through events.
+- Add idempotency for retried processors.
+
+### Phase D: Read Models + Realtime
+- Add SQL views for dashboard-heavy reads.
+- Enable targeted realtime channels for `notifications` + `client_messages`.
+- Keep all other pages server-rendered with cache tag revalidation.
+
+### Phase E: Observability + Governance
+- Add audit dashboards/logging for failed events and RLS denials.
+- Add transition guards for statuses (project/invoice/contract lifecycle).
+- Add integration tests for role-based access and cross-surface sync.
+
+---
+
+## Recommended Final Rule
+
+> **Lab is the system-of-record editor for delivery, financial, legal, and scheduling domains.  
+> Client is the system-of-record editor only for self profile preferences and client-origin communication.  
+> Both read from the same source-of-truth database under strict RLS and event-driven sync.**

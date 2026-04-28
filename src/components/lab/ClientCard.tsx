@@ -1,10 +1,11 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { cn } from '@/lib/utils'
-import { Mail, Phone, MoreHorizontal, Send, Edit3, Trash2, ExternalLink, DollarSign, FolderKanban } from 'lucide-react'
+import { Mail, Phone, MoreHorizontal, Send, Edit3, Trash2, ExternalLink, DollarSign, FolderKanban, MessageSquare } from 'lucide-react'
 import { ClientWithRelations } from '@/lib/actions/client-actions'
+import { useAppFeedback } from '@/components/ui/AppFeedbackProvider'
 
 interface ClientCardProps {
   client: ClientWithRelations
@@ -15,6 +16,8 @@ interface ClientCardProps {
 }
 
 export function ClientCard({ client, onEdit, onDelete, onSendInvite, index = 0 }: ClientCardProps) {
+  const router = useRouter()
+  const { confirmAction } = useAppFeedback()
   const [menuOpen, setMenuOpen] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
 
@@ -60,11 +63,19 @@ export function ClientCard({ client, onEdit, onDelete, onSendInvite, index = 0 }
   const statusBadge = getStatusBadge(status)
 
   return (
-    <Link href={`/lab/clients/${client.id}`}>
-      <div 
-        className="group relative bg-[#0a0a0a] p-5 hover:bg-white/[0.02] transition-all duration-200"
-        style={{ animationDelay: `${index * 30}ms` }}
-      >
+    <div
+      role="link"
+      tabIndex={0}
+      onClick={() => router.push(`/lab/clients/${client.id}`)}
+      onKeyDown={(event) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault()
+          router.push(`/lab/clients/${client.id}`)
+        }
+      }}
+      className="group relative bg-[#0a0a0a] p-5 hover:bg-white/[0.02] transition-all duration-200 cursor-pointer"
+      style={{ animationDelay: `${index * 30}ms` }}
+    >
         <div className="flex items-start justify-between mb-4">
           <div className={cn(
             "w-12 h-12 flex items-center justify-center bg-gradient-to-br shadow-lg",
@@ -120,20 +131,25 @@ export function ClientCard({ client, onEdit, onDelete, onSendInvite, index = 0 }
                     onClick={(e) => {
                       e.preventDefault()
                       e.stopPropagation()
-                      window.open('/portal', '_blank')
+                      window.open('/client', '_blank')
                       setMenuOpen(false)
                     }}
                     className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-white/60 hover:text-white hover:bg-white/5 transition-colors text-left font-mono text-xs"
                   >
                     <ExternalLink className="w-3.5 h-3.5" />
-                    View Portal
+                    View Client Area
                   </button>
                 )}
                 <button
-                  onClick={(e) => {
+                  onClick={async (e) => {
                     e.preventDefault()
                     e.stopPropagation()
-                    if (confirm('Are you sure you want to delete this client?')) {
+                    const confirmed = await confirmAction('Are you sure you want to delete this client?', {
+                      title: 'Delete Client',
+                      confirmLabel: 'Delete',
+                      tone: 'danger',
+                    })
+                    if (confirmed) {
                       onDelete?.(client.id)
                     }
                     setMenuOpen(false)
@@ -189,6 +205,12 @@ export function ClientCard({ client, onEdit, onDelete, onSendInvite, index = 0 }
             <DollarSign className="w-3 h-3" />
             <span className="text-xs font-mono">${(client.total_revenue || 0).toLocaleString()}</span>
           </div>
+          {(client.unread_client_messages || 0) > 0 && (
+            <div className="flex items-center gap-1.5 text-accent">
+              <MessageSquare className="w-3 h-3" />
+              <span className="text-xs font-mono">{client.unread_client_messages}</span>
+            </div>
+          )}
         </div>
 
         {status && (
@@ -234,7 +256,6 @@ export function ClientCard({ client, onEdit, onDelete, onSendInvite, index = 0 }
             )}
           </div>
         )}
-      </div>
-    </Link>
+    </div>
   )
 }

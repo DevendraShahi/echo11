@@ -172,13 +172,13 @@ export const clientsTourSteps: TourStep[] = [
   {
     target: '[data-tour="add-client"]',
     title: 'Add Client',
-    content: 'Add new client companies. Include contact info, industry, source, and optionally send them a portal invitation.',
+    content: 'Add new client companies. Include contact info, industry, source, and optionally send them a client invitation.',
     position: 'bottom',
   },
   {
     target: '[data-tour="client-filters"]',
     title: 'Client Filters',
-    content: 'Filter by lifecycle status: Lead, Prospect, Active, At Risk, Inactive. Or filter by portal access.',
+    content: 'Filter by lifecycle status: Lead, Prospect, Active, At Risk, Inactive. Or filter by client access.',
     position: 'bottom',
   },
   {

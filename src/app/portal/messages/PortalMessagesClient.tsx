@@ -1,13 +1,14 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-import { createClient } from '@/lib/supabase/client'
-import { Send, Loader2, MessageCircle, User, CheckCircle } from 'lucide-react'
+import { Send, Loader2, MessageCircle, User } from 'lucide-react'
 import { format } from 'date-fns'
-import { sendClientMessage } from '@/lib/actions/client-message-actions'
+import { markClientMessagesRead, sendClientMessage } from '@/lib/actions/client-message-actions'
+import { createClient } from '@/lib/supabase/client'
 
 type Message = {
   id: string
+  client_id: string
   sender_type: 'client' | 'team'
   sender_name: string
   content: string
@@ -20,7 +21,6 @@ interface PortalMessagesClientProps {
 }
 
 export function PortalMessagesClient({ initialMessages }: PortalMessagesClientProps) {
-  const supabase = createClient()
   const [messages, setMessages] = useState(initialMessages)
   const [newMessage, setNewMessage] = useState('')
   const [sending, setSending] = useState(false)
@@ -30,6 +30,72 @@ export function PortalMessagesClient({ initialMessages }: PortalMessagesClientPr
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages.length])
 
+  useEffect(() => {
+    const supabase = createClient()
+    let active = true
+
+    async function subscribeToThread() {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user || !active) return
+
+      const { data: client } = await supabase
+        .from('clients')
+        .select('id')
+        .eq('auth_id', user.id)
+        .single()
+
+      if (!client || !active) return
+
+      const channel = supabase
+        .channel(`portal-thread-${client.id}`)
+        .on(
+          'postgres_changes',
+          {
+            event: 'INSERT',
+            schema: 'public',
+            table: 'client_messages',
+            filter: `client_id=eq.${client.id}`,
+          },
+          (payload) => {
+            const newMessage = payload.new as Message
+            setMessages((prev) => (prev.some((item) => item.id === newMessage.id) ? prev : [newMessage, ...prev]))
+            if (newMessage.sender_type === 'team' && !newMessage.read_by_client) {
+              void markClientMessagesRead()
+            }
+          }
+        )
+        .on(
+          'postgres_changes',
+          {
+            event: 'UPDATE',
+            schema: 'public',
+            table: 'client_messages',
+            filter: `client_id=eq.${client.id}`,
+          },
+          (payload) => {
+            const updatedMessage = payload.new as Message
+            setMessages((prev) => prev.map((item) => (item.id === updatedMessage.id ? updatedMessage : item)))
+          }
+        )
+        .subscribe()
+
+      return channel
+    }
+
+    let channelPromise: Promise<ReturnType<typeof supabase.channel> | void> | null = subscribeToThread()
+
+    return () => {
+      active = false
+      void (async () => {
+        const channel = await channelPromise
+        if (channel) {
+          await supabase.removeChannel(channel)
+        }
+      })()
+      channelPromise = null
+    }
+  }, [])
+
   const handleSend = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!newMessage.trim() || sending) return
@@ -38,29 +104,23 @@ export function PortalMessagesClient({ initialMessages }: PortalMessagesClientPr
     const content = newMessage.trim()
     setNewMessage('')
 
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) {
-      setSending(false)
-      return
-    }
-
-    const result = await sendClientMessage(user.id, content)
+    const result = await sendClientMessage(content)
 
     if (result.success) {
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('full_name')
-        .single()
-
-      const newMsg: Message = {
-        id: Date.now().toString(),
-        sender_type: 'client',
-        sender_name: profile?.full_name || 'You',
-        content,
-        read_by_client: true,
-        created_at: new Date().toISOString()
+      if (result.message) {
+        setMessages((prev) => [result.message as Message, ...prev])
+      } else {
+        const fallbackMessage: Message = {
+          id: Date.now().toString(),
+          client_id: messages[0]?.client_id || '',
+          sender_type: 'client',
+          sender_name: 'You',
+          content,
+          read_by_client: true,
+          created_at: new Date().toISOString(),
+        }
+        setMessages((prev) => [fallbackMessage, ...prev])
       }
-      setMessages(prev => [newMsg, ...prev])
     } else {
       setNewMessage(content)
     }

@@ -17,6 +17,20 @@ export default async function DocsLayout({
     redirect('/lab/auth/login')
   }
 
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('role')
+    .eq('id', user.id)
+    .single()
+
+  if (profile?.role === 'client') {
+    redirect('/client')
+  }
+
+  if (profile?.role !== 'admin' && profile?.role !== 'member') {
+    redirect('/lab/auth/login')
+  }
+
   const { data: preferences } = await supabase
     .from('user_preferences')
     .select('theme')

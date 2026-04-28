@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, use } from 'react'
+import { useState, useEffect, use, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { LabButton } from '@/components/ui/LabButton'
 import { ClientFormModal } from '@/components/lab/ClientFormModal'
@@ -12,16 +12,23 @@ import { createNote, deleteNote, getClientNotes, updateNote } from '@/lib/action
 import { deleteContract } from '@/lib/actions/contract-actions'
 import { deleteClient, ClientWithRelations, sendClientPortalInvite } from '@/lib/actions/client-actions'
 import {
+  getClientMessagesForTeam,
+  markTeamMessagesRead,
+  sendTeamMessage,
+  ClientMessage
+} from '@/lib/actions/client-message-actions'
+import {
   ArrowLeft, Mail, Phone, Building,
   Trash2, AlertCircle, Edit3, Plus, FolderKanban, FileText,
   TrendingUp, File, Download,
   Upload, X,
   Globe, Tags, Star, StarOff, ExternalLink,
-  Send, Loader2, CheckCircle
+  Send, Loader2, CheckCircle, MessageSquare
 } from 'lucide-react'
 import Link from 'next/link'
 import { format } from 'date-fns'
 import { cn } from '@/lib/utils'
+import { useAppFeedback } from '@/components/ui/AppFeedbackProvider'
 
 interface ClientPageProps {
   params: Promise<{ id: string }>
@@ -38,10 +45,11 @@ function isClientDataWithRelations(data: unknown): data is ClientDataWithRelatio
 type ContractWithTemplate = Contract & { template: { name: string } | null }
 type NoteWithUser = ClientNote & { user?: { full_name: string | null; avatar_url: string | null } | null }
 type ActivityWithUser = Activity & { user: { full_name: string | null } | null }
-type TabType = 'overview' | 'contacts' | 'projects' | 'invoices' | 'contracts' | 'documents' | 'notes' | 'activity'
+type TabType = 'overview' | 'contacts' | 'projects' | 'invoices' | 'contracts' | 'documents' | 'messages' | 'notes' | 'activity'
 
 export default function ClientDetailPage({ params }: ClientPageProps) {
   const { id: clientId } = use(params)
+  const { confirmAction } = useAppFeedback()
   const [client, setClient] = useState<ClientWithRelations | null>(null)
   const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState<TabType>('overview')
@@ -62,6 +70,10 @@ export default function ClientDetailPage({ params }: ClientPageProps) {
   const [documents, setDocuments] = useState<ClientDocument[]>([])
   const [notes, setNotes] = useState<NoteWithUser[]>([])
   const [activities, setActivities] = useState<ActivityWithUser[]>([])
+  const [messages, setMessages] = useState<ClientMessage[]>([])
+  const [messagesLoading, setMessagesLoading] = useState(false)
+  const [sendingMessage, setSendingMessage] = useState(false)
+  const [messageInput, setMessageInput] = useState('')
   
   const [stats, setStats] = useState({
     totalRevenue: 0,
@@ -76,6 +88,72 @@ export default function ClientDetailPage({ params }: ClientPageProps) {
     if (clientId) loadData()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [clientId])
+
+  const loadMessages = useCallback(async (markRead = true) => {
+    if (!clientId) return
+
+    setMessagesLoading(true)
+    try {
+      if (markRead) {
+        await markTeamMessagesRead(clientId)
+      }
+
+      const thread = await getClientMessagesForTeam(clientId)
+      setMessages(thread)
+    } catch (error) {
+      console.error('Error loading client messages:', error)
+    } finally {
+      setMessagesLoading(false)
+    }
+  }, [clientId])
+
+  useEffect(() => {
+    if (activeTab === 'messages') {
+      void loadMessages(true)
+    }
+  }, [activeTab, loadMessages])
+
+  useEffect(() => {
+    if (activeTab !== 'messages') return
+
+    const supabase = createClient()
+    const channel = supabase
+      .channel(`lab-client-thread-${clientId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'client_messages',
+          filter: `client_id=eq.${clientId}`,
+        },
+        (payload) => {
+          const newMessage = payload.new as ClientMessage
+          setMessages((prev) => (prev.some((item) => item.id === newMessage.id) ? prev : [newMessage, ...prev]))
+          if (newMessage.sender_type === 'client' && !newMessage.read_by_team) {
+            void markTeamMessagesRead(clientId)
+          }
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'client_messages',
+          filter: `client_id=eq.${clientId}`,
+        },
+        (payload) => {
+          const updatedMessage = payload.new as ClientMessage
+          setMessages((prev) => prev.map((item) => (item.id === updatedMessage.id ? updatedMessage : item)))
+        }
+      )
+      .subscribe()
+
+    return () => {
+      void supabase.removeChannel(channel)
+    }
+  }, [activeTab, clientId])
 
   async function loadData() {
     setLoading(true)
@@ -170,7 +248,12 @@ export default function ClientDetailPage({ params }: ClientPageProps) {
   }
 
   async function handleDelete() {
-    if (!confirm('Are you sure you want to delete this client?')) return
+    const confirmed = await confirmAction('Are you sure you want to delete this client?', {
+      title: 'Delete Client',
+      confirmLabel: 'Delete',
+      tone: 'danger',
+    })
+    if (!confirmed) return
     
     try {
       const result = await deleteClient(clientId)
@@ -182,6 +265,33 @@ export default function ClientDetailPage({ params }: ClientPageProps) {
     } catch (error) {
       console.error('Error deleting client:', error)
       alert('An unexpected error occurred while deleting the client')
+    }
+  }
+
+  async function handleSendTeamMessage(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault()
+
+    const content = messageInput.trim()
+    if (!content || sendingMessage) return
+
+    setSendingMessage(true)
+    setMessageInput('')
+
+    try {
+      const result = await sendTeamMessage(clientId, content)
+      if (!result.success) {
+        setMessageInput(content)
+        alert(result.error || 'Failed to send message')
+        return
+      }
+
+      if (result.message) {
+        setMessages((prev) => [result.message as ClientMessage, ...prev])
+      } else {
+        await loadMessages(false)
+      }
+    } finally {
+      setSendingMessage(false)
     }
   }
 
@@ -210,6 +320,7 @@ export default function ClientDetailPage({ params }: ClientPageProps) {
     { id: 'invoices', label: 'Invoices' },
     { id: 'contracts', label: 'Contracts' },
     { id: 'documents', label: 'Documents' },
+    { id: 'messages', label: 'Messages' },
     { id: 'notes', label: 'Notes' },
     { id: 'activity', label: 'Activity' },
   ]
@@ -235,6 +346,7 @@ export default function ClientDetailPage({ params }: ClientPageProps) {
   }
 
   const statusBadge = getStatusBadge(client.current_status?.status)
+  const unreadClientMessages = messages.filter((message) => message.sender_type === 'client' && !message.read_by_team).length
 
   return (
     <div className="p-6">
@@ -261,7 +373,7 @@ export default function ClientDetailPage({ params }: ClientPageProps) {
                     )}
                     {client.invitation_sent_at && (
                       <span className={cn("px-2 py-0.5 text-xs font-mono uppercase tracking-wider border", client.invitation_accepted_at ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-400" : "bg-amber-500/10 border-amber-500/20 text-amber-400")}>
-                        {client.invitation_accepted_at ? 'Portal Active' : 'Pending'}
+                        {client.invitation_accepted_at ? 'Client Active' : 'Pending'}
                       </span>
                     )}
                     <span className="text-white/30 text-xs font-mono">Created {format(new Date(client.created_at), 'MMM d, yyyy')}</span>
@@ -278,7 +390,7 @@ export default function ClientDetailPage({ params }: ClientPageProps) {
                     else loadData()
                   }} className="font-mono text-xs uppercase tracking-wider">
                     {invitingPortal ? <Loader2 className="w-3 h-3 mr-2 animate-spin" /> : <Send className="w-3 h-3 mr-2" />}
-                    Invite to Portal
+                    Invite to Client Area
                   </LabButton>
                 )}
                 {client.invitation_sent_at && !client.invitation_accepted_at && (
@@ -288,7 +400,7 @@ export default function ClientDetailPage({ params }: ClientPageProps) {
                 )}
                 {client.invitation_accepted_at && (
                   <span className="inline-flex items-center gap-1.5 px-3 py-2 border border-emerald-500/20 text-emerald-400 font-mono text-xs">
-                    <CheckCircle className="w-3 h-3" />Portal Active
+                    <CheckCircle className="w-3 h-3" />Client Active
                   </span>
                 )}
                 {canEdit && (
@@ -444,7 +556,12 @@ export default function ClientDetailPage({ params }: ClientPageProps) {
                           </button>
                         )}
                         <button onClick={async () => {
-                          if (!confirm('Delete contact?')) return
+                          const confirmed = await confirmAction('Delete contact?', {
+                            title: 'Delete Contact',
+                            confirmLabel: 'Delete',
+                            tone: 'danger',
+                          })
+                          if (!confirmed) return
                           const result = await deleteContact(contact.id, clientId)
                           if (!result.success) alert(result.error || 'Failed to delete contact')
                           else loadData()
@@ -573,7 +690,12 @@ export default function ClientDetailPage({ params }: ClientPageProps) {
                       )}
                       {canEdit && (
                         <button onClick={async () => {
-                          if (!confirm('Delete contract?')) return
+                          const confirmed = await confirmAction('Delete contract?', {
+                            title: 'Delete Contract',
+                            confirmLabel: 'Delete',
+                            tone: 'danger',
+                          })
+                          if (!confirmed) return
                           const result = await deleteContract(contract.id, clientId)
                           if (!result.success) alert(result.error || 'Failed to delete contract')
                           else loadData()
@@ -633,7 +755,12 @@ export default function ClientDetailPage({ params }: ClientPageProps) {
                       </div>
                       {canEdit && (
                         <button onClick={async () => {
-                          if (!confirm('Delete document?')) return
+                          const confirmed = await confirmAction('Delete document?', {
+                            title: 'Delete Document',
+                            confirmLabel: 'Delete',
+                            tone: 'danger',
+                          })
+                          if (!confirmed) return
                           const result = await deleteDocument(doc.id, clientId)
                           if (!result.success) alert(result.error || 'Failed to delete document')
                           else loadData()
@@ -649,6 +776,92 @@ export default function ClientDetailPage({ params }: ClientPageProps) {
                 ))}
               </div>
             )}
+          </div>
+        )}
+
+        {activeTab === 'messages' && (
+          <div className="space-y-4">
+            <div className="flex items-center justify-between border border-white/5 bg-[#0a0a0a] px-4 py-3">
+              <div className="flex items-center gap-2">
+                <MessageSquare className="w-4 h-4 text-accent" />
+                <span className="text-xs font-mono uppercase tracking-wider text-white/60">Client Conversation</span>
+              </div>
+              <span className={cn(
+                'px-2 py-0.5 text-xs font-mono uppercase tracking-wider border',
+                unreadClientMessages > 0
+                  ? 'bg-accent/10 border-accent/30 text-accent'
+                  : 'bg-white/5 border-white/10 text-white/40'
+              )}>
+                {unreadClientMessages} unread
+              </span>
+            </div>
+
+            <div className="border border-white/5 bg-[#0a0a0a]">
+              <div className="max-h-[420px] overflow-y-auto p-4 space-y-3 border-b border-white/5">
+                {messagesLoading ? (
+                  <div className="py-14 flex items-center justify-center">
+                    <Loader2 className="w-5 h-5 animate-spin text-accent" />
+                  </div>
+                ) : messages.length === 0 ? (
+                  <div className="py-14 text-center text-white/30 font-mono text-sm">
+                    No messages yet.
+                  </div>
+                ) : (
+                  [...messages].reverse().map((message) => {
+                    const isTeam = message.sender_type === 'team'
+                    return (
+                      <div key={message.id} className={cn('flex', isTeam ? 'justify-end' : 'justify-start')}>
+                        <div className={cn(
+                          'max-w-[80%] border px-4 py-3',
+                          isTeam
+                            ? 'bg-accent/10 border-accent/30'
+                            : 'bg-white/5 border-white/10'
+                        )}>
+                          <div className="flex items-center gap-2 mb-1">
+                            <span className="text-xs font-mono text-white/50">{message.sender_name}</span>
+                            {!isTeam && !message.read_by_team && <span className="w-1.5 h-1.5 bg-accent" />}
+                          </div>
+                          <p className="text-sm text-white whitespace-pre-wrap">{message.content}</p>
+                          <p className="text-[11px] text-white/30 font-mono mt-2">
+                            {format(new Date(message.created_at), 'MMM d, yyyy · h:mm a')}
+                          </p>
+                        </div>
+                      </div>
+                    )
+                  })
+                )}
+              </div>
+
+              <form onSubmit={handleSendTeamMessage} className="p-4">
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={messageInput}
+                    onChange={(e) => setMessageInput(e.target.value)}
+                    placeholder="Reply to client..."
+                    disabled={sendingMessage}
+                    className="flex-1 px-4 py-2.5 bg-[#0a0a0a] border border-white/10 text-white text-sm font-mono placeholder:text-white/30 focus:border-accent focus:outline-none"
+                  />
+                  <LabButton
+                    type="submit"
+                    disabled={sendingMessage || !messageInput.trim()}
+                    className="font-mono text-xs uppercase tracking-wider"
+                  >
+                    {sendingMessage ? (
+                      <>
+                        <Loader2 className="w-3 h-3 mr-2 animate-spin" />
+                        Sending
+                      </>
+                    ) : (
+                      <>
+                        <Send className="w-3 h-3 mr-2" />
+                        Send
+                      </>
+                    )}
+                  </LabButton>
+                </div>
+              </form>
+            </div>
           </div>
         )}
 
@@ -676,7 +889,12 @@ export default function ClientDetailPage({ params }: ClientPageProps) {
                             <Edit3 className="w-3 h-3" />
                           </button>
                           <button onClick={async () => {
-                            if (!confirm('Delete note?')) return
+                            const confirmed = await confirmAction('Delete note?', {
+                              title: 'Delete Note',
+                              confirmLabel: 'Delete',
+                              tone: 'danger',
+                            })
+                            if (!confirmed) return
                             const result = await deleteNote(note.id, clientId)
                             if (!result.success) alert(result.error || 'Failed to delete note')
                             else loadData()

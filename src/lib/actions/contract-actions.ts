@@ -3,12 +3,12 @@
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { Contract, ContractTemplate, ContractStatus, ClientLifecycleStatus } from '@/types/lab'
-import { createClient as createBrowserClient } from '@/lib/supabase/client'
 import { generateContractPDFBlob } from '@/lib/contract-pdf'
 import { substituteVariables, getDefaultVariables } from '@/lib/contract-template-engine'
 import { sendContractEmail } from '@/lib/email'
 import { createNotification } from './notification-actions'
 import { requireAdminOrLead } from './role-helpers'
+import { revalidateClientSurface, revalidateLegacyPortalSurface } from './client-surface-revalidate'
 
 export interface CreateContractParams {
   client_id: string
@@ -28,6 +28,64 @@ export interface UpdateContractParams {
   start_date?: string
   end_date?: string
   notes?: string
+}
+
+const CONTRACTS_BUCKET = 'contracts'
+const CONTRACTS_PUBLIC_PREFIX = '/storage/v1/object/public/contracts/'
+const CONTRACTS_SIGNED_PREFIX = '/storage/v1/object/sign/contracts/'
+
+function extractStoragePathFromContractUrl(fileUrl: string | null | undefined): string | null {
+  if (!fileUrl) return null
+
+  const [urlWithoutQuery] = fileUrl.split('?')
+
+  if (urlWithoutQuery.includes(CONTRACTS_PUBLIC_PREFIX)) {
+    return decodeURIComponent(urlWithoutQuery.split(CONTRACTS_PUBLIC_PREFIX)[1] || '')
+  }
+
+  if (urlWithoutQuery.includes(CONTRACTS_SIGNED_PREFIX)) {
+    return decodeURIComponent(urlWithoutQuery.split(CONTRACTS_SIGNED_PREFIX)[1] || '')
+  }
+
+  return null
+}
+
+async function resolveContractAccessUrl(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  fileUrl: string | null | undefined
+): Promise<string | null> {
+  if (!fileUrl) return null
+
+  const storagePath = extractStoragePathFromContractUrl(fileUrl)
+  if (!storagePath) return fileUrl
+
+  const { data: signedData } = await supabase.storage
+    .from(CONTRACTS_BUCKET)
+    .createSignedUrl(storagePath, 60 * 60)
+
+  if (signedData?.signedUrl) {
+    return signedData.signedUrl
+  }
+
+  const { data: publicData } = supabase.storage
+    .from(CONTRACTS_BUCKET)
+    .getPublicUrl(storagePath)
+
+  return publicData.publicUrl || fileUrl
+}
+
+async function hydrateContractFileUrls<T extends { file_url: string | null }>(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  contracts: T[]
+): Promise<T[]> {
+  if (contracts.length === 0) return contracts
+
+  return Promise.all(
+    contracts.map(async (contract) => ({
+      ...contract,
+      file_url: await resolveContractAccessUrl(supabase, contract.file_url),
+    }))
+  )
 }
 
 async function generateContractNumber(): Promise<string> {
@@ -123,6 +181,8 @@ export async function createContract(
 
     revalidatePath(`/lab/clients/${params.client_id}`)
     revalidatePath('/lab/contracts')
+    revalidateClientSurface()
+    revalidateLegacyPortalSurface()
     return { success: true, contract: contract as Contract }
   } catch (error) {
     console.error('Error creating contract:', error)
@@ -210,6 +270,8 @@ export async function updateContract(
 
     revalidatePath(`/lab/clients/${clientId}`)
     revalidatePath('/lab/contracts')
+    revalidateClientSurface()
+    revalidateLegacyPortalSurface()
     return { success: true }
   } catch (error) {
     console.error('Error updating contract:', error)
@@ -253,6 +315,8 @@ export async function updateContractStatus(
 
     revalidatePath(`/lab/contracts/${contractId}`)
     revalidatePath('/lab/contracts')
+    revalidateClientSurface()
+    revalidateLegacyPortalSurface()
     return { success: true }
   } catch (error) {
     console.error('Error updating contract status:', error)
@@ -284,10 +348,15 @@ export async function deleteContract(
       .single()
 
     if (contract?.file_url) {
-      const supabaseBrowser = createBrowserClient()
-      const fileName = contract.file_url.split('/').pop()
-      if (fileName) {
-        await supabaseBrowser.storage.from('contracts').remove([fileName])
+      const storagePath = extractStoragePathFromContractUrl(contract.file_url)
+      if (storagePath) {
+        const { error: removeError } = await supabase.storage
+          .from(CONTRACTS_BUCKET)
+          .remove([storagePath])
+
+        if (removeError) {
+          console.warn('Failed to remove contract file from storage:', removeError)
+        }
       }
     }
 
@@ -302,6 +371,8 @@ export async function deleteContract(
 
     revalidatePath(`/lab/clients/${clientId}`)
     revalidatePath('/lab/contracts')
+    revalidateClientSurface()
+    revalidateLegacyPortalSurface()
     return { success: true }
   } catch (error) {
     console.error('Error deleting contract:', error)
@@ -353,21 +424,24 @@ export async function uploadContractFile(
   }
 
   try {
-    const fileExt = file.name.split('.').pop()
-    const fileName = `${contractId}/${Date.now()}.${fileExt}`
-    
-    const supabaseBrowser = createBrowserClient()
-    const { error: uploadError } = await supabaseBrowser.storage
-      .from('contracts')
-      .upload(fileName, file)
+    const fileExt = file.name.split('.').pop() || 'pdf'
+    const storagePath = `${contractId}/${Date.now()}.${fileExt}`
+    const fileBuffer = Buffer.from(await file.arrayBuffer())
+
+    const { error: uploadError } = await supabase.storage
+      .from(CONTRACTS_BUCKET)
+      .upload(storagePath, fileBuffer, {
+        contentType: file.type || 'application/pdf',
+        upsert: false,
+      })
 
     if (uploadError) {
       return { success: false, error: uploadError.message }
     }
 
-    const { data: { publicUrl } } = supabaseBrowser.storage
-      .from('contracts')
-      .getPublicUrl(fileName)
+    const { data: { publicUrl } } = supabase.storage
+      .from(CONTRACTS_BUCKET)
+      .getPublicUrl(storagePath)
 
     const { error: dbError } = await supabase
       .from('contracts')
@@ -380,7 +454,13 @@ export async function uploadContractFile(
 
     revalidatePath(`/lab/contracts/${contractId}`)
     revalidatePath('/lab/contracts')
-    return { success: true, fileUrl: publicUrl, fileName: file.name }
+    revalidateClientSurface()
+    revalidateLegacyPortalSurface()
+    return {
+      success: true,
+      fileUrl: await resolveContractAccessUrl(supabase, publicUrl) || publicUrl,
+      fileName: file.name,
+    }
   } catch (error) {
     console.error('Error uploading contract file:', error)
     return { success: false, error: 'An unexpected error occurred' }
@@ -461,19 +541,19 @@ export async function generateContractFromTemplate(
       notes: contract.notes || ''
     })
 
-    const fileName = `${contractId}/contract.pdf`
-    const supabaseBrowser = createBrowserClient()
-    const { error: uploadError } = await supabaseBrowser.storage
-      .from('contracts')
-      .upload(fileName, pdfBlob, { contentType: 'application/pdf', upsert: true })
+    const storagePath = `${contractId}/contract.pdf`
+    const fileBuffer = Buffer.from(await pdfBlob.arrayBuffer())
+    const { error: uploadError } = await supabase.storage
+      .from(CONTRACTS_BUCKET)
+      .upload(storagePath, fileBuffer, { contentType: 'application/pdf', upsert: true })
 
     if (uploadError) {
       return { success: false, error: uploadError.message }
     }
 
-    const { data: { publicUrl } } = supabaseBrowser.storage
-      .from('contracts')
-      .getPublicUrl(fileName)
+    const { data: { publicUrl } } = supabase.storage
+      .from(CONTRACTS_BUCKET)
+      .getPublicUrl(storagePath)
 
     const { error: dbError } = await supabase
       .from('contracts')
@@ -486,7 +566,12 @@ export async function generateContractFromTemplate(
 
     revalidatePath(`/lab/contracts/${contractId}`)
     revalidatePath('/lab/contracts')
-    return { success: true, fileUrl: publicUrl }
+    revalidateClientSurface()
+    revalidateLegacyPortalSurface()
+    return {
+      success: true,
+      fileUrl: await resolveContractAccessUrl(supabase, publicUrl) || publicUrl,
+    }
   } catch (error) {
     console.error('Error generating contract PDF:', error)
     return { success: false, error: 'An unexpected error occurred' }
@@ -504,7 +589,7 @@ export async function getContractDownloadUrl(
     .eq('id', contractId)
     .single()
 
-  return contract?.file_url || null
+  return resolveContractAccessUrl(supabase, contract?.file_url || null)
 }
 
 export async function sendContractToClient(
@@ -538,7 +623,9 @@ export async function sendContractToClient(
     }
 
     const client = contract.client as { company_name: string; contact_name: string; email: string } | null
-    const contractUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'https://echo11.tech'}/lab/contracts/${contractId}`
+    const appBaseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://echo11.tech'
+    const clientPortalBase = process.env.NEXT_PUBLIC_CLIENT_URL || `${appBaseUrl}/client`
+    const contractUrl = `${clientPortalBase}/contracts`
 
     const emailResult = await sendContractEmail({
       to: recipientEmail,
@@ -560,6 +647,8 @@ export async function sendContractToClient(
 
     revalidatePath(`/lab/contracts/${contractId}`)
     revalidatePath('/lab/contracts')
+    revalidateClientSurface()
+    revalidateLegacyPortalSurface()
     return { success: true }
   } catch (error) {
     console.error('Error sending contract:', error)
@@ -591,7 +680,7 @@ export async function getContractsWithClients(): Promise<Contract[]> {
     `)
     .order('created_at', { ascending: false })
 
-  return (data || []) as Contract[]
+  return hydrateContractFileUrls(supabase, (data || []) as Contract[])
 }
 
 export async function getContractDetail(contractId: string): Promise<Contract | null> {
@@ -607,7 +696,10 @@ export async function getContractDetail(contractId: string): Promise<Contract | 
     .eq('id', contractId)
     .single()
 
-  return data as Contract | null
+  if (!data) return null
+
+  const [contract] = await hydrateContractFileUrls(supabase, [data as Contract])
+  return contract || null
 }
 
 export async function getContractsByClientId(clientId: string): Promise<Contract[]> {
@@ -625,7 +717,7 @@ export async function getContractsByClientId(clientId: string): Promise<Contract
     .eq('client_id', clientId)
     .order('created_at', { ascending: false })
 
-  return (data || []) as Contract[]
+  return hydrateContractFileUrls(supabase, (data || []) as Contract[])
 }
 
 export async function updateClientStatus(
@@ -655,6 +747,8 @@ export async function updateClientStatus(
     }
 
     revalidatePath(`/lab/clients/${clientId}`)
+    revalidateClientSurface()
+    revalidateLegacyPortalSurface()
     return { success: true }
   } catch (error) {
     console.error('Error updating client status:', error)

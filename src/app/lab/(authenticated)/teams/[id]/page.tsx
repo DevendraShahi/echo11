@@ -11,6 +11,7 @@ import { ArrowLeft, Users, FolderKanban, Plus, X, UserPlus, Crown, Settings } fr
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
 import { TeamFormModal } from '@/components/lab/TeamForm'
+import { useAppFeedback } from '@/components/ui/AppFeedbackProvider'
 
 interface ProjectWithClient {
   id: string
@@ -29,6 +30,7 @@ interface ProfileSelect {
 }
 
 export default function TeamDetailPage() {
+  const { confirmAction } = useAppFeedback()
   const params = useParams()
   const router = useRouter()
   const teamId = params.id as string
@@ -113,7 +115,13 @@ export default function TeamDetailPage() {
   }
 
   async function handleRemoveMember(profileId: string) {
-    if (!confirm('Remove this member from the team?')) return
+    const confirmed = await confirmAction('Remove this member from the team?', {
+      title: 'Remove Team Member',
+      confirmLabel: 'Remove',
+      tone: 'danger',
+    })
+    if (!confirmed) return
+
     const result = await removeUserFromTeam(profileId)
     if (result.success) {
       loadData()
@@ -142,7 +150,13 @@ export default function TeamDetailPage() {
   }
 
   async function handleRemoveProject(projectId: string) {
-    if (!confirm('Remove this project from the team?')) return
+    const confirmed = await confirmAction('Remove this project from the team?', {
+      title: 'Remove Project',
+      confirmLabel: 'Remove',
+      tone: 'danger',
+    })
+    if (!confirmed) return
+
     const result = await removeProjectFromTeam(projectId)
     if (result.success) {
       loadData()

@@ -12,29 +12,35 @@ export interface ClientNotification {
   created_at: string
 }
 
-export async function getClientNotifications(userId: string): Promise<ClientNotification[]> {
-  const supabase = await createClient()
-  
+async function getAuthenticatedClientProfileId(
+  supabase: Awaited<ReturnType<typeof createClient>>
+): Promise<string | null> {
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) return null
+
   const { data: client } = await supabase
     .from('clients')
     .select('id')
-    .eq('auth_id', userId)
+    .eq('auth_id', user.id)
     .single()
 
-  if (!client) return []
+  if (!client) return null
 
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('id')
-    .eq('auth_id', userId)
-    .single()
+  return user.id
+}
 
-  if (!profile) return []
+export async function getClientNotifications(): Promise<ClientNotification[]> {
+  const supabase = await createClient()
+  const profileId = await getAuthenticatedClientProfileId(supabase)
+  if (!profileId) return []
 
   const { data: notifications } = await supabase
     .from('notifications')
     .select('*')
-    .eq('user_id', profile.id)
+    .eq('user_id', profileId)
     .order('created_at', { ascending: false })
     .limit(20)
 
@@ -42,42 +48,32 @@ export async function getClientNotifications(userId: string): Promise<ClientNoti
 }
 
 export async function markNotificationRead(
-  notificationId: string,
-  userId: string
+  notificationId: string
 ): Promise<{ success: boolean }> {
   const supabase = await createClient()
-  
+  const profileId = await getAuthenticatedClientProfileId(supabase)
+  if (!profileId) {
+    return { success: false }
+  }
+
   await supabase
     .from('notifications')
     .update({ read: true })
     .eq('id', notificationId)
+    .eq('user_id', profileId)
 
   return { success: true }
 }
 
-export async function getUnreadNotificationCount(userId: string): Promise<number> {
+export async function getUnreadNotificationCount(): Promise<number> {
   const supabase = await createClient()
-  
-  const { data: client } = await supabase
-    .from('clients')
-    .select('id')
-    .eq('auth_id', userId)
-    .single()
-
-  if (!client) return 0
-
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('id')
-    .eq('auth_id', userId)
-    .single()
-
-  if (!profile) return 0
+  const profileId = await getAuthenticatedClientProfileId(supabase)
+  if (!profileId) return 0
 
   const { count } = await supabase
     .from('notifications')
     .select('*', { count: 'exact', head: true })
-    .eq('user_id', profile.id)
+    .eq('user_id', profileId)
     .eq('read', false)
 
   return count || 0

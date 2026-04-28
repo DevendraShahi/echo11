@@ -30,7 +30,7 @@ export function Navbar() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  if (pathname.startsWith('/lab') || pathname.startsWith('/portal')) {
+  if (pathname.startsWith('/lab') || pathname.startsWith('/portal') || pathname.startsWith('/client')) {
     return null;
   }
 

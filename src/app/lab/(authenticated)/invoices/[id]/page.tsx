@@ -11,6 +11,7 @@ import { cn } from '@/lib/utils'
 import { deleteInvoice, updateInvoiceStatus, emailInvoiceAction } from '@/lib/actions/invoice-actions'
 import { downloadInvoicePDF, generateInvoicePDF } from '@/lib/invoice-pdf'
 import { Mail } from 'lucide-react'
+import { useAppFeedback } from '@/components/ui/AppFeedbackProvider'
 
 interface InvoicePageProps {
   params: Promise<{ id: string }>
@@ -18,7 +19,7 @@ interface InvoicePageProps {
 
 type InvoiceWithRelations = Invoice & {
   project?: Pick<Project, 'name'> | null
-  client?: Pick<Client, 'company_name' | 'contact_name' | 'email'> | null
+  client?: Pick<Client, 'company_name' | 'contact_name' | 'email' | 'address' | 'address_line2' | 'city' | 'state' | 'country' | 'postal_code'> | null
   items?: InvoiceItem[]
 }
 
@@ -40,6 +41,7 @@ const statusLabels: Record<string, string> = {
 
 export default function InvoiceDetailPage({ params }: InvoicePageProps) {
   const { id: invoiceId } = use(params)
+  const { confirmAction } = useAppFeedback()
   const [invoice, setInvoice] = useState<InvoiceWithRelations | null>(null)
   const [loading, setLoading] = useState(true)
   const [updating, setUpdating] = useState(false)
@@ -64,7 +66,7 @@ export default function InvoiceDetailPage({ params }: InvoicePageProps) {
         .select(`
           *,
           project:projects(id, name),
-          client:clients(id, company_name, contact_name, email)
+          client:clients(id, company_name, contact_name, email, address, address_line2, city, state, country, postal_code)
         `)
         .eq('id', invoiceId)
         .single()
@@ -103,7 +105,12 @@ export default function InvoiceDetailPage({ params }: InvoicePageProps) {
   }
 
   async function handleDelete() {
-    if (!confirm('Are you sure you want to delete this invoice?')) return
+    const confirmed = await confirmAction('Are you sure you want to delete this invoice?', {
+      title: 'Delete Invoice',
+      confirmLabel: 'Delete',
+      tone: 'danger',
+    })
+    if (!confirmed) return
     
     setDeleting(true)
     const result = await deleteInvoice(invoiceId)
@@ -123,7 +130,7 @@ export default function InvoiceDetailPage({ params }: InvoicePageProps) {
     setEmailing(true)
     try {
       const blob = await generateInvoicePDF(invoice as Invoice & {
-        client?: Pick<Client, 'company_name' | 'contact_name' | 'email' | 'address'> | null
+        client?: Pick<Client, 'company_name' | 'contact_name' | 'email' | 'address' | 'address_line2' | 'city' | 'state' | 'country' | 'postal_code'> | null
         project?: Pick<Project, 'name'> | null
         items?: InvoiceItem[]
       })
@@ -225,7 +232,7 @@ export default function InvoiceDetailPage({ params }: InvoicePageProps) {
                 onClick={() => {
                   setGeneratingPdf(true)
                   downloadInvoicePDF(invoice as Invoice & {
-                    client?: Pick<Client, 'company_name' | 'contact_name' | 'email' | 'address'> | null
+                    client?: Pick<Client, 'company_name' | 'contact_name' | 'email' | 'address' | 'address_line2' | 'city' | 'state' | 'country' | 'postal_code'> | null
                     project?: Pick<Project, 'name'> | null
                     items?: InvoiceItem[]
                   })

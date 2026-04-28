@@ -1,167 +1,253 @@
-'use client'
-
-import { Document, Page, Text, View, StyleSheet, pdf, Font } from '@react-pdf/renderer'
-
-Font.register({
-  family: 'Helvetica',
-  fonts: [
-    { src: 'https://fonts.gstatic.com/s/helvetica/v1/Helvetica.ttf' },
-    { src: 'https://fonts.gstatic.com/s/helvetica/v1/Helvetica-Bold.ttf', fontWeight: 'bold' },
-  ]
-})
+import { Document, Page, Text, View, StyleSheet, pdf } from '@react-pdf/renderer'
+import { parseContractContent } from '@/lib/contract-content'
 
 const styles = StyleSheet.create({
   page: {
-    padding: 0,
+    padding: 36,
     fontFamily: 'Helvetica',
     fontSize: 10,
-    color: '#1a1a1a',
-    backgroundColor: '#fff'
+    color: '#0f172a',
+    backgroundColor: '#ffffff'
   },
-  header: {
-    backgroundColor: '#0a0a0a',
-    padding: 40,
-    paddingBottom: 30
-  },
-  headerContent: {
+  topBar: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'flex-start'
+    alignItems: 'flex-start',
+    borderBottomWidth: 1,
+    borderBottomColor: '#d9e1e8',
+    paddingBottom: 16
   },
-  logo: {
+  brand: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    color: '#0ea5e9'
+  },
+  brandSub: {
+    marginTop: 3,
+    fontSize: 9,
+    color: '#64748b',
+    letterSpacing: 0.8
+  },
+  metaBadge: {
+    borderWidth: 1,
+    borderColor: '#d9e1e8',
+    paddingHorizontal: 10,
+    paddingVertical: 6
+  },
+  metaBadgeLabel: {
+    fontSize: 8,
+    color: '#64748b',
+    textTransform: 'uppercase',
+    letterSpacing: 1.1
+  },
+  metaBadgeValue: {
+    marginTop: 2,
+    fontSize: 10,
+    fontWeight: 'bold',
+    color: '#0f172a',
+    letterSpacing: 0.3
+  },
+  titleBlock: {
+    marginTop: 18,
+    marginBottom: 16
+  },
+  title: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#00E5FF',
-    marginBottom: 4
+    color: '#0f172a'
   },
-  companyName: {
-    fontSize: 12,
-    color: '#a1a1a1',
-    marginBottom: 2
-  },
-  contractTitle: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: '#fff',
-    letterSpacing: 2,
-    textAlign: 'right'
-  },
-  contractNumber: {
-    fontSize: 12,
-    color: '#00E5FF',
-    textAlign: 'right',
-    marginTop: 4
-  },
-  body: {
-    padding: 40,
-    paddingTop: 30
+  subtitle: {
+    marginTop: 5,
+    fontSize: 10,
+    color: '#64748b'
   },
   section: {
-    marginBottom: 24
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+    padding: 14,
+    marginBottom: 12
   },
   sectionTitle: {
-    fontSize: 12,
+    fontSize: 9,
+    textTransform: 'uppercase',
+    letterSpacing: 1.1,
     fontWeight: 'bold',
-    color: '#0a0a0a',
-    marginBottom: 12,
-    paddingBottom: 6,
-    borderBottomWidth: 1,
-    borderBottomColor: '#00E5FF'
+    color: '#0ea5e9',
+    marginBottom: 10
   },
   partiesRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 16
+    justifyContent: 'space-between'
   },
-  partyBlock: {
-    width: '48%'
+  partyCard: {
+    width: '48%',
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+    padding: 9
   },
   partyLabel: {
-    fontSize: 9,
-    color: '#a1a1a1',
+    fontSize: 8,
+    color: '#64748b',
     textTransform: 'uppercase',
-    letterSpacing: 1,
+    letterSpacing: 0.9,
     marginBottom: 4
   },
   partyName: {
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: 'bold',
-    color: '#1a1a1a',
-    marginBottom: 2
+    color: '#0f172a',
+    marginBottom: 4
   },
   partyDetail: {
-    fontSize: 10,
-    color: '#666',
-    marginBottom: 1
+    fontSize: 9,
+    color: '#334155',
+    marginBottom: 2
   },
-  contentText: {
-    fontSize: 10,
-    color: '#1a1a1a',
-    lineHeight: 1.6,
-    whiteSpace: 'pre-wrap'
-  },
-  valueRow: {
+  summaryRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    paddingVertical: 8,
-    borderBottomWidth: 0.5,
-    borderBottomColor: '#e5e5e5'
+    borderBottomWidth: 1,
+    borderBottomColor: '#e2e8f0',
+    paddingVertical: 6
   },
-  valueLabel: {
+  summaryLabel: {
+    fontSize: 9,
+    color: '#64748b',
+    textTransform: 'uppercase',
+    letterSpacing: 0.7
+  },
+  summaryValue: {
     fontSize: 10,
-    color: '#666'
-  },
-  valueAmount: {
-    fontSize: 12,
+    color: '#0f172a',
     fontWeight: 'bold',
-    color: '#1a1a1a'
   },
-  signatureSection: {
-    marginTop: 40,
-    paddingTop: 20,
-    borderTopWidth: 1,
-    borderTopColor: '#e5e5e5'
+  bodySection: {
+    borderWidth: 1,
+    borderColor: '#cbd5e1',
+    padding: 14,
+    marginBottom: 12
   },
-  signatureRow: {
+  blockSpacer: {
+    height: 6
+  },
+  blockHeading: {
+    fontSize: 9,
+    color: '#0369a1',
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+    fontWeight: 'bold',
+    marginBottom: 5
+  },
+  blockParagraph: {
+    fontSize: 10,
+    color: '#0f172a',
+    lineHeight: 1.6,
+    marginBottom: 4
+  },
+  clauseRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    marginBottom: 4
+  },
+  clauseIndex: {
+    width: 28,
+    fontSize: 9,
+    color: '#0369a1',
+    fontWeight: 'bold',
+    marginTop: 1
+  },
+  clauseText: {
+    flex: 1,
+    fontSize: 10,
+    color: '#0f172a',
+    lineHeight: 1.6
+  },
+  subClauseRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    marginLeft: 18,
+    marginBottom: 4
+  },
+  subClauseIndex: {
+    width: 22,
+    fontSize: 9,
+    color: '#334155',
+    fontWeight: 'bold',
+    marginTop: 1
+  },
+  subClauseText: {
+    flex: 1,
+    fontSize: 9.5,
+    color: '#0f172a',
+    lineHeight: 1.6
+  },
+  bulletRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    marginLeft: 18,
+    marginBottom: 4
+  },
+  bulletMark: {
+    width: 14,
+    fontSize: 11,
+    color: '#0369a1'
+  },
+  bulletText: {
+    flex: 1,
+    fontSize: 9.8,
+    color: '#0f172a',
+    lineHeight: 1.6
+  },
+  signatureLine: {
+    fontSize: 9,
+    color: '#475569',
+    letterSpacing: 0.5,
+    marginTop: 2
+  },
+  signaturesSection: {
+    borderWidth: 1,
+    borderColor: '#d9e1e8',
+    padding: 14
+  },
+  signaturesRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginTop: 40
+    marginTop: 12
   },
   signatureBlock: {
-    width: '45%',
+    width: '46%',
+    paddingTop: 26,
     borderTopWidth: 1,
-    borderTopColor: '#1a1a1a',
-    paddingTop: 8
+    borderTopColor: '#0f172a'
   },
   signatureName: {
     fontSize: 10,
     fontWeight: 'bold',
-    color: '#1a1a1a',
-    marginBottom: 2
+    color: '#0f172a',
+    marginBottom: 3
   },
-  signatureDate: {
-    fontSize: 9,
-    color: '#666'
+  signatureMeta: {
+    fontSize: 8.5,
+    color: '#64748b'
   },
   footer: {
     position: 'absolute',
-    bottom: 30,
-    left: 40,
-    right: 40,
+    bottom: 22,
+    left: 36,
+    right: 36,
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingTop: 12,
-    borderTopWidth: 0.5,
-    borderTopColor: '#e5e5e5'
+    borderTopWidth: 1,
+    borderTopColor: '#e2e8f0',
+    paddingTop: 6
   },
   footerText: {
     fontSize: 8,
-    color: '#a1a1a1'
+    color: '#64748b'
   },
   pageNumber: {
     fontSize: 8,
-    color: '#a1a1a1'
+    color: '#64748b'
   }
 })
 
@@ -207,89 +293,157 @@ export function ContractPDF({
     }
   }
 
+  const effectiveDate = startDate || new Date().toISOString().split('T')[0]
+  const agreementBlocks = parseContractContent(content)
+  const notesBlocks = parseContractContent(notes)
+  const displayValue = value > 0 ? formatCurrency(value) : 'TBD'
+
   return (
     <Document>
       <Page size="A4" style={styles.page}>
-        <View style={styles.header}>
-          <View style={styles.headerContent}>
-            <View>
-              <Text style={styles.logo}>echo11</Text>
-              <Text style={styles.companyName}>{companyName}</Text>
+        <View style={styles.topBar}>
+          <View>
+            <Text style={styles.brand}>echo11</Text>
+            <Text style={styles.brandSub}>{companyName || 'Digital Product Studio'}</Text>
+          </View>
+          <View style={styles.metaBadge}>
+            <Text style={styles.metaBadgeLabel}>Agreement ID</Text>
+            <Text style={styles.metaBadgeValue}>{contractNumber}</Text>
+          </View>
+        </View>
+
+        <View style={styles.titleBlock}>
+          <Text style={styles.title}>{title || 'Contract Agreement'}</Text>
+          <Text style={styles.subtitle}>Effective Date: {formatDate(effectiveDate)}</Text>
+        </View>
+
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Parties</Text>
+          <View style={styles.partiesRow}>
+            <View style={styles.partyCard}>
+              <Text style={styles.partyLabel}>Service Provider</Text>
+              <Text style={styles.partyName}>{companyName || 'Echo11'}</Text>
             </View>
-            <View>
-              <Text style={styles.contractTitle}>{title}</Text>
-              <Text style={styles.contractNumber}>{contractNumber}</Text>
+            <View style={styles.partyCard}>
+              <Text style={styles.partyLabel}>Client</Text>
+              <Text style={styles.partyName}>{clientName || 'Client'}</Text>
+              {clientEmail && <Text style={styles.partyDetail}>{clientEmail}</Text>}
+              {clientAddress && <Text style={styles.partyDetail}>{clientAddress}</Text>}
+              {clientPhone && <Text style={styles.partyDetail}>{clientPhone}</Text>}
             </View>
           </View>
         </View>
 
-        <View style={styles.body}>
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Parties</Text>
-            <View style={styles.partiesRow}>
-              <View style={styles.partyBlock}>
-                <Text style={styles.partyLabel}>Service Provider</Text>
-                <Text style={styles.partyName}>{companyName}</Text>
-              </View>
-              <View style={styles.partyBlock}>
-                <Text style={styles.partyLabel}>Client</Text>
-                <Text style={styles.partyName}>{clientName || '—'}</Text>
-                {clientEmail && <Text style={styles.partyDetail}>{clientEmail}</Text>}
-                {clientAddress && <Text style={styles.partyDetail}>{clientAddress}</Text>}
-                {clientPhone && <Text style={styles.partyDetail}>{clientPhone}</Text>}
-              </View>
-            </View>
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Commercial Summary</Text>
+          <View style={styles.summaryRow}>
+            <Text style={styles.summaryLabel}>Start Date</Text>
+            <Text style={styles.summaryValue}>{formatDate(startDate)}</Text>
           </View>
-
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Terms</Text>
-            <View style={styles.valueRow}>
-              <Text style={styles.valueLabel}>Start Date</Text>
-              <Text style={styles.valueAmount}>{formatDate(startDate)}</Text>
-            </View>
-            <View style={styles.valueRow}>
-              <Text style={styles.valueLabel}>End Date</Text>
-              <Text style={styles.valueAmount}>{formatDate(endDate)}</Text>
-            </View>
-            <View style={styles.valueRow}>
-              <Text style={styles.valueLabel}>Contract Value</Text>
-              <Text style={styles.valueAmount}>{formatCurrency(value)}</Text>
-            </View>
+          <View style={styles.summaryRow}>
+            <Text style={styles.summaryLabel}>End Date</Text>
+            <Text style={styles.summaryValue}>{formatDate(endDate)}</Text>
           </View>
-
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Agreement</Text>
-            {content.split('\n').map((line, i) => (
-              <Text key={i} style={styles.contentText}>{line || ' '}</Text>
-            ))}
+          <View style={styles.summaryRow}>
+            <Text style={styles.summaryLabel}>Contract Value</Text>
+            <Text style={styles.summaryValue}>{displayValue}</Text>
           </View>
+        </View>
 
-          {notes && (
-            <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Additional Notes</Text>
-              {notes.split('\n').map((line, i) => (
-                <Text key={i} style={styles.contentText}>{line || ' '}</Text>
-              ))}
+        <View style={styles.bodySection}>
+          <Text style={styles.sectionTitle}>Agreement</Text>
+          {agreementBlocks.length === 0 && <Text style={styles.blockParagraph}>No agreement content provided.</Text>}
+          {agreementBlocks.map((block, idx) => {
+            if (block.type === 'spacer') {
+              return <View key={`spacer-${idx}`} style={styles.blockSpacer} />
+            }
+
+            if (block.type === 'heading') {
+              return (
+                <Text key={`heading-${idx}`} style={styles.blockHeading}>
+                  {block.text}
+                </Text>
+              )
+            }
+
+            if (block.type === 'clause') {
+              return (
+                <View key={`clause-${idx}`} style={styles.clauseRow}>
+                  <Text style={styles.clauseIndex}>{block.index}</Text>
+                  <Text style={styles.clauseText}>{block.text}</Text>
+                </View>
+              )
+            }
+
+            if (block.type === 'subclause') {
+              return (
+                <View key={`subclause-${idx}`} style={styles.subClauseRow}>
+                  <Text style={styles.subClauseIndex}>{block.index}</Text>
+                  <Text style={styles.subClauseText}>{block.text}</Text>
+                </View>
+              )
+            }
+
+            if (block.type === 'bullet') {
+              return (
+                <View key={`bullet-${idx}`} style={styles.bulletRow}>
+                  <Text style={styles.bulletMark}>•</Text>
+                  <Text style={styles.bulletText}>{block.text}</Text>
+                </View>
+              )
+            }
+
+            if (block.type === 'signature') {
+              return (
+                <Text key={`signature-${idx}`} style={styles.signatureLine}>
+                  {block.text}
+                </Text>
+              )
+            }
+
+            return (
+              <Text key={`paragraph-${idx}`} style={styles.blockParagraph}>
+                {block.text}
+              </Text>
+            )
+          })}
+        </View>
+
+        {notesBlocks.length > 0 && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Additional Terms</Text>
+            {notesBlocks.map((block, idx) => {
+              if (block.type === 'spacer') {
+                return <View key={`notes-spacer-${idx}`} style={styles.blockSpacer} />
+              }
+
+              return (
+                <Text key={`notes-paragraph-${idx}`} style={styles.blockParagraph}>
+                  {block.text}
+                </Text>
+              )
+            })}
+          </View>
+        )}
+
+        <View style={styles.signaturesSection}>
+          <Text style={styles.sectionTitle}>Signatures</Text>
+          <View style={styles.signaturesRow}>
+            <View style={styles.signatureBlock}>
+              <Text style={styles.signatureName}>{companyName || 'Echo11'}</Text>
+              <Text style={styles.signatureMeta}>Authorized Signature</Text>
+              <Text style={styles.signatureMeta}>Date: __________________</Text>
             </View>
-          )}
-
-          <View style={styles.signatureSection}>
-            <Text style={styles.sectionTitle}>Signatures</Text>
-            <View style={styles.signatureRow}>
-              <View style={styles.signatureBlock}>
-                <Text style={styles.signatureName}>{companyName}</Text>
-                <Text style={styles.signatureDate}>Date: _______________</Text>
-              </View>
-              <View style={styles.signatureBlock}>
-                <Text style={styles.signatureName}>{clientName || 'Client'}</Text>
-                <Text style={styles.signatureDate}>Date: _______________</Text>
-              </View>
+            <View style={styles.signatureBlock}>
+              <Text style={styles.signatureName}>{clientName || 'Client'}</Text>
+              <Text style={styles.signatureMeta}>Authorized Signature</Text>
+              <Text style={styles.signatureMeta}>Date: __________________</Text>
             </View>
           </View>
         </View>
 
         <View style={styles.footer} fixed>
-          <Text style={styles.footerText}>Generated by echo11Lab</Text>
+          <Text style={styles.footerText}>Generated by echo11 Lab</Text>
           <Text style={styles.pageNumber} render={({ pageNumber, totalPages }) => (
             `${pageNumber} / ${totalPages}`
           )} />
@@ -305,6 +459,10 @@ export async function generateContractPDFBlob(props: ContractPDFProps): Promise<
 }
 
 export async function downloadContractPDF(props: ContractPDFProps, filename?: string) {
+  if (typeof window === 'undefined') {
+    throw new Error('downloadContractPDF can only be called in the browser')
+  }
+
   const blob = await generateContractPDFBlob(props)
   const url = URL.createObjectURL(blob)
   const link = document.createElement('a')

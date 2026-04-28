@@ -6,7 +6,11 @@ export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url)
   const token_hash = searchParams.get('token')
   const type = searchParams.get('type') as EmailOtpType | null
-  const next = searchParams.get('next') ?? '/portal'
+
+  const requestedNext = searchParams.get('next')
+  const normalizedNext = requestedNext?.startsWith('/portal')
+    ? requestedNext.replace('/portal', '/client')
+    : requestedNext || '/client'
 
   if (token_hash && type) {
     const supabase = await createClient()
@@ -17,11 +21,9 @@ export async function GET(request: Request) {
     })
 
     if (!error) {
-      // Redirect to portal or return success
-      return NextResponse.redirect(`${origin}${next}`)
+      return NextResponse.redirect(`${origin}${normalizedNext}`)
     }
   }
 
-  // Return the user to an error page with instructions
-  return NextResponse.redirect(`${origin}/portal/auth/login?error=verification_failed`)
+  return NextResponse.redirect(`${origin}/client/auth/login?error=verification_failed`)
 }

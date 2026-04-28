@@ -25,8 +25,8 @@ export function ClientFilterDropdown({ value, onChange, className }: ClientFilte
         }}
       >
         <option value="all" className="bg-black text-white">All Clients</option>
-        <option value="with_portal" className="bg-black text-white">With Portal</option>
-        <option value="without_portal" className="bg-black text-white">Without Portal</option>
+        <option value="with_portal" className="bg-black text-white">With Client Access</option>
+        <option value="without_portal" className="bg-black text-white">Without Client Access</option>
       </select>
     </div>
   )

@@ -14,6 +14,8 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { downloadContractPDF } from '@/lib/contract-pdf'
 import { substituteVariables, getDefaultVariables } from '@/lib/contract-template-engine'
+import { ContractAgreementPreview } from '@/components/contracts/ContractAgreementPreview'
+import { useAppFeedback } from '@/components/ui/AppFeedbackProvider'
 
 interface ContractPageProps {
   params: Promise<{ id: string }>
@@ -31,6 +33,7 @@ const statusFlow: ContractStatus[] = ['draft', 'pending', 'signed', 'expired']
 
 export default function ContractPage({ params }: ContractPageProps) {
   const { id } = use(params)
+  const { confirmAction } = useAppFeedback()
   const [contract, setContract] = useState<Contract | null>(null)
   const [loading, setLoading] = useState(true)
   const [actionLoading, setActionLoading] = useState<string | null>(null)
@@ -75,7 +78,12 @@ export default function ContractPage({ params }: ContractPageProps) {
 
   async function handleStatusChange(newStatus: ContractStatus) {
     setActionLoading(`status-${newStatus}`)
-    await updateContractStatus(id, newStatus)
+    const result = await updateContractStatus(id, newStatus)
+    if (!result.success) {
+      alert(result.error || 'Failed to update contract status')
+      setActionLoading(null)
+      return
+    }
     await loadData()
     setActionLoading(null)
   }
@@ -83,15 +91,29 @@ export default function ContractPage({ params }: ContractPageProps) {
   async function handleUploadFile(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
     if (!file) return
+    if (file.type !== 'application/pdf') {
+      alert('Only PDF files are allowed.')
+      return
+    }
     setActionLoading('upload')
-    await uploadContractFile(id, file)
+    const result = await uploadContractFile(id, file)
+    if (!result.success) {
+      alert(result.error || 'Failed to upload contract PDF')
+      setActionLoading(null)
+      return
+    }
     await loadData()
     setActionLoading(null)
   }
 
   async function handleGeneratePDF() {
     setActionLoading('generate')
-    await generateContractFromTemplate(id)
+    const result = await generateContractFromTemplate(id)
+    if (!result.success) {
+      alert(result.error || 'Failed to generate contract PDF')
+      setActionLoading(null)
+      return
+    }
     await loadData()
     setActionLoading(null)
   }
@@ -124,7 +146,12 @@ export default function ContractPage({ params }: ContractPageProps) {
   async function handleSendContract() {
     if (!sendEmail) return
     setActionLoading('send')
-    await sendContractToClient(id, sendEmail)
+    const result = await sendContractToClient(id, sendEmail)
+    if (!result.success) {
+      alert(result.error || 'Failed to send contract email')
+      setActionLoading(null)
+      return
+    }
     await loadData()
     setActionLoading(null)
     setShowSendModal(false)
@@ -132,10 +159,20 @@ export default function ContractPage({ params }: ContractPageProps) {
   }
 
   async function handleDelete() {
-    if (!confirm('Delete this contract? This cannot be undone.')) return
+    const confirmed = await confirmAction('Delete this contract? This cannot be undone.', {
+      title: 'Delete Contract',
+      confirmLabel: 'Delete',
+      tone: 'danger',
+    })
+    if (!confirmed) return
     if (!contract) return
     setActionLoading('delete')
-    await deleteContract(id, contract.client_id)
+    const result = await deleteContract(id, contract.client_id)
+    if (!result.success) {
+      alert(result.error || 'Failed to delete contract')
+      setActionLoading(null)
+      return
+    }
     router.push('/lab/contracts')
   }
 
@@ -258,8 +295,16 @@ export default function ContractPage({ params }: ContractPageProps) {
                 />
               </div>
             ) : previewContent ? (
-              <div className="p-6 max-h-[600px] overflow-y-auto font-mono text-xs text-white/70 whitespace-pre-wrap leading-relaxed">
-                {previewContent}
+              <div className="p-6 max-h-[680px] overflow-y-auto">
+                <div className="border border-white/10 bg-[#070707]">
+                  <div className="flex items-center justify-between px-4 py-2.5 border-b border-white/10">
+                    <p className="text-xs font-mono uppercase tracking-wider text-white/40">Agreement Content</p>
+                    <p className="text-xs font-mono text-white/30">{contract.contract_number || contract.title}</p>
+                  </div>
+                  <div className="p-6">
+                    <ContractAgreementPreview content={previewContent} />
+                  </div>
+                </div>
               </div>
             ) : (
               <div className="p-12 text-center text-white/30 font-mono text-sm">

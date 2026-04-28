@@ -7,7 +7,7 @@ import { getUserRoleAndTeam } from '@/lib/actions/team-actions'
 
 type InvoiceWithRelations = Omit<Invoice, 'project' | 'client'> & {
   project?: Pick<Project, 'name'> | null
-  client?: Pick<Client, 'company_name'> | null
+  client?: Pick<Client, 'company_name' | 'contact_name' | 'email' | 'address' | 'address_line2' | 'city' | 'state' | 'country' | 'postal_code'> | null
 }
 
 async function getInvoices(userTeamId?: string | null, isAdminOrLead?: boolean): Promise<InvoiceWithRelations[]> {
@@ -26,7 +26,7 @@ async function getInvoices(userTeamId?: string | null, isAdminOrLead?: boolean):
       // No projects in this team — only show invoices without a project
       const { data } = await supabase
         .from('invoices')
-        .select(`*, project:projects(name), client:clients(company_name)`)
+        .select(`*, project:projects(name), client:clients(company_name, contact_name, email, address, address_line2, city, state, country, postal_code)`)
         .is('project_id', null)
         .order('created_at', { ascending: false })
       return (data || []) as InvoiceWithRelations[]
@@ -34,7 +34,7 @@ async function getInvoices(userTeamId?: string | null, isAdminOrLead?: boolean):
 
     const { data } = await supabase
       .from('invoices')
-      .select(`*, project:projects(name), client:clients(company_name)`)
+      .select(`*, project:projects(name), client:clients(company_name, contact_name, email, address, address_line2, city, state, country, postal_code)`)
       .or(`project_id.in.(${projectIds.join(',')}),project_id.is.null`)
       .order('created_at', { ascending: false })
 
@@ -47,7 +47,7 @@ async function getInvoices(userTeamId?: string | null, isAdminOrLead?: boolean):
     .select(`
       *,
       project:projects(name),
-      client:clients(company_name)
+      client:clients(company_name, contact_name, email, address, address_line2, city, state, country, postal_code)
     `)
     .order('created_at', { ascending: false })
 

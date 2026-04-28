@@ -5,7 +5,54 @@ const resend = process.env.RESEND_API_KEY
   : null
 
 const FROM_EMAIL = process.env.FROM_EMAIL || 'echo11 (no-reply) <onboarding@echo11.com>'
-const PORTAL_URL = process.env.NEXT_PUBLIC_PORTAL_URL || 'http://echo11.tech/portal'
+const DEFAULT_APP_ORIGIN = 'https://echo11.tech'
+const APP_URL =
+  process.env.NEXT_PUBLIC_APP_URL ||
+  (process.env.NEXT_PUBLIC_LAB_URL ? process.env.NEXT_PUBLIC_LAB_URL.replace('/lab', '') : DEFAULT_APP_ORIGIN)
+
+const CLIENT_URL =
+  process.env.NEXT_PUBLIC_CLIENT_URL ||
+  `${APP_URL}/client`
+
+function getOrigin(url?: string): string {
+  try {
+    return new URL(url || DEFAULT_APP_ORIGIN).origin
+  } catch {
+    return DEFAULT_APP_ORIGIN
+  }
+}
+
+function resolveClientBaseUrl(configuredUrl?: string): string {
+  const appOrigin = getOrigin(APP_URL)
+  const fallback = `${appOrigin}/client`
+  if (!configuredUrl) return fallback
+
+  try {
+    const parsed = new URL(configuredUrl)
+    const cleanPath = parsed.pathname.replace(/\/+$/, '')
+    const clientMatch = cleanPath.match(/^(.*?)(\/client)(?:\/.*)?$/i)
+
+    if (clientMatch) {
+      const prefix = clientMatch[1] || ''
+      return `${parsed.origin}${prefix}/client`
+    }
+
+    if (!cleanPath || cleanPath === '/' || /^\/(lab|auth)(?:\/.*)?$/i.test(cleanPath)) {
+      return `${parsed.origin}/client`
+    }
+
+    return `${parsed.origin}${cleanPath}/client`
+  } catch {
+    return fallback
+  }
+}
+
+function buildInviteVerifyLink(baseUrl: string, token: string, email: string): string {
+  const verifyUrl = new URL(`${baseUrl.replace(/\/+$/, '')}/auth/verify`)
+  verifyUrl.searchParams.set('token', token)
+  verifyUrl.searchParams.set('email', email)
+  return verifyUrl.toString()
+}
 
 interface InvitationEmailParams {
   to: string
@@ -22,18 +69,25 @@ export async function sendClientInvitation({
   projectName,
   token
 }: InvitationEmailParams): Promise<{ success: boolean; error?: string }> {
+  const appOrigin = getOrigin(APP_URL)
+  const inviteBaseUrl = resolveClientBaseUrl(CLIENT_URL)
+  const targetProjectName = projectName || companyName
+
   if (!resend) {
     console.log('📧 [DEV MODE] Client invitation email would be sent to:', to)
     console.log('📧 [DEV MODE] Contact:', contactName)
     console.log('📧 [DEV MODE] Company:', companyName)
     console.log('📧 [DEV MODE] Project:', projectName)
+    if (token) {
+      console.log('📧 [DEV MODE] Invitation link:', buildInviteVerifyLink(inviteBaseUrl, token, to))
+    }
     return { success: true }
   }
 
   try {
     const loginLink = token
-      ? `${PORTAL_URL}/auth/verify?token=${token}&email=${encodeURIComponent(to)}`
-      : PORTAL_URL
+      ? buildInviteVerifyLink(inviteBaseUrl, token, to)
+      : inviteBaseUrl
 
     const projectsText = projectName ? 's' : ''
 
@@ -55,7 +109,7 @@ export async function sendClientInvitation({
         <table width="100%" cellpadding="0" cellspacing="0" style="max-width: 500px; background-color: #1a1a1a; border-radius: 0; overflow: hidden;">
           <tr>
             <td style="background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%); padding: 40px; text-align: center; border-bottom: 2px solid #00E5FF;">
-              <img src="${process.env.NEXT_PUBLIC_APP_URL || (process.env.NEXT_PUBLIC_LAB_URL ? process.env.NEXT_PUBLIC_LAB_URL.replace('/lab', '') : 'https://echo11.tech')}/echo11-logo-white.png" alt="echo11" style="height: 32px; width: auto; display: inline-block; border: 0;" />
+              <img src="${appOrigin}/echo11-logo-white.png" alt="echo11" style="height: 44px; width: auto; display: inline-block; border: 0;" />
               <p style="margin: 12px 0 0; font-size: 14px; color: #a1a1a1; text-transform: uppercase; letter-spacing: 2px;">Project Invitation</p>
             </td>
           </tr>
@@ -68,15 +122,24 @@ export async function sendClientInvitation({
                 Hi ${contactName || 'there'},
               </p>
               <p style="margin: 0 0 16px 0; font-size: 16px; line-height: 1.6; color: rgba(255,255,255,0.8);">
-                <strong style="color: #ffffff;">${companyName}</strong> has invited you to view your project${projectName ? ` <strong>${projectName}</strong>` : ''} through our client portal.
+                We invite you for the development and discussion of the <strong style="color: #ffffff;">${targetProjectName}</strong> project.
               </p>
               <p style="margin: 0 0 30px 0; font-size: 16px; line-height: 1.6; color: rgba(255,255,255,0.8);">
-                You can now track project progress, view milestones, tasks, and invoices all in one place.
+                Our client portal gives you full access to project delivery services in one place:
               </p>
+              <ul style="margin: 0 0 30px 18px; padding: 0; color: rgba(255,255,255,0.8); font-size: 15px; line-height: 1.7;">
+                <li>Project progress, phases, and milestone tracking</li>
+                <li>Task updates and delivery timeline visibility</li>
+                <li>Invoices, contracts, and payment status access</li>
+                <li>Meetings, notes, and project communication history</li>
+                <li>Direct messaging with our team and fast support replies</li>
+                <li>Real-time notifications for important updates</li>
+                <li>Client profile and account settings management</li>
+              </ul>
               <table width="100%" cellpadding="0" cellspacing="0">
                 <tr>
                   <td align="center" style="padding-bottom: 24px; text-align: center;">
-                    <a href="${loginLink}" style="display: inline-block; background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%); color: #ffffff; text-decoration: none; padding: 14px 32px; border-radius: 8px; font-size: 16px; font-weight: 600;">
+                    <a href="${loginLink}" style="display: inline-block; background: #00E5FF; color: #0a0a0a; text-decoration: none; padding: 14px 32px; border-radius: 0; font-size: 16px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;">
                       View Your Project${projectsText}
                     </a>
                   </td>
@@ -84,7 +147,7 @@ export async function sendClientInvitation({
               </table>
               <p style="margin: 24px 0 0 0; font-size: 13px; line-height: 1.6; color: rgba(255,255,255,0.5);">
                 If the button does not work, copy and paste this link into your browser:<br>
-                <span style="color: #6366f1; word-break: break-all;">${loginLink}</span>
+                <span style="color: #00E5FF; word-break: break-all;">${loginLink}</span>
               </p>
             </td>
           </tr>
@@ -498,4 +561,3 @@ export async function sendInvoiceEmail({
     return { success: false, error: message }
   }
 }
-

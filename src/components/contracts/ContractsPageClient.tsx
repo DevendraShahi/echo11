@@ -13,6 +13,7 @@ import { format } from 'date-fns'
 import { cn } from '@/lib/utils'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import { useAppFeedback } from '@/components/ui/AppFeedbackProvider'
 
 interface ContractsPageClientProps {
   initialContracts: Contract[]
@@ -28,6 +29,7 @@ const statusColors: Record<string, string> = {
 }
 
 export function ContractsPageClient({ initialContracts, canEdit = false }: ContractsPageClientProps) {
+  const { confirmAction } = useAppFeedback()
   const [contracts, setContracts] = useState(initialContracts)
   const [searchQuery, setSearchQuery] = useState('')
   const [statusFilter, setStatusFilter] = useState<string>('all')
@@ -54,7 +56,13 @@ export function ContractsPageClient({ initialContracts, canEdit = false }: Contr
   })
 
   async function handleDelete(id: string, clientId: string) {
-    if (!confirm('Delete this contract?')) return
+    const confirmed = await confirmAction('Delete this contract?', {
+      title: 'Delete Contract',
+      confirmLabel: 'Delete',
+      tone: 'danger',
+    })
+    if (!confirmed) return
+
     const result = await deleteContract(id, clientId)
     if (!result.success) {
       alert(result.error || 'Failed to delete contract')

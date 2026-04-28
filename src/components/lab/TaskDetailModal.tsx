@@ -5,6 +5,7 @@ import { useState, useEffect, useRef } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { updateTask, deleteTask, addTaskComment, deleteTaskComment, logTime, getTeamMembers, uploadTaskAttachment, deleteTaskAttachment } from '@/lib/actions/task-actions'
 import { LabButton } from '@/components/ui/LabButton'
+import { useAppFeedback } from '@/components/ui/AppFeedbackProvider'
 import { X, Loader2, Trash2, Clock, MessageSquare, User, Projector, Send, Plus, Paperclip, Download, File, Image, FileText, Eye } from 'lucide-react'
 import { Task, TaskStatus, TaskPriority, TaskComment, TimeLog, Profile, TaskAttachment } from '@/types/lab'
 import { format } from 'date-fns'
@@ -31,6 +32,7 @@ const priorityColors: Record<TaskPriority, string> = {
 }
 
 export function TaskDetailModal({ taskId, isOpen, onClose, onDelete }: TaskDetailModalProps) {
+  const { confirmAction } = useAppFeedback()
   const [task, setTask] = useState<Task | null>(null)
   const [comments, setComments] = useState<TaskComment[]>([])
   const [timeLogs, setTimeLogs] = useState<TimeLog[]>([])
@@ -123,7 +125,12 @@ export function TaskDetailModal({ taskId, isOpen, onClose, onDelete }: TaskDetai
   }
 
   async function handleDelete() {
-    if (!confirm('Are you sure you want to delete this task?')) return
+    const confirmed = await confirmAction('Are you sure you want to delete this task?', {
+      title: 'Delete Task',
+      confirmLabel: 'Delete',
+      tone: 'danger',
+    })
+    if (!confirmed) return
     
     const result = await deleteTask(taskId)
     if (result.success) {
@@ -678,13 +685,18 @@ export function TaskDetailModal({ taskId, isOpen, onClose, onDelete }: TaskDetai
                             </a>
                             <button
                               onClick={async () => {
-                                if (confirm('Delete this file?')) {
-                                  const result = await deleteTaskAttachment(attachment.id)
-                                  if (result.success) {
-                                    loadData()
-                                  } else {
-                                    alert(result.error)
-                                  }
+                                const confirmed = await confirmAction('Delete this file?', {
+                                  title: 'Delete Attachment',
+                                  confirmLabel: 'Delete',
+                                  tone: 'danger',
+                                })
+                                if (!confirmed) return
+
+                                const result = await deleteTaskAttachment(attachment.id)
+                                if (result.success) {
+                                  loadData()
+                                } else {
+                                  alert(result.error)
                                 }
                               }}
                               className="p-2 hover:bg-red-500/10 rounded-none"

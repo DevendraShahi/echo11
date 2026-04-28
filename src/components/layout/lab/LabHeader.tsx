@@ -1,12 +1,14 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo, useCallback } from 'react'
+import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { User, HelpCircle } from 'lucide-react'
+import { User, HelpCircle, MessageSquare } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { NotificationBell } from './NotificationBell'
 import { CommandPalette } from './CommandPalette'
 import { HelpModal } from '@/components/onboarding'
+import { getTeamUnreadClientMessagesCount } from '@/lib/actions/client-message-actions'
 
 const pageIdMap: Record<string, string> = {
   '/lab/dashboard': 'dashboard',
@@ -33,15 +35,20 @@ function getPageId(pathname: string): string {
   return 'dashboard'
 }
 
-export function LabHeader() {
+interface LabHeaderProps {
+  initialUnreadClientMessagesCount?: number
+}
+
+export function LabHeader({ initialUnreadClientMessagesCount = 0 }: LabHeaderProps) {
   const [user, setUser] = useState<{ email: string; full_name?: string } | null>(null)
   const [helpOpen, setHelpOpen] = useState(false)
+  const [unreadClientMessagesCount, setUnreadClientMessagesCount] = useState(initialUnreadClientMessagesCount)
+  const supabase = useMemo(() => createClient(), [])
   const pathname = usePathname()
   const pageId = getPageId(pathname)
 
   useEffect(() => {
     async function getUser() {
-      const supabase = createClient()
       const { data: { user } } = await supabase.auth.getUser()
       if (user) {
         setUser({
@@ -51,7 +58,27 @@ export function LabHeader() {
       }
     }
     getUser()
+  }, [supabase])
+
+  const loadUnreadClientMessagesCount = useCallback(async () => {
+    const count = await getTeamUnreadClientMessagesCount()
+    setUnreadClientMessagesCount(count)
   }, [])
+
+  useEffect(() => {
+    void loadUnreadClientMessagesCount()
+
+    const channel = supabase
+      .channel('lab-header-client-messages')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'client_messages' }, () => {
+        void loadUnreadClientMessagesCount()
+      })
+      .subscribe()
+
+    return () => {
+      void supabase.removeChannel(channel)
+    }
+  }, [loadUnreadClientMessagesCount, supabase])
 
   return (
     <header className="h-16 bg-black/30 backdrop-blur-md border-b border-white/5 flex items-center justify-between px-6 font-sans sticky top-0 z-50">
@@ -67,6 +94,19 @@ export function LabHeader() {
           <HelpCircle className="w-4 h-4" />
           <span className="hidden sm:inline">Help</span>
         </button>
+
+        <Link
+          href={unreadClientMessagesCount > 0 ? '/lab/clients?filter=needs_reply' : '/lab/clients'}
+          className="flex items-center gap-2 px-3 py-1.5 bg-white/5 border border-white/10 text-white/60 hover:text-white hover:bg-white/10 transition-colors rounded text-sm font-sans"
+        >
+          <MessageSquare className="w-4 h-4" />
+          <span className="hidden md:inline">Client Messages</span>
+          {unreadClientMessagesCount > 0 && (
+            <span className="px-1.5 py-0.5 text-[10px] font-mono bg-accent/10 border border-accent/30 text-accent">
+              {unreadClientMessagesCount}
+            </span>
+          )}
+        </Link>
         
         <NotificationBell />
 
