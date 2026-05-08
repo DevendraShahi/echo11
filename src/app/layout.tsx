@@ -4,6 +4,13 @@ import "./globals.css";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { Cursor } from "@/components/ui/Cursor";
+import { JsonLd } from "@/components/seo/JsonLd";
+import {
+  createMetadata,
+  organizationJsonLd,
+  siteConfig,
+  websiteJsonLd,
+} from "@/lib/seo";
 
 const syne = Syne({
   subsets: ["latin"],
@@ -19,20 +26,24 @@ const spaceMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "echo11 | Product Engineering Studio",
-  description: "We design and engineer high-performance digital products with sharp brand execution and reliable systems.",
-  robots: "index, follow",
+  metadataBase: new URL(siteConfig.url),
+  ...createMetadata({
+    title: siteConfig.title,
+    description: siteConfig.description,
+    ogDescription: siteConfig.ogDescription,
+    path: "/",
+  }),
+  title: {
+    default: siteConfig.title,
+    template: "%s",
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
   icons: {
     icon: "/echo11-logo-white.svg",
     apple: "/echo11-logo-white.png",
-  },
-  openGraph: {
-    type: "website",
-    locale: "en_US",
-    url: "https://echo11.dev",
-    title: "echo11 | Product Engineering Studio",
-    description: "From concept to scale, echo11 builds digital products that perform, convert, and last.",
-    siteName: "echo11",
   },
 };
 
@@ -44,6 +55,7 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark overflow-x-hidden">
       <body className={`${syne.variable} ${spaceMono.variable} antialiased selection:bg-accent selection:text-black overflow-x-hidden w-full min-h-screen relative`}>
+        <JsonLd data={[organizationJsonLd(), websiteJsonLd()]} />
         <Cursor />
         <Navbar />
         {children}

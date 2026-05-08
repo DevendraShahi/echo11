@@ -27,6 +27,7 @@ import { Plus, Calendar, Filter, X, ExternalLink, Clock, AlertCircle, CheckSquar
 import { TaskFormModal } from './TaskForm'
 import { updateTaskStatus } from '@/lib/actions/task-actions'
 import { Project, Profile } from '@/types/lab'
+import NextImage from 'next/image'
 import Link from 'next/link'
 import { LabButton } from '@/components/ui/LabButton'
 import { PageHeader } from '@/components/ui/PageHeader'
@@ -130,9 +131,12 @@ function TaskCard({ task, isDragging }: TaskCardProps) {
       {task.assignee && (
         <div className="mt-2 flex items-center gap-2">
           {task.assignee.avatar_url ? (
-            <img 
-              src={task.assignee.avatar_url} 
-              alt={task.assignee.full_name || ''}
+            <NextImage
+              src={task.assignee.avatar_url}
+              alt={`${task.assignee.full_name || 'Assignee'} avatar`}
+              width={20}
+              height={20}
+              unoptimized
               className="w-5 h-5 rounded-full"
             />
           ) : (

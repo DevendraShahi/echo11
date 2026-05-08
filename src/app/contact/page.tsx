@@ -16,7 +16,7 @@ export default function ContactPage() {
                 <span className="text-accent text-glow">what matters.</span>
               </h1>
               <p className="font-mono text-muted-foreground mb-12 max-w-md leading-relaxed">
-                Share your goals, timeline, and constraints. We&apos;ll respond with a focused plan, realistic scope, and next steps. Prefer email? Reach us at <a href="mailto:hello@echo11.dev" className="text-accent underline">hello@echo11.dev</a>.
+                Share your goals, timeline, and constraints. We&apos;ll respond with a focused plan, realistic scope, and next steps. Prefer email? Reach us at <a href="mailto:echo11.labs@gmail.com" className="text-accent underline">echo11.labs@gmail.com</a>.
               </p>
             </div>
             <div className="glass p-8 rounded-none border border-white/10 shadow-[0_0_20px_rgba(0,0,0,0.5)]">

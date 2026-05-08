@@ -1,14 +1,14 @@
 'use client'
 
 import React from 'react'
-import { Document, Page, Text, View, StyleSheet, pdf, Image } from '@react-pdf/renderer'
+import { Document, Page, Text, View, StyleSheet, pdf, Image as PdfImage } from '@react-pdf/renderer'
 import { format } from 'date-fns'
 import { Invoice, Client, Project, InvoiceItem } from '@/types/lab'
 
 const companyInfo = {
   name: 'Echo11Labs',
   phone: '+1 800 123 4567',
-  email: 'finance@echo11.tech',
+  email: 'echo11.labs@gmail.com',
   website: 'echo11labs.com',
   address: 'Kathmandu, Nepal'
 }
@@ -272,7 +272,7 @@ export function InvoicePDF({ invoice }: InvoicePDFProps) {
         
         {/* Top Header: Logo + Dates */}
         <View style={styles.topSection}>
-          <Image src="/echo11-logo.png" style={styles.logo} />
+          <PdfImage src="/echo11-logo.png" style={styles.logo} />
           
           <View style={styles.datesBlock}>
             <Text style={styles.dateText}>

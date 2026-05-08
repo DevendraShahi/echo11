@@ -103,8 +103,8 @@ export function Footer() {
                   <Linkedin className="w-4 h-4" />
                 </a>
               </div>
-              <a href="mailto:hello@echo11.dev" className="mt-4 text-[13px] text-white/50 hover:text-white transition-colors flex items-center gap-2 group">
-                hello@echo11.dev
+              <a href="mailto:echo11.labs@gmail.com" className="mt-4 text-[13px] text-white/50 hover:text-white transition-colors flex items-center gap-2 group">
+                echo11.labs@gmail.com
                 <ArrowUpRight className="w-3 h-3 group-hover:text-accent group-hover:-translate-y-0.5 group-hover:translate-x-0.5 transition-all" />
               </a>
             </div>

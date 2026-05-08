@@ -57,7 +57,7 @@ export function CTABanner() {
                 </Link>
               </Button>
               <Button asChild variant="outline" size="lg" className="w-full sm:w-auto h-14 md:h-16 px-8 rounded-none bg-transparent border-white/10 hover:bg-white/5 hover:border-white/30 text-white font-mono text-sm uppercase tracking-widest transition-all">
-                <Link href="mailto:hello@echo11.dev">
+                <Link href="mailto:echo11.labs@gmail.com">
                   Email Team
                 </Link>
               </Button>

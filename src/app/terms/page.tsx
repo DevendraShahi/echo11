@@ -276,7 +276,7 @@ export default function TermsPage() {
                   <div className="text-muted-foreground font-mono text-sm leading-loose pl-[3.5rem]">
                     <p>For questions about these terms, please contact us:</p>
                     <ul className="list-disc list-inside space-y-2 ml-4 mt-4">
-                      <li>Email: hello@echo11.dev</li>
+                      <li>Email: echo11.labs@gmail.com</li>
                       <li>Location: Kathmandu, Nepal</li>
                     </ul>
                   </div>

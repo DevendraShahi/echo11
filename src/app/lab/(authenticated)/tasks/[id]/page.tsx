@@ -4,9 +4,10 @@ import { useState, useEffect, useRef, use } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { updateTask, deleteTask, addTaskComment, deleteTaskComment, logTime, uploadTaskAttachment, deleteTaskAttachment } from '@/lib/actions/task-actions'
 import { LabButton } from '@/components/ui/LabButton'
-import { Loader2, Trash2, Clock, MessageSquare, Calendar, Flag, Send, Plus, Paperclip, Download, FileText, ArrowLeft, Edit3, Save, Image, Folder, AlertCircle } from 'lucide-react'
+import { Loader2, Trash2, Clock, MessageSquare, Calendar, Flag, Send, Plus, Paperclip, Download, FileText, ArrowLeft, Edit3, Save, Image as ImageIcon, Folder, AlertCircle } from 'lucide-react'
 import { Task, TaskStatus, TaskPriority, TaskComment, TimeLog, TaskAttachment } from '@/types/lab'
 import { format } from 'date-fns'
+import NextImage from 'next/image'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
 import { useAppFeedback } from '@/components/ui/AppFeedbackProvider'
@@ -332,7 +333,7 @@ export default function TaskDetailPage({ params }: TaskPageProps) {
 
   function getFileIcon(fileType: string | null) {
     if (!fileType) return <FileText className="w-5 h-5" />
-    if (fileType.startsWith('image/')) return <Image className="w-5 h-5" />
+    if (fileType.startsWith('image/')) return <ImageIcon className="w-5 h-5" />
     return <FileText className="w-5 h-5" />
   }
 
@@ -504,9 +505,12 @@ export default function TaskDetailPage({ params }: TaskPageProps) {
                         {task.assignee ? (
                           <div className="flex items-center gap-3">
                             {task.assignee.avatar_url ? (
-                              <img 
-                                src={task.assignee.avatar_url} 
-                                alt={task.assignee.full_name || ''}
+                              <NextImage
+                                src={task.assignee.avatar_url}
+                                alt={`${task.assignee.full_name || 'Assignee'} avatar`}
+                                width={32}
+                                height={32}
+                                unoptimized
                                 className="w-8 h-8 rounded-full"
                               />
                             ) : (
@@ -546,9 +550,12 @@ export default function TaskDetailPage({ params }: TaskPageProps) {
                           <div className="flex items-start justify-between gap-2 mb-2">
                             <div className="flex items-center gap-3">
                               {comment.user?.avatar_url ? (
-                                <img 
-                                  src={comment.user.avatar_url} 
-                                  alt={comment.user.full_name || ''}
+                                <NextImage
+                                  src={comment.user.avatar_url}
+                                  alt={`${comment.user.full_name || 'Comment author'} avatar`}
+                                  width={32}
+                                  height={32}
+                                  unoptimized
                                   className="w-8 h-8 rounded-full"
                                 />
                               ) : (

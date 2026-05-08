@@ -184,7 +184,7 @@ export default function PrivacyPage() {
                       <li>Object to processing of your information</li>
                       <li>Data portability</li>
                     </ul>
-                    <p className="mt-4">To exercise these rights, please contact us at hello@echo11.dev.</p>
+                    <p className="mt-4">To exercise these rights, please contact us at echo11.labs@gmail.com.</p>
                   </div>
                 </section>
 
@@ -222,7 +222,7 @@ export default function PrivacyPage() {
                   <div className="text-muted-foreground font-mono text-sm leading-loose pl-[3.5rem]">
                     <p>If you have any questions about this Privacy Policy, please contact us:</p>
                     <ul className="list-disc list-inside space-y-2 ml-4 mt-4">
-                      <li>Email: hello@echo11.dev</li>
+                      <li>Email: echo11.labs@gmail.com</li>
                       <li>Location: Kathmandu, Nepal</li>
                     </ul>
                   </div>

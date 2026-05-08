@@ -1,4 +1,14 @@
+import type { Metadata } from 'next'
 import { getTeamInviteEmailHtml, getInvoiceEmailHtml } from '@/lib/email'
+import { noIndexMetadata } from '@/lib/seo'
+
+export const metadata: Metadata = {
+  ...noIndexMetadata,
+  title: {
+    absolute: 'Email Preview | echo11',
+  },
+  description: 'Internal email template preview route.',
+}
 
 export default function PreviewEmails() {
   const teamInviteHtml = getTeamInviteEmailHtml(

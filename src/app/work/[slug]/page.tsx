@@ -1,4 +1,6 @@
 import { caseStudies, getCaseStudy } from "@/data/caseStudies";
+import { JsonLd } from "@/components/seo/JsonLd";
+import { absoluteUrl, breadcrumbJsonLd, createMetadata } from "@/lib/seo";
 import { CaseStudyContent } from "./CaseStudyContent";
 import { notFound } from "next/navigation";
 
@@ -20,10 +22,13 @@ export async function generateMetadata({ params }: PageProps) {
     return { title: "Project Not Found | echo11" };
   }
   
-  return {
+  return createMetadata({
     title: `${project.title} | echo11`,
     description: project.description,
-  };
+    path: `/work/${project.id}`,
+    image: project.thumbnail,
+    type: "article",
+  });
 }
 
 export default async function CaseStudyPage({ params }: PageProps) {
@@ -39,10 +44,19 @@ export default async function CaseStudyPage({ params }: PageProps) {
   const prevProject = caseStudies[(currentIndex - 1 + caseStudies.length) % caseStudies.length];
 
   return (
-    <CaseStudyContent 
-      project={project} 
-      prevProject={prevProject} 
-      nextProject={nextProject} 
-    />
+    <>
+      <JsonLd
+        data={breadcrumbJsonLd([
+          { name: "Home", item: absoluteUrl("/") },
+          { name: "Work", item: absoluteUrl("/work") },
+          { name: project.title, item: absoluteUrl(`/work/${project.id}`) },
+        ])}
+      />
+      <CaseStudyContent
+        project={project}
+        prevProject={prevProject}
+        nextProject={nextProject}
+      />
+    </>
   );
 }

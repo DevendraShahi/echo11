@@ -4,11 +4,13 @@ import { Button } from "@/components/ui/Button";
 import Link from "next/link";
 import { SkillsTerminal } from "@/components/sections/SkillsTerminal";
 import { PhilosophyGrid } from "@/components/sections/PhilosophyGrid";
+import { createMetadata } from "@/lib/seo";
 
-export const metadata = {
+export const metadata = createMetadata({
   title: "About | echo11",
   description: "Meet the product engineering studio behind echo11's strategy-first, quality-driven digital delivery.",
-};
+  path: "/about",
+});
 
 export default function AboutPage() {
   return (

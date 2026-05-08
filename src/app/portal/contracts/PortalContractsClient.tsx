@@ -1,9 +1,8 @@
 'use client'
 
 import { useState } from 'react'
-import { FileText, Download, Calendar, DollarSign, CheckCircle, Clock, AlertCircle, ExternalLink } from 'lucide-react'
+import { FileText, CheckCircle, ExternalLink } from 'lucide-react'
 import { format } from 'date-fns'
-import Link from 'next/link'
 
 type ContractData = {
   id: string

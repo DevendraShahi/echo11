@@ -5,11 +5,13 @@ import { SelectedWork } from "@/components/sections/SelectedWork";
 import { ProcessTimeline } from "@/components/sections/ProcessTimeline";
 import { CTABanner } from "@/components/sections/CTABanner";
 import { PageWrapper } from "@/components/layout/PageWrapper";
+import { createMetadata, siteConfig } from "@/lib/seo";
 
-export const metadata = {
-  title: "echo11 | Product Engineering Studio",
-  description: "We design and engineer digital products with clear strategy, strong systems, and premium execution.",
-};
+export const metadata = createMetadata({
+  title: siteConfig.title,
+  description: siteConfig.description,
+  path: "/",
+});
 
 const industries = [
   "E-Commerce",

@@ -502,7 +502,7 @@ export function getInvoiceEmailHtml(clientName: string, invoiceNumber: string, d
                 </tr>
               </table>
               <p style="margin: 0; font-size: 12px; color: #666; text-align: center;">
-                If you have any questions, please contact finance@echo11.tech.
+                If you have any questions, please contact echo11.labs@gmail.com.
               </p>
             </td>
           </tr>
