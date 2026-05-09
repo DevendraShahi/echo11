@@ -45,6 +45,9 @@ export const metadata: Metadata = {
     icon: "/echo11-logo-white.svg",
     apple: "/echo11-logo-white.png",
   },
+    verification: {
+          google: "b2avGLMCH_nOM8Xv9C-cu7FEvmEsBpb_kw9vqVA68Lc",
+        },
 };
 
 export default function RootLayout({
