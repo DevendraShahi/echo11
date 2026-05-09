@@ -18,6 +18,9 @@ async function getProjects(): Promise<ProjectWithMilestones[]> {
   const supabase = await createClient()
   const userRoleAndTeam = await getUserRoleAndTeam()
   const isAdmin = userRoleAndTeam?.isAdmin ?? false
+  const isLead = userRoleAndTeam?.isLead ?? false
+  const role = userRoleAndTeam?.role ?? 'member'
+  const { data: { user } } = await supabase.auth.getUser()
 
   let query = supabase
     .from('projects')
@@ -29,8 +32,30 @@ async function getProjects(): Promise<ProjectWithMilestones[]> {
     `)
     .order('created_at', { ascending: false })
 
-  if (!isAdmin && userRoleAndTeam?.teamId) {
+  if (isAdmin) {
+    // Admin sees all projects.
+  } else if (isLead && userRoleAndTeam?.teamId) {
     query = query.eq('team_id', userRoleAndTeam.teamId)
+  } else if (role === 'member' && user?.id) {
+    const { data: assignedTasks } = await supabase
+      .from('tasks')
+      .select('project_id')
+      .eq('assignee_id', user.id)
+      .not('project_id', 'is', null)
+
+    const assignedProjectIds = Array.from(
+      new Set((assignedTasks || []).map((task) => task.project_id).filter(Boolean))
+    ) as string[]
+
+    if (assignedProjectIds.length === 0) {
+      return []
+    }
+
+    query = query.in('id', assignedProjectIds)
+
+    if (userRoleAndTeam?.teamId) {
+      query = query.eq('team_id', userRoleAndTeam.teamId)
+    }
   }
 
   const { data: projects, error } = await query
@@ -47,25 +72,51 @@ async function getClients() {
   const supabase = await createClient()
   const userRoleAndTeam = await getUserRoleAndTeam()
   const isAdmin = userRoleAndTeam?.isAdmin ?? false
+  const isLead = userRoleAndTeam?.isLead ?? false
+  const role = userRoleAndTeam?.role ?? 'member'
+  const { data: { user } } = await supabase.auth.getUser()
 
   let query = supabase
     .from('clients')
     .select('id, company_name')
     .order('company_name')
 
-  if (!isAdmin && userRoleAndTeam?.teamId) {
+  if (isAdmin) {
+    // Admin sees all clients.
+  } else if (isLead && userRoleAndTeam?.teamId) {
     const { data: teamProjects } = await supabase
       .from('projects')
       .select('client_id')
       .eq('team_id', userRoleAndTeam.teamId)
-    
+
     const clientIds = [...new Set((teamProjects || []).map(p => p.client_id).filter(Boolean))]
-    
-    if (clientIds.length > 0) {
-      query = query.in('id', clientIds)
-    } else {
-      return []
-    }
+    if (clientIds.length === 0) return []
+    query = query.in('id', clientIds)
+  } else if (role === 'member' && user?.id) {
+    const { data: assignedTasks } = await supabase
+      .from('tasks')
+      .select('project_id')
+      .eq('assignee_id', user.id)
+      .not('project_id', 'is', null)
+
+    const assignedProjectIds = Array.from(
+      new Set((assignedTasks || []).map((task) => task.project_id).filter(Boolean))
+    ) as string[]
+
+    if (assignedProjectIds.length === 0) return []
+
+    const { data: assignedProjects } = await supabase
+      .from('projects')
+      .select('client_id, team_id')
+      .in('id', assignedProjectIds)
+
+    const scopedProjects = (assignedProjects || []).filter((project) =>
+      userRoleAndTeam?.teamId ? project.team_id === userRoleAndTeam.teamId : true
+    )
+
+    const clientIds = [...new Set(scopedProjects.map((project) => project.client_id).filter(Boolean))]
+    if (clientIds.length === 0) return []
+    query = query.in('id', clientIds)
   }
   
   const { data } = await query

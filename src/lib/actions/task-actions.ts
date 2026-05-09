@@ -65,6 +65,57 @@ async function requireProjectAccess(projectId: string, userId: string): Promise<
   return isAdmin || isLead
 }
 
+interface TaskAccessContext {
+  isAdmin: boolean
+  isLead: boolean
+  isAssignee: boolean
+  projectId: string | null
+}
+
+async function getTaskAccessContext(taskId: string, userId: string): Promise<TaskAccessContext | null> {
+  const service = createServiceClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  )
+
+  const [{ data: profile }, { data: task }] = await Promise.all([
+    service.from('profiles').select('role, team_id').eq('id', userId).single(),
+    service.from('tasks').select('project_id, assignee_id').eq('id', taskId).single()
+  ])
+
+  if (!profile || !task) return null
+
+  const isAdmin = profile.role === 'admin'
+  const isAssignee = task.assignee_id === userId
+
+  let isLead = false
+  if (task.project_id) {
+    const { data: project } = await service
+      .from('projects')
+      .select('team_id')
+      .eq('id', task.project_id)
+      .single()
+
+    if (project?.team_id) {
+      const { data: leadTeam } = await service
+        .from('teams')
+        .select('id')
+        .eq('id', project.team_id)
+        .eq('lead_id', userId)
+        .single()
+
+      isLead = Boolean(leadTeam)
+    }
+  }
+
+  return {
+    isAdmin,
+    isLead,
+    isAssignee,
+    projectId: task.project_id || null
+  }
+}
+
 export async function createTask(data: TaskFormData): Promise<{ success: boolean; error?: string; taskId?: string }> {
   const supabase = await createClient()
   const userId = await getUserId(supabase)
@@ -325,32 +376,16 @@ export async function updateTaskStatus(
   }
 
   try {
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('role, team_id')
-      .eq('id', userId)
-      .single()
-
-    const isAdmin = profile?.role === 'admin'
-    let isLead = false
-
-    if (profile?.team_id) {
-      const { data: team } = await supabase
-        .from('teams')
-        .select('lead_id')
-        .eq('id', profile.team_id)
-        .single()
-      isLead = team?.lead_id === userId
+    const access = await getTaskAccessContext(taskId, userId)
+    if (!access) {
+      return { success: false, error: 'Task not found' }
     }
 
-    // Get old task for revalidation and assignee check
-    const { data: oldTask } = await supabase
-      .from('tasks')
-      .select('project_id, status, assignee_id')
-      .eq('id', taskId)
-      .single()
+    const { isAdmin, isLead, isAssignee } = access
 
-    const isAssignee = oldTask?.assignee_id === userId
+    if (!(isAdmin || isLead || isAssignee)) {
+      return { success: false, error: 'You can only update tasks assigned to you' }
+    }
 
     if (newStatus === 'done' && !(isAdmin || isLead || isAssignee)) {
       return { success: false, error: 'Only a team lead, admin, or the task assignee can move tasks to Done' }
@@ -394,9 +429,9 @@ export async function updateTaskStatus(
 
     revalidatePath('/lab/tasks')
     revalidatePath(`/lab/tasks/${taskId}`)
-    if (oldTask?.project_id) {
-      revalidatePath(`/lab/projects/${oldTask.project_id}`)
-      revalidateClientSurface({ projectId: oldTask.project_id })
+    if (access.projectId) {
+      revalidatePath(`/lab/projects/${access.projectId}`)
+      revalidateClientSurface({ projectId: access.projectId })
       revalidateLegacyPortalSurface()
     }
 
@@ -518,24 +553,76 @@ export async function deleteTaskComment(commentId: string): Promise<{ success: b
 // Fetch helpers for client components
 export async function getProjectsForTaskForm() {
   const supabase = await createClient()
-  
-  const { data } = await supabase
-    .from('projects')
-    .select('id, name, status')
-    .order('name', { ascending: true })
+  const { data: { user } } = await supabase.auth.getUser()
 
-  return data || []
+  if (!user) return []
+
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('role, team_id')
+    .eq('id', user.id)
+    .single()
+
+  if (!profile) return []
+
+  if (profile.role === 'admin') {
+    const { data } = await supabase
+      .from('projects')
+      .select('id, name, status')
+      .order('name', { ascending: true })
+    return data || []
+  }
+
+  let leadTeam: { id: string } | null = null
+  if (profile.team_id) {
+    const { data } = await supabase
+      .from('teams')
+      .select('id')
+      .eq('id', profile.team_id)
+      .eq('lead_id', user.id)
+      .single()
+    leadTeam = data
+  }
+
+  if (leadTeam && profile.team_id) {
+    const { data } = await supabase
+      .from('projects')
+      .select('id, name, status')
+      .eq('team_id', profile.team_id)
+      .order('name', { ascending: true })
+    return data || []
+  }
+
+  return []
 }
 
 export async function getTeamMembers() {
   const supabase = await createClient()
-  
-  const { data } = await supabase
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (!user) return []
+
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('role, team_id')
+    .eq('id', user.id)
+    .single()
+
+  if (!profile) return []
+
+  let query = supabase
     .from('profiles')
     .select('id, full_name, avatar_url')
     .neq('role', 'client')
     .order('full_name', { ascending: true })
 
+  if (profile.role !== 'admin' && profile.team_id) {
+    query = query.eq('team_id', profile.team_id)
+  } else if (profile.role !== 'admin' && !profile.team_id) {
+    return []
+  }
+
+  const { data } = await query
   return data || []
 }
 

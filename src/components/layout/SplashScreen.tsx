@@ -6,6 +6,7 @@ import { MousePointer2 } from "lucide-react";
 import styles from "./SplashScreen.module.css";
 
 const SPLASH_DURATION_MS = 3900;
+const SPLASH_SESSION_KEY = "echo11:splash-shown";
 const COLOR_A = "hsla(0, 0%, 0%, .35)";
 const COLOR_B = "hsla(186, 100%, 50%, .95)";
 
@@ -321,7 +322,24 @@ export function SplashScreen() {
       return;
     }
 
+    let alreadyShownThisSession = false;
+    try {
+      alreadyShownThisSession = window.sessionStorage.getItem(SPLASH_SESSION_KEY) === "1";
+    } catch {
+      alreadyShownThisSession = false;
+    }
+
+    if (alreadyShownThisSession) {
+      attemptedRef.current = true;
+      return;
+    }
+
     attemptedRef.current = true;
+    try {
+      window.sessionStorage.setItem(SPLASH_SESSION_KEY, "1");
+    } catch {
+      // Ignore storage failures and rely on in-memory attemptedRef fallback.
+    }
 
     setVisible(true);
     document.documentElement.style.overflow = "hidden";
@@ -329,12 +347,13 @@ export function SplashScreen() {
 
     const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     dismissDurationRef.current = reduceMotion ? 700 : SPLASH_DURATION_MS;
+    armDismissTimer();
 
     return () => {
       clearDismissTimer();
       unlockScroll();
     };
-  }, [clearDismissTimer, pathname, unlockScroll]);
+  }, [armDismissTimer, clearDismissTimer, pathname, unlockScroll]);
 
   useEffect(() => {
     return () => {

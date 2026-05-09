@@ -84,6 +84,13 @@ export default function TaskDetailPage({ params }: TaskPageProps) {
     setLoading(true)
     try {
       const supabase = createClient()
+      const { data: { user: authUser } } = await supabase.auth.getUser()
+
+      if (!authUser) {
+        setTask(null)
+        setLoading(false)
+        return
+      }
       
       const { data: taskData, error: taskError } = await supabase
         .from('tasks')
@@ -102,16 +109,27 @@ export default function TaskDetailPage({ params }: TaskPageProps) {
         return
       }
 
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('role, team_id')
+        .eq('id', authUser.id)
+        .single()
+
+      const isAdmin = profile?.role === 'admin'
+      const isAssignee = taskData.assignee_id === authUser.id
+
       let projectData = null
       let assigneeData = null
+      let projectTeamId: string | null = null
 
       if (taskData.project_id) {
         const { data: projData } = await supabase
           .from('projects')
-          .select('id, name')
+          .select('id, name, team_id')
           .eq('id', taskData.project_id)
           .single()
         projectData = projData
+        projectTeamId = projData?.team_id || null
       }
 
       if (taskData.assignee_id) {
@@ -121,6 +139,23 @@ export default function TaskDetailPage({ params }: TaskPageProps) {
           .eq('id', taskData.assignee_id)
           .single()
         assigneeData = profData
+      }
+
+      let isLead = false
+      if (projectTeamId) {
+        const { data: team } = await supabase
+          .from('teams')
+          .select('id')
+          .eq('id', projectTeamId)
+          .eq('lead_id', authUser.id)
+          .single()
+        isLead = Boolean(team)
+      }
+
+      if (!(isAdmin || isLead || isAssignee)) {
+        setTask(null)
+        setLoading(false)
+        return
       }
 
       const enrichedTask = {
@@ -139,47 +174,27 @@ export default function TaskDetailPage({ params }: TaskPageProps) {
         due_date: taskData.due_date ? taskData.due_date.split('T')[0] : '',
       })
 
-      const [commentsData, timeLogsData, attachmentsData, userResult] = await Promise.all([
+      setCurrentUserId(authUser.id)
+      setCanEdit(isAdmin || isLead || isAssignee)
+
+      const [commentsData, timeLogsData, attachmentsData] = await Promise.all([
         supabase.from('task_comments').select('*, user:profiles(id, full_name, avatar_url)').eq('task_id', taskId).order('created_at', { ascending: false }),
         supabase.from('time_logs').select('*, user:profiles(id, full_name, avatar_url)').eq('task_id', taskId).order('date', { ascending: false }),
-        supabase.from('task_attachments').select('*, user:profiles(id, full_name, avatar_url)').eq('task_id', taskId).order('created_at', { ascending: false }),
-        supabase.auth.getUser()
+        supabase.from('task_attachments').select('*, user:profiles(id, full_name, avatar_url)').eq('task_id', taskId).order('created_at', { ascending: false })
       ])
 
-      if (userResult.data?.user) {
-        const authUserId = userResult.data.user.id
-        setCurrentUserId(authUserId)
+      let membersQuery = supabase
+        .from('profiles')
+        .select('id, full_name')
+        .neq('role', 'client')
+        .order('full_name', { ascending: true })
 
-        // Determine if user can edit: admin, team lead, or task assignee
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('role, team_id')
-          .eq('id', authUserId)
-          .single()
-
-        const isAdmin = profile?.role === 'admin'
-        const isAssignee = taskData.assignee_id === authUserId
-
-        let isLead = false
-        if (profile?.team_id) {
-          const { data: team } = await supabase
-            .from('teams')
-            .select('lead_id')
-            .eq('id', profile.team_id)
-            .single()
-          isLead = team?.lead_id === authUserId
-        }
-
-        setCanEdit(isAdmin || isLead || isAssignee)
-        
-        const { data: profilesData } = await supabase
-          .from('profiles')
-          .select('id, full_name')
-          .neq('role', 'client')
-          .order('full_name', { ascending: true })
-        
-        setTeamMembers(profilesData || [])
+      if (!isAdmin && projectTeamId) {
+        membersQuery = membersQuery.eq('team_id', projectTeamId)
       }
+
+      const { data: profilesData } = await membersQuery
+      setTeamMembers(profilesData || [])
 
       setComments(commentsData.data || [])
       setTimeLogs(timeLogsData.data || [])

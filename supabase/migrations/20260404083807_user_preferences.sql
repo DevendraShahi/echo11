@@ -14,10 +14,12 @@ create table if not exists user_preferences (
 alter table user_preferences enable row level security;
 
 -- Users can read their own preferences
+drop policy if exists "User can read own preferences" on user_preferences;
 create policy "User can read own preferences" on user_preferences
   for select using (user_id = auth.uid());
 
 -- Users can update their own preferences
+drop policy if exists "User can update own preferences" on user_preferences;
 create policy "User can update own preferences" on user_preferences
   for update using (user_id = auth.uid());
 
@@ -34,6 +36,7 @@ end;
 $$ language plpgsql security definer;
 
 -- Create trigger to auto-create preferences when a new profile is created
+drop trigger if exists on_profile_created on profiles;
 create trigger on_profile_created
   after insert on profiles
   for each row

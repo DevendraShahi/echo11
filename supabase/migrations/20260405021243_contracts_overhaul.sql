@@ -19,8 +19,13 @@ CREATE TABLE IF NOT EXISTS contract_templates (
   created_at timestamptz DEFAULT now()
 );
 
+ALTER TABLE contract_templates ALTER COLUMN variables DROP DEFAULT;
+ALTER TABLE contract_templates ALTER COLUMN variables TYPE jsonb USING to_jsonb(variables);
+ALTER TABLE contract_templates ALTER COLUMN variables SET DEFAULT '[]'::jsonb;
+
 ALTER TABLE contract_templates ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Anyone can read active templates" ON contract_templates;
 CREATE POLICY "Anyone can read active templates" ON contract_templates
   FOR SELECT USING (is_active = true);
 
@@ -305,6 +310,11 @@ INSERT INTO storage.buckets (id, name, public) VALUES ('contracts', 'contracts',
 ON CONFLICT (id) DO NOTHING;
 
 -- Storage policies for contracts bucket
+DROP POLICY IF EXISTS "Anyone can view contract files" ON storage.objects;
+DROP POLICY IF EXISTS "Authenticated users can view contract files" ON storage.objects;
+DROP POLICY IF EXISTS "Authenticated users can upload contract files" ON storage.objects;
+DROP POLICY IF EXISTS "Authenticated users can delete their contract files" ON storage.objects;
+
 CREATE POLICY "Anyone can view contract files" ON storage.objects
   FOR SELECT USING (bucket_id = 'contracts');
 
@@ -316,6 +326,12 @@ CREATE POLICY "Authenticated users can delete their contract files" ON storage.o
 
 -- RLS policies for contracts table (if not already exists)
 ALTER TABLE contracts ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Users can view contracts" ON contracts;
+DROP POLICY IF EXISTS "Authenticated users can view contracts" ON contracts;
+DROP POLICY IF EXISTS "Users can insert contracts" ON contracts;
+DROP POLICY IF EXISTS "Users can update contracts" ON contracts;
+DROP POLICY IF EXISTS "Users can delete contracts" ON contracts;
 
 CREATE POLICY "Users can view contracts" ON contracts
   FOR SELECT USING (true);

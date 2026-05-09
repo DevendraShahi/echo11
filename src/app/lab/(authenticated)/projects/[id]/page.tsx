@@ -20,6 +20,7 @@ import { ToggleTaskButton } from './ToggleTaskButton'
 import { ProjectActions } from '@/components/lab/ProjectActions'
 
 type ProjectWithRelations = Project & {
+  team_id?: string | null
   client?: Client | null
 }
 
@@ -155,6 +156,54 @@ async function getProjectExpenses(projectId: string) {
   return (data || []) as ProjectExpense[]
 }
 
+async function getProjectAccess(projectId: string, projectTeamId: string | null | undefined) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (!user) {
+    return { canAccess: false, canManage: false }
+  }
+
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('role, team_id')
+    .eq('id', user.id)
+    .single()
+
+  if (!profile) {
+    return { canAccess: false, canManage: false }
+  }
+
+  const isAdmin = profile.role === 'admin'
+  if (isAdmin) {
+    return { canAccess: true, canManage: true }
+  }
+
+  let isLeadOfTeam = false
+  if (projectTeamId) {
+    const { data: team } = await supabase
+      .from('teams')
+      .select('id')
+      .eq('id', projectTeamId)
+      .eq('lead_id', user.id)
+      .single()
+    isLeadOfTeam = Boolean(team)
+  }
+
+  if (isLeadOfTeam) {
+    return { canAccess: true, canManage: true }
+  }
+
+  const { count: assignedTaskCount } = await supabase
+    .from('tasks')
+    .select('id', { count: 'exact', head: true })
+    .eq('project_id', projectId)
+    .eq('assignee_id', user.id)
+
+  const canAccess = (assignedTaskCount ?? 0) > 0
+  return { canAccess, canManage: false }
+}
+
 async function getServices(): Promise<Service[]> {
   const supabase = await createClient()
   const { data } = await supabase
@@ -182,6 +231,11 @@ export default async function ProjectDetailPage({
   const project = await getProject(id)
   
   if (!project) {
+    notFound()
+  }
+
+  const access = await getProjectAccess(id, project.team_id)
+  if (!access.canAccess) {
     notFound()
   }
 
@@ -255,12 +309,14 @@ export default async function ProjectDetailPage({
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <Link href={`/lab/projects/${id}/edit`}>
-            <LabButton variant="glass" size="sm" className="font-sans">
-              <Edit className="w-4 h-4 mr-2" />
-              Edit
-            </LabButton>
-          </Link>
+          {access.canManage && (
+            <Link href={`/lab/projects/${id}/edit`}>
+              <LabButton variant="glass" size="sm" className="font-sans">
+                <Edit className="w-4 h-4 mr-2" />
+                Edit
+              </LabButton>
+            </Link>
+          )}
           {project.link && (
             <a href={project.link} target="_blank" rel="noopener noreferrer">
               <LabButton variant="ghost" size="sm" className="font-sans">
@@ -269,15 +325,17 @@ export default async function ProjectDetailPage({
               </LabButton>
             </a>
           )}
-          <ProjectActions
-            projectId={id}
-            projectStatus={project.status}
-            onDelete={async () => {
-              'use server'
-              const { deleteProject } = await import('@/lib/actions/project-actions')
-              await deleteProject(id)
-            }}
-          />
+          {access.canManage && (
+            <ProjectActions
+              projectId={id}
+              projectStatus={project.status}
+              onDelete={async () => {
+                'use server'
+                const { deleteProject } = await import('@/lib/actions/project-actions')
+                await deleteProject(id)
+              }}
+            />
+          )}
         </div>
       </div>
 

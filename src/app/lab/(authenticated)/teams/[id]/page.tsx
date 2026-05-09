@@ -78,28 +78,43 @@ export default function TeamDetailPage() {
       setProjects(teamData.projects || [])
     }
 
-    // Get all profiles not in this team for adding members
-    const { data: profiles } = await supabase
-      .from('profiles')
-      .select('id, full_name, email, role, team_id')
-      .or(`team_id.neq.${teamId},team_id.is.null`)
-      .order('full_name', { ascending: true })
-    setAllProfiles(profiles || [])
+    if (user) {
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('role, team_id')
+        .eq('id', user.id)
+        .single()
 
-    // Get all projects not assigned to this team
-    const { data: projData } = await supabase
-      .from('projects')
-      .select('id, name, status, client:clients(id, company_name)')
-      .or(`team_id.neq.${teamId},team_id.is.null`)
-      .order('name', { ascending: true })
-    
-    const mappedProjects = (projData || []).map((p: { id: string; name: string; status: string; client: { id: string; company_name: string }[] }) => ({
-      id: p.id,
-      name: p.name,
-      status: p.status,
-      client: p.client?.[0] || null
-    }))
-    setAllProjects(mappedProjects)
+      const canManageTeam = profile?.role === 'admin' || (profile?.team_id === teamId && teamData?.lead_id === user.id)
+
+      if (canManageTeam) {
+        // Get all profiles not in this team for adding members
+        const { data: profiles } = await supabase
+          .from('profiles')
+          .select('id, full_name, email, role, team_id')
+          .or(`team_id.neq.${teamId},team_id.is.null`)
+          .order('full_name', { ascending: true })
+        setAllProfiles(profiles || [])
+
+        // Get all projects not assigned to this team
+        const { data: projData } = await supabase
+          .from('projects')
+          .select('id, name, status, client:clients(id, company_name)')
+          .or(`team_id.neq.${teamId},team_id.is.null`)
+          .order('name', { ascending: true })
+
+        const mappedProjects = (projData || []).map((p: { id: string; name: string; status: string; client: { id: string; company_name: string }[] }) => ({
+          id: p.id,
+          name: p.name,
+          status: p.status,
+          client: p.client?.[0] || null
+        }))
+        setAllProjects(mappedProjects)
+      } else {
+        setAllProfiles([])
+        setAllProjects([])
+      }
+    }
 
     setLoading(false)
   }

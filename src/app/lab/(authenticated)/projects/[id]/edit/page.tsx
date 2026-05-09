@@ -28,6 +28,26 @@ async function getProject(id: string): Promise<ProjectWithRelations | null> {
     return null
   }
 
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('role')
+    .eq('id', user.id)
+    .single()
+
+  if (profile?.role !== 'admin') {
+    const teamId = (data as ProjectWithRelations & { team_id?: string | null }).team_id || null
+    if (!teamId) return null
+
+    const { data: leadTeam } = await supabase
+      .from('teams')
+      .select('id')
+      .eq('id', teamId)
+      .eq('lead_id', user.id)
+      .single()
+
+    if (!leadTeam) return null
+  }
+
   return data as ProjectWithRelations
 }
 

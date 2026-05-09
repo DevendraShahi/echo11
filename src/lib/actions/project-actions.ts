@@ -328,6 +328,48 @@ export async function toggleTaskStatus(
   }
 
   try {
+    const { data: task } = await supabase
+      .from('tasks')
+      .select('project_id, assignee_id')
+      .eq('id', taskId)
+      .single()
+
+    if (!task) {
+      return { success: false, error: 'Task not found' }
+    }
+
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', user.id)
+      .single()
+
+    const isAdmin = profile?.role === 'admin'
+    const isAssignee = task.assignee_id === user.id
+
+    let isLead = false
+    if (task.project_id) {
+      const { data: project } = await supabase
+        .from('projects')
+        .select('team_id')
+        .eq('id', task.project_id)
+        .single()
+
+      if (project?.team_id) {
+        const { data: leadTeam } = await supabase
+          .from('teams')
+          .select('id')
+          .eq('id', project.team_id)
+          .eq('lead_id', user.id)
+          .single()
+        isLead = Boolean(leadTeam)
+      }
+    }
+
+    if (!(isAdmin || isLead || isAssignee)) {
+      return { success: false, error: 'You can only update tasks assigned to you' }
+    }
+
     const { error } = await supabase
       .from('tasks')
       .update({
@@ -339,13 +381,6 @@ export async function toggleTaskStatus(
     if (error) {
       return { success: false, error: error.message }
     }
-
-    // Get project_id to revalidate the correct path
-    const { data: task } = await supabase
-      .from('tasks')
-      .select('project_id')
-      .eq('id', taskId)
-      .single()
 
     if (task?.project_id) {
       revalidatePath(`/lab/projects/${task.project_id}`)

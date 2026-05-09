@@ -5,7 +5,6 @@ import { createClient } from '@/lib/supabase/client'
 import { PageHeader } from '@/components/ui/PageHeader'
 import { LabButton } from '@/components/ui/LabButton'
 import { FolderKanban, CheckSquare, ArrowLeft, ArrowRight } from 'lucide-react'
-import Link from 'next/link'
 import { cn } from '@/lib/utils'
 import { KanbanBoard } from '@/components/lab/KanbanBoard'
 import { TaskFormModal } from '@/components/lab/TaskForm'
@@ -33,15 +32,72 @@ export default function TasksPage() {
   const [selectedProjectData, setSelectedProjectData] = useState<Project | null>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [refreshKey, setRefreshKey] = useState(0)
+  const [canCreateTasks, setCanCreateTasks] = useState(false)
 
   useEffect(() => {
     async function loadProjects() {
       const supabase = createClient()
-      
-      const { data, error } = await supabase
+      const { data: userResult } = await supabase.auth.getUser()
+      const authUser = userResult.user
+      if (!authUser) {
+        setProjects([])
+        setLoading(false)
+        return
+      }
+
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('role, team_id')
+        .eq('id', authUser.id)
+        .single()
+
+      const isAdmin = profile?.role === 'admin'
+      let isLead = false
+      if (profile?.team_id) {
+        const { data: team } = await supabase
+          .from('teams')
+          .select('id')
+          .eq('id', profile.team_id)
+          .eq('lead_id', authUser.id)
+          .single()
+        isLead = Boolean(team)
+      }
+
+      setCanCreateTasks(Boolean(isAdmin || isLead))
+
+      let query = supabase
         .from('projects')
         .select('id, name, status, color, client:clients(company_name)')
         .order('updated_at', { ascending: false })
+
+      if (isAdmin) {
+        // Admin sees all projects.
+      } else if (isLead && profile?.team_id) {
+        query = query.eq('team_id', profile.team_id)
+      } else {
+        const { data: assignedTasks } = await supabase
+          .from('tasks')
+          .select('project_id')
+          .eq('assignee_id', authUser.id)
+          .not('project_id', 'is', null)
+
+        const assignedProjectIds = Array.from(
+          new Set((assignedTasks || []).map((task) => task.project_id).filter(Boolean))
+        ) as string[]
+
+        if (assignedProjectIds.length === 0) {
+          setProjects([])
+          setLoading(false)
+          return
+        }
+
+        query = query.in('id', assignedProjectIds)
+        if (profile?.team_id) {
+          query = query.eq('team_id', profile.team_id)
+        }
+      }
+
+      const { data, error } = await query
 
       if (!error && data) {
         const projectsWithClient = data.map((p: Record<string, unknown>) => ({
@@ -117,10 +173,12 @@ export default function TasksPage() {
               </div>
             </div>
           </div>
-          <LabButton onClick={() => setIsModalOpen(true)}>
-            <CheckSquare className="w-4 h-4 mr-2" />
-            Add Task
-          </LabButton>
+          {canCreateTasks && (
+            <LabButton onClick={() => setIsModalOpen(true)}>
+              <CheckSquare className="w-4 h-4 mr-2" />
+              Add Task
+            </LabButton>
+          )}
         </div>
 
         <div className="flex-1 min-h-0">

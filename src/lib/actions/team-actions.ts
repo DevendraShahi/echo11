@@ -29,6 +29,50 @@ async function getUserId(supabase: Awaited<ReturnType<typeof createClient>>) {
   return user?.id || null
 }
 
+interface AgencyScope {
+  userId: string
+  role: string
+  teamId: string | null
+  isAdmin: boolean
+}
+
+async function getAgencyScope(
+  supabase: Awaited<ReturnType<typeof createClient>>
+): Promise<AgencyScope | null> {
+  const userId = await getUserId(supabase)
+  if (!userId) return null
+
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('role, team_id')
+    .eq('id', userId)
+    .single()
+
+  if (!profile) return null
+
+  return {
+    userId,
+    role: profile.role,
+    teamId: profile.team_id,
+    isAdmin: profile.role === 'admin'
+  }
+}
+
+async function isLeadOfTeam(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  userId: string,
+  teamId: string
+): Promise<boolean> {
+  const { data: team } = await supabase
+    .from('teams')
+    .select('id')
+    .eq('id', teamId)
+    .eq('lead_id', userId)
+    .single()
+
+  return Boolean(team)
+}
+
 export async function createTeam(data: TeamFormData): Promise<{ success: boolean; error?: string; teamId?: string }> {
   const supabase = await createClient()
   const userId = await getUserId(supabase)
@@ -360,11 +404,20 @@ export async function removeTagFromProject(
 // Fetch helpers
 export async function getAllTeams() {
   const supabase = await createClient()
-  
-  const { data, error } = await supabase
+  const scope = await getAgencyScope(supabase)
+  if (!scope) return []
+
+  let query = supabase
     .from('teams')
     .select('*, lead:profiles!teams_lead_id_fkey(id, full_name, avatar_url), members:profiles!profiles_team_id_fkey(id)')
     .order('name', { ascending: true })
+
+  if (!scope.isAdmin) {
+    if (!scope.teamId) return []
+    query = query.eq('id', scope.teamId)
+  }
+
+  const { data, error } = await query
 
   if (error) {
     console.error('Error fetching all teams:', error)
@@ -375,6 +428,16 @@ export async function getAllTeams() {
 
 export async function getTeam(teamId: string) {
   const supabase = await createClient()
+  const scope = await getAgencyScope(supabase)
+  if (!scope) return null
+
+  if (!scope.isAdmin) {
+    const canAccessOwnTeam = scope.teamId === teamId
+    const canAccessAsLead = await isLeadOfTeam(supabase, scope.userId, teamId)
+    if (!canAccessOwnTeam && !canAccessAsLead) {
+      return null
+    }
+  }
   
   const { data: team, error: teamError } = await supabase
     .from('teams')
@@ -436,6 +499,16 @@ export async function getUserTeam(userId: string) {
 
 export async function getProjectsByTeam(teamId: string) {
   const supabase = await createClient()
+  const scope = await getAgencyScope(supabase)
+  if (!scope) return []
+
+  if (!scope.isAdmin) {
+    const canAccessOwnTeam = scope.teamId === teamId
+    const canAccessAsLead = await isLeadOfTeam(supabase, scope.userId, teamId)
+    if (!canAccessOwnTeam && !canAccessAsLead) {
+      return []
+    }
+  }
   
   const { data } = await supabase
     .from('projects')
@@ -586,6 +659,16 @@ export async function setTeamLead(
 
 export async function getTeamMembers(teamId: string) {
   const supabase = await createClient()
+  const scope = await getAgencyScope(supabase)
+  if (!scope) return []
+
+  if (!scope.isAdmin) {
+    const canAccessOwnTeam = scope.teamId === teamId
+    const canAccessAsLead = await isLeadOfTeam(supabase, scope.userId, teamId)
+    if (!canAccessOwnTeam && !canAccessAsLead) {
+      return []
+    }
+  }
   
   const { data } = await supabase
     .from('profiles')

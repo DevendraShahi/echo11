@@ -215,6 +215,14 @@ interface KanbanBoardProps {
   defaultProjectId?: string
 }
 
+interface BoardUserContext {
+  userId: string
+  role: string
+  teamId: string | null
+  isAdmin: boolean
+  isLead: boolean
+}
+
 export function KanbanBoard({ defaultProjectId }: KanbanBoardProps = {}) {
   const [tasks, setTasks] = useState<Task[]>([])
   const [activeId, setActiveId] = useState<string | null>(null)
@@ -234,6 +242,9 @@ export function KanbanBoard({ defaultProjectId }: KanbanBoardProps = {}) {
   const [projects, setProjects] = useState<Pick<Project, 'id' | 'name'>[]>([])
   const [members, setMembers] = useState<Pick<Profile, 'id' | 'full_name'>[]>([])
   const [canCompleteTasks, setCanCompleteTasks] = useState(false)
+  const [canCreateTasks, setCanCreateTasks] = useState(false)
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null)
+  const [isMemberOnly, setIsMemberOnly] = useState(false)
   const isExternalProject = Boolean(defaultProjectId)
 
   const sensors = useSensors(
@@ -247,21 +258,73 @@ export function KanbanBoard({ defaultProjectId }: KanbanBoardProps = {}) {
     })
   )
 
-  async function loadFiltersData() {
+  async function loadFiltersData(context: BoardUserContext) {
     const supabase = createClient()
     
     if (defaultProjectId) {
       setSelectedProjectId(defaultProjectId)
-      const [membersRes] = await Promise.all([
-        supabase.from('profiles').select('id, full_name')
-      ])
+      let membersQuery = supabase
+        .from('profiles')
+        .select('id, full_name')
+        .neq('role', 'client')
+        .order('full_name', { ascending: true })
+
+      if (!context.isAdmin && context.teamId) {
+        membersQuery = membersQuery.eq('team_id', context.teamId)
+      }
+
+      const { data: membersData } = await membersQuery
+      const membersRes = { data: membersData }
       setMembers(membersRes.data || [])
       return
     }
-    
+
+    let projectsQuery = supabase
+      .from('projects')
+      .select('id, name')
+      .eq('status', 'active')
+      .order('name', { ascending: true })
+
+    if (context.isAdmin) {
+      // Admin sees all projects.
+    } else if (context.isLead && context.teamId) {
+      projectsQuery = projectsQuery.eq('team_id', context.teamId)
+    } else {
+      const { data: assignedTasks } = await supabase
+        .from('tasks')
+        .select('project_id')
+        .eq('assignee_id', context.userId)
+        .not('project_id', 'is', null)
+
+      const assignedProjectIds = Array.from(
+        new Set((assignedTasks || []).map((task) => task.project_id).filter(Boolean))
+      ) as string[]
+
+      if (assignedProjectIds.length === 0) {
+        setProjects([])
+        setMembers([])
+        return
+      }
+
+      projectsQuery = projectsQuery.in('id', assignedProjectIds)
+      if (context.teamId) {
+        projectsQuery = projectsQuery.eq('team_id', context.teamId)
+      }
+    }
+
+    let membersQuery = supabase
+      .from('profiles')
+      .select('id, full_name')
+      .neq('role', 'client')
+      .order('full_name', { ascending: true })
+
+    if (!context.isAdmin && context.teamId) {
+      membersQuery = membersQuery.eq('team_id', context.teamId)
+    }
+
     const [projectsRes, membersRes] = await Promise.all([
-      supabase.from('projects').select('id, name').eq('status', 'active'),
-      supabase.from('profiles').select('id, full_name')
+      projectsQuery,
+      membersQuery
     ])
     
     const fetchedProjects = projectsRes.data || []
@@ -273,16 +336,18 @@ export function KanbanBoard({ defaultProjectId }: KanbanBoardProps = {}) {
     }
   }
 
-  async function loadUserContext() {
+  async function loadUserContext(): Promise<BoardUserContext | null> {
     const supabase = createClient()
     const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return
+    if (!user) return null
 
     const { data: profile } = await supabase
       .from('profiles')
       .select('role, team_id')
       .eq('id', user.id)
       .single()
+
+    if (!profile) return null
 
     const isAdmin = profile?.role === 'admin'
     let isLead = false
@@ -296,7 +361,18 @@ export function KanbanBoard({ defaultProjectId }: KanbanBoardProps = {}) {
       isLead = team?.lead_id === user.id
     }
 
-    setCanCompleteTasks(Boolean(isAdmin || isLead))
+    setCurrentUserId(user.id)
+    setCanCompleteTasks(Boolean(isAdmin || isLead || profile.role === 'member'))
+    setCanCreateTasks(Boolean(isAdmin || isLead))
+    setIsMemberOnly(Boolean(!isAdmin && !isLead && profile.role === 'member'))
+
+    return {
+      userId: user.id,
+      role: profile.role,
+      teamId: profile.team_id,
+      isAdmin,
+      isLead
+    }
   }
 
   async function fetchTasks() {
@@ -314,6 +390,11 @@ export function KanbanBoard({ defaultProjectId }: KanbanBoardProps = {}) {
         .select('*')
         .eq('project_id', selectedProjectId)
         .order('sort_order', { ascending: true })
+
+      if (isMemberOnly && currentUserId) {
+        query = query.eq('assignee_id', currentUserId)
+      }
+
       if (filters.assignee_id) {
         query = query.eq('assignee_id', filters.assignee_id)
       }
@@ -387,8 +468,18 @@ export function KanbanBoard({ defaultProjectId }: KanbanBoardProps = {}) {
   }
 
   useEffect(function() {
-    loadFiltersData()
-    loadUserContext() // eslint-disable-line react-hooks/exhaustive-deps
+    async function bootstrapBoard() {
+      const context = await loadUserContext()
+      if (!context) {
+        setProjects([])
+        setMembers([])
+        setLoading(false)
+        return
+      }
+      await loadFiltersData(context)
+    }
+
+    bootstrapBoard() // eslint-disable-line react-hooks/exhaustive-deps
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(function() {
@@ -504,7 +595,7 @@ export function KanbanBoard({ defaultProjectId }: KanbanBoardProps = {}) {
                 <span className="w-2 h-2 bg-white rounded-full" />
               )}
             </button>
-            <LabButton disabled={!selectedProjectId} onClick={() => setIsModalOpen(true)} data-tour="new-task">
+            <LabButton disabled={!selectedProjectId || !canCreateTasks} onClick={() => setIsModalOpen(true)} data-tour="new-task">
               <Plus className="w-4 h-4 mr-2" />
               Add Task
             </LabButton>
