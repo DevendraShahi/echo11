@@ -3,11 +3,11 @@ import type { Metadata } from "next";
 export const siteConfig = {
   name: "echo11",
   url: "https://echo11.tech",
-  title: "echo11 | Product Engineering Studio",
+  title: "echo11 — Strategy, Design & Product Engineering Studio",
   description:
-    "We design and engineer digital products with clear strategy, strong systems, and premium execution.",
+    "We design and engineer digital products with clear strategy, strong systems, and premium execution — crafted to perform, convert, and scale.",
   ogDescription:
-    "From concept to scale, echo11 builds digital products that perform, convert, and last.",
+    "From concept to scale, echo11 builds digital products that perform, convert, and last. Strategy-first. Design-led. Engineering-driven.",
   openGraphImage: "/opengraph-image",
   twitterImage: "/twitter-image",
   logo: "/echo11-logo.png",
