@@ -3,7 +3,6 @@
 import { useState } from 'react'
 import { Meeting, Project } from '@/types/lab'
 import { LabButton } from '@/components/ui/LabButton'
-import { PageHeader } from '@/components/ui/PageHeader'
 import { SearchInput } from '@/components/ui/SearchInput'
 import { FilterTabs, FilterTab } from '@/components/ui/FilterTabs'
 import { EmptyState } from '@/components/ui/EmptyState'
@@ -12,6 +11,9 @@ import { MeetingFormModal } from '@/components/lab/MeetingForm'
 import Link from 'next/link'
 import { format } from 'date-fns'
 import { useRouter } from 'next/navigation'
+import { LabPageHeader } from '@/components/lab/primitives/LabPageHeader'
+import { matchesQuery } from '@/features/lab/listing/filtering'
+import { useListViewModel } from '@/features/lab/listing/useListViewModel'
 
 type MeetingWithProject = Omit<Meeting, 'project'> & {
   project?: Pick<Project, 'name'> | null
@@ -25,16 +27,21 @@ interface MeetingsPageProps {
 export default function MeetingsPageClient({ initialMeetings, initialProjects }: MeetingsPageProps) {
   const [meetings] = useState(initialMeetings)
   const [isModalOpen, setIsModalOpen] = useState(false)
-  const [view, setView] = useState<'upcoming' | 'past' | 'all'>('upcoming')
-  const [searchQuery, setSearchQuery] = useState('')
   const [projectFilter, setProjectFilter] = useState('')
   const router = useRouter()
+  const {
+    query: searchQuery,
+    setQuery: setSearchQuery,
+    filterBy: view,
+    setFilterBy: setView,
+  } = useListViewModel<'upcoming' | 'past' | 'all', string, string>({
+    defaultFilter: 'upcoming',
+  })
 
   const now = new Date()
 
   const filteredMeetings = meetings.filter(meeting => {
-    const matchesSearch = meeting.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (meeting.description || '').toLowerCase().includes(searchQuery.toLowerCase())
+    const matchesSearch = matchesQuery(searchQuery, [meeting.title, meeting.description])
     const matchesProject = !projectFilter || meeting.project_id === projectFilter
     const meetingDate = new Date(meeting.scheduled_at)
     
@@ -71,7 +78,7 @@ export default function MeetingsPageClient({ initialMeetings, initialProjects }:
 
   return (
     <div className="space-y-6">
-      <PageHeader 
+      <LabPageHeader
         title="Meetings" 
         description="Schedule and manage your meetings"
         icon={CalendarDays}

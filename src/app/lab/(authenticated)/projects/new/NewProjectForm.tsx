@@ -4,11 +4,11 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { LabButton } from '@/components/ui/LabButton'
-import { LabCard, LabCardHeader, LabCardTitle, LabCardContent } from '@/components/ui/LabCard'
+import { FormCard } from '@/components/lab/patterns/FormCard'
 import { ClientSelect } from '@/components/lab/ClientSelect'
 import { ExpenseForm } from '@/components/lab/ExpenseForm'
 import { Dropdown, DropdownOption } from '@/components/ui/Dropdown'
-import { ArrowLeft, Loader2 } from 'lucide-react'
+import { Loader2 } from 'lucide-react'
 import Link from 'next/link'
 import { Client, Service, ProjectStatus, ProjectType } from '@/types/lab'
 
@@ -155,19 +155,29 @@ export function NewProjectForm({ clients, services }: NewProjectFormProps) {
 
   return (
     <div className="max-w-3xl mx-auto">
-      <Link href="/lab/projects" className="inline-flex mb-6">
-        <LabButton variant="ghost" size="sm" className="font-sans">
-          <ArrowLeft className="w-4 h-4 mr-2" />
-          Back to Projects
-        </LabButton>
-      </Link>
-
-      <LabCard>
-        <LabCardHeader>
-          <LabCardTitle className="font-sans">Create New Project</LabCardTitle>
-        </LabCardHeader>
-        <LabCardContent>
-          <form onSubmit={handleSubmit} className="space-y-8">
+      <FormCard
+        title="Create New Project"
+        actions={
+          <>
+            <Link href="/lab/projects">
+              <LabButton type="button" variant="ghost" className="font-sans">
+                Cancel
+              </LabButton>
+            </Link>
+            <LabButton type="submit" disabled={loading} className="font-sans">
+              {loading ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Creating...
+                </>
+              ) : (
+                'Create Project'
+              )}
+            </LabButton>
+          </>
+        }
+      >
+        <form onSubmit={handleSubmit} className="space-y-8">
             {error && (
               <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400 text-sm font-sans">
                 {error}
@@ -322,26 +332,8 @@ export function NewProjectForm({ clients, services }: NewProjectFormProps) {
               </div>
             </div>
 
-            <div className="flex justify-end gap-3 pt-4 border-t border-white/10">
-              <Link href="/lab/projects">
-                <LabButton type="button" variant="ghost" className="font-sans">
-                  Cancel
-                </LabButton>
-              </Link>
-              <LabButton type="submit" disabled={loading} className="font-sans">
-                {loading ? (
-                  <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    Creating...
-                  </>
-                ) : (
-                  'Create Project'
-                )}
-              </LabButton>
-            </div>
-          </form>
-        </LabCardContent>
-      </LabCard>
+        </form>
+      </FormCard>
     </div>
   )
 }

@@ -133,7 +133,9 @@ export async function createInvoice(data: InvoiceFormData): Promise<{ success: b
       console.warn('Failed to log activity:', activityError)
     }
 
-    revalidatePath('/lab/invoices')
+    revalidatePath('/lab/projects')
+    revalidatePath('/lab/clients')
+    revalidatePath('/lab/command')
     revalidateClientSurface({ projectId: data.project_id })
     revalidateLegacyPortalSurface()
 
@@ -218,7 +220,9 @@ export async function updateInvoice(id: string, data: Partial<InvoiceFormData>):
       }
     }
 
-    revalidatePath('/lab/invoices')
+    revalidatePath('/lab/projects')
+    revalidatePath('/lab/clients')
+    revalidatePath('/lab/command')
     revalidatePath(`/lab/invoices/${id}`)
     revalidateClientSurface({ projectId: data.project_id })
     revalidateLegacyPortalSurface()
@@ -262,7 +266,9 @@ export async function deleteInvoice(id: string): Promise<{ success: boolean; err
       return { success: false, error: error.message }
     }
 
-    revalidatePath('/lab/invoices')
+    revalidatePath('/lab/projects')
+    revalidatePath('/lab/clients')
+    revalidatePath('/lab/command')
     revalidateClientSurface({ projectId: existingInvoice?.project_id || null })
     revalidateLegacyPortalSurface()
 
@@ -328,7 +334,9 @@ export async function updateInvoiceStatus(id: string, status: 'draft' | 'sent' |
       return { success: false, error: error.message }
     }
 
-    revalidatePath('/lab/invoices')
+    revalidatePath('/lab/projects')
+    revalidatePath('/lab/clients')
+    revalidatePath('/lab/command')
     revalidatePath(`/lab/invoices/${id}`)
     revalidateClientSurface({ projectId: current?.project_id || null })
     revalidateLegacyPortalSurface()

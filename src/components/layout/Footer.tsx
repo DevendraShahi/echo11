@@ -3,7 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { Container } from "@/components/ui/Container";
-import { ArrowUpRight, Github, Twitter, Linkedin } from "lucide-react";
+import { ArrowUpRight } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { useState, useEffect } from "react";
 
@@ -26,7 +26,7 @@ export function Footer() {
   }
 
   return (
-    <footer className="w-full bg-black relative border-t border-white/5 overflow-hidden pt-32 pb-8">
+    <footer className="w-full bg-black relative border-t border-white/5 overflow-hidden pt-32 pb-8 z-40">
       {/* Background ambient noise */}
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom,_var(--tw-gradient-stops))] from-accent/[0.05] via-black to-black opacity-100 pointer-events-none" />
 
@@ -48,14 +48,13 @@ export function Footer() {
               </div>
             </Link>
             <p className="text-white/40 max-w-sm text-sm font-mono leading-relaxed">
-              A product engineering studio based in Nepal. We help ambitious teams ship clear, fast, and durable digital products.
+              A product engineering studio based in Nepal, helping teams plan, design, and build reliable websites, portals, and product systems.
             </p>
 
-            {/* Real-time Status */}
-            <div className="mt-4 flex items-center gap-4 border border-white/10 w-fit px-4 py-2 rounded-full bg-white/[0.02] backdrop-blur-md">
+            <div className="mt-4 flex items-center gap-4 border border-white/10 w-fit px-4 py-2 bg-white/[0.02] backdrop-blur-md">
               <div className="flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse shadow-[0_0_10px_rgba(34,197,94,0.5)]" />
-                <span className="font-mono text-xs uppercase tracking-widest text-white/50">Systems Online</span>
+                <span className="w-2 h-2 bg-accent shadow-[0_0_10px_var(--accent-glow)]" />
+                <span className="font-mono text-xs uppercase tracking-widest text-white/50">Nepal-based studio</span>
               </div>
               <div className="w-px h-4 bg-white/10" />
               <div className="font-mono text-xs text-white/50 tracking-widest">
@@ -70,10 +69,10 @@ export function Footer() {
             <div className="flex flex-col gap-6">
               <h4 className="font-bold text-white/80 font-sans uppercase tracking-[0.2em] text-[11px]">Execution</h4>
               <nav className="flex flex-col gap-4 text-[13px]">
-                <Link href="/services" className="text-white/40 hover:text-white transition-colors">Architecture</Link>
-                <Link href="/services" className="text-white/40 hover:text-white transition-colors">Interface Design</Link>
-                <Link href="/services" className="text-white/40 hover:text-white transition-colors">Product Engineering</Link>
-                <Link href="/services" className="text-white/40 hover:text-white transition-colors">Infrastructure</Link>
+                <Link href="/services" className="text-white/40 hover:text-white transition-colors">Services</Link>
+                <Link href="/process" className="text-white/40 hover:text-white transition-colors">Process</Link>
+                <Link href="/methodology" className="text-white/40 hover:text-white transition-colors">Methodology</Link>
+                <Link href="/contact" className="text-white/40 hover:text-white transition-colors">Start a Conversation</Link>
               </nav>
             </div>
 
@@ -82,28 +81,20 @@ export function Footer() {
               <h4 className="font-bold text-white/80 font-sans uppercase tracking-[0.2em] text-[11px]">Studio</h4>
               <nav className="flex flex-col gap-4 text-[13px]">
                 <Link href="/work" className="text-white/40 hover:text-white transition-colors flex items-center gap-1 group">
-                  Archive <ArrowUpRight className="w-3 h-3 opacity-0 -translate-y-1 translate-x-1 group-hover:opacity-100 group-hover:translate-y-0 group-hover:translate-x-0 transition-all" />
+                  Work <ArrowUpRight className="w-3 h-3 opacity-0 -translate-y-1 translate-x-1 group-hover:opacity-100 group-hover:translate-y-0 group-hover:translate-x-0 transition-all" />
                 </Link>
-                <Link href="/methodology" className="text-white/40 hover:text-white transition-colors">Methodology</Link>
+                <Link href="/about" className="text-white/40 hover:text-white transition-colors">About</Link>
                 <Link href="/manifesto" className="text-white/40 hover:text-white transition-colors">Manifesto</Link>
               </nav>
             </div>
 
-            {/* Network */}
+            {/* Contact */}
             <div className="flex flex-col gap-6 col-span-2 lg:col-span-1">
-              <h4 className="font-bold text-white/80 font-sans uppercase tracking-[0.2em] text-[11px]">Network</h4>
-              <div className="flex items-center gap-4">
-                <a href="#" className="w-10 h-10 rounded-full border border-white/10 flex items-center justify-center text-white/40 hover:text-accent hover:border-accent/40 bg-white/[0.02] hover:bg-accent/10 transition-all">
-                  <Github className="w-4 h-4" />
-                </a>
-                <a href="#" className="w-10 h-10 rounded-full border border-white/10 flex items-center justify-center text-white/40 hover:text-accent hover:border-accent/40 bg-white/[0.02] hover:bg-accent/10 transition-all">
-                  <Twitter className="w-4 h-4" />
-                </a>
-                <a href="#" className="w-10 h-10 rounded-full border border-white/10 flex items-center justify-center text-white/40 hover:text-accent hover:border-accent/40 bg-white/[0.02] hover:bg-accent/10 transition-all">
-                  <Linkedin className="w-4 h-4" />
-                </a>
-              </div>
-              <a href="mailto:echo11.labs@gmail.com" className="mt-4 text-[13px] text-white/50 hover:text-white transition-colors flex items-center gap-2 group">
+              <h4 className="font-bold text-white/80 font-sans uppercase tracking-[0.2em] text-[11px]">Contact</h4>
+              <p className="text-[13px] leading-relaxed text-white/40">
+                Looking for a technical partner? Share the goal, timeline, and constraints.
+              </p>
+              <a href="mailto:echo11.labs@gmail.com" className="text-[13px] text-white/50 hover:text-white transition-colors flex items-center gap-2 group">
                 echo11.labs@gmail.com
                 <ArrowUpRight className="w-3 h-3 group-hover:text-accent group-hover:-translate-y-0.5 group-hover:translate-x-0.5 transition-all" />
               </a>

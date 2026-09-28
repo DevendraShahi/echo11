@@ -1,9 +1,9 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { createClient } from '@/lib/supabase/client'
 import { Activity, FileText, FolderKanban, CheckSquare, MessageSquare, DollarSign, User } from 'lucide-react'
 import { format } from 'date-fns'
+import { getClientActivityFeed } from '@/lib/actions/client-activity-actions'
 
 type ActivityItem = {
   id: string
@@ -57,46 +57,15 @@ export function PortalActivityFeed() {
 
   useEffect(() => {
     async function fetchActivities() {
-      const supabase = createClient()
-      
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) return
-
-      const { data: client } = await supabase
-        .from('clients')
-        .select('id')
-        .eq('auth_id', user.id)
-        .single()
-
-      if (!client) {
+      try {
+        const data = await getClientActivityFeed(10)
+        setActivities(data)
+      } finally {
         setLoading(false)
-        return
       }
-
-      const { data: projectIds } = await supabase
-        .from('projects')
-        .select('id')
-        .eq('client_id', client.id)
-
-      const ids = projectIds?.map(p => p.id) || []
-
-      if (ids.length === 0) {
-        setLoading(false)
-        return
-      }
-
-      const { data } = await supabase
-        .from('activities')
-        .select('*')
-        .in('entity_id', ids)
-        .order('created_at', { ascending: false })
-        .limit(10)
-
-      setActivities(data || [])
-      setLoading(false)
     }
 
-    fetchActivities()
+    void fetchActivities()
   }, [])
 
   if (loading) {

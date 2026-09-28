@@ -1,7 +1,8 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
-import { createClient as createSupabaseClient } from '@supabase/supabase-js'
+import { callApiV1 } from '@/lib/api/v1/internal-client'
+import { isApiFailure } from '@/lib/api/v1/contracts'
 import { revalidatePath } from 'next/cache'
 import { createNotification } from './notification-actions'
 
@@ -19,9 +20,8 @@ export interface TeamUpdateData {
   color?: string
 }
 
-function isMissingCreatedBySchemaError(error: { code?: string; message?: string } | null): boolean {
-  if (!error) return false
-  return error.code === 'PGRST204' && error.message?.includes("'created_by' column of 'teams'") === true
+function nextIdempotencyKey(prefix: string): string {
+  return `${prefix}-${crypto.randomUUID()}`
 }
 
 async function getUserId(supabase: Awaited<ReturnType<typeof createClient>>) {
@@ -74,53 +74,25 @@ async function isLeadOfTeam(
 }
 
 export async function createTeam(data: TeamFormData): Promise<{ success: boolean; error?: string; teamId?: string }> {
-  const supabase = await createClient()
-  const userId = await getUserId(supabase)
-
-  if (!userId) {
-    return { success: false, error: 'You must be logged in' }
-  }
-
   if (!data.name?.trim()) {
     return { success: false, error: 'Team name is required' }
   }
 
   try {
-    const teamPayload = {
-      name: data.name.trim(),
-      description: data.description || null,
-      lead_id: data.lead_id || null,
-      color: data.color || '#6366f1',
-    }
+    const response = await callApiV1<{ team_id: string }>('/teams', {
+      method: 'POST',
+      body: data,
+      idempotencyKey: nextIdempotencyKey('team-create'),
+    })
 
-    let insertResult = await supabase
-      .from('teams')
-      .insert({
-        ...teamPayload,
-        created_by: userId,
-      })
-      .select()
-      .single()
-
-    // Backward compatibility for environments where the migration adding teams.created_by is pending.
-    if (isMissingCreatedBySchemaError(insertResult.error)) {
-      insertResult = await supabase
-        .from('teams')
-        .insert(teamPayload)
-        .select()
-        .single()
-    }
-
-    const { data: team, error } = insertResult
-
-    if (error) {
-      return { success: false, error: error.message }
+    if (isApiFailure(response)) {
+      return { success: false, error: response.error.message }
     }
 
     revalidatePath('/lab/settings')
     revalidatePath('/lab/teams')
 
-    return { success: true, teamId: team.id }
+    return { success: true, teamId: response.data.team_id }
 
   } catch (error) {
     console.error('Error creating team:', error)
@@ -143,20 +115,18 @@ export async function updateTeam(
     return { success: false, error: 'Team name cannot be empty' }
   }
 
-  const updatePayload: TeamUpdateData & { updated_at: string } = {
-    ...data,
-    ...(data.name ? { name: data.name.trim() } : {}),
-    updated_at: new Date().toISOString()
-  }
-
   try {
-    const { error } = await supabase
-      .from('teams')
-      .update(updatePayload)
-      .eq('id', teamId)
+    const response = await callApiV1<{ team_id: string }>(`/teams/${teamId}`, {
+      method: 'PATCH',
+      body: {
+        ...data,
+        ...(data.name ? { name: data.name.trim() } : {}),
+      },
+      idempotencyKey: nextIdempotencyKey('team-update'),
+    })
 
-    if (error) {
-      return { success: false, error: error.message }
+    if (isApiFailure(response)) {
+      return { success: false, error: response.error.message }
     }
 
     // Auto-notify team members about the team update
@@ -200,22 +170,13 @@ export async function deleteTeam(teamId: string): Promise<{ success: boolean; er
   }
 
   try {
-    const supabaseAdmin = createSupabaseClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
-    )
+    const response = await callApiV1<{ team_id: string }>(`/teams/${teamId}`, {
+      method: 'DELETE',
+      idempotencyKey: nextIdempotencyKey('team-delete'),
+    })
 
-    // Clear FK references before deleting
-    await supabaseAdmin.from('profiles').update({ team_id: null }).eq('team_id', teamId)
-    await supabaseAdmin.from('projects').update({ team_id: null }).eq('team_id', teamId)
-
-    const { error } = await supabaseAdmin
-      .from('teams')
-      .delete()
-      .eq('id', teamId)
-
-    if (error) {
-      return { success: false, error: error.message }
+    if (isApiFailure(response)) {
+      return { success: false, error: response.error.message }
     }
 
     revalidatePath('/lab/settings')
@@ -241,23 +202,23 @@ export async function assignUserToTeam(
   }
 
   try {
-    const supabaseAdmin = createSupabaseClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
-    )
+    if (!teamId) {
+      return removeUserFromTeam(userId)
+    }
 
-    const { error } = await supabaseAdmin
-      .from('profiles')
-      .update({ team_id: teamId })
-      .eq('id', userId)
+    const response = await callApiV1<{ user_id: string; team_id: string | null }>(`/teams/${teamId}/members`, {
+      method: 'POST',
+      body: { user_id: userId },
+      idempotencyKey: nextIdempotencyKey('team-member-assign'),
+    })
 
-    if (error) {
-      return { success: false, error: error.message }
+    if (isApiFailure(response)) {
+      return { success: false, error: response.error.message }
     }
 
     // Notify user of assignment
     if (teamId) {
-       const { data: teamInfo } = await supabaseAdmin.from('teams').select('name').eq('id', teamId).single()
+       const { data: teamInfo } = await supabase.from('teams').select('name').eq('id', teamId).single()
        if (teamInfo) {
          await createNotification({
            userId: userId, // ID of the assigned user
@@ -287,30 +248,20 @@ export interface ProjectTagFormData {
 }
 
 export async function createProjectTag(data: ProjectTagFormData): Promise<{ success: boolean; error?: string; tagId?: string }> {
-  const supabase = await createClient()
-  const userId = await getUserId(supabase)
-
-  if (!userId) {
-    return { success: false, error: 'You must be logged in' }
-  }
-
   try {
-    const { data: tag, error } = await supabase
-      .from('project_tags')
-      .insert({
-        name: data.name,
-        color: data.color || '#6366f1'
-      })
-      .select()
-      .single()
+    const response = await callApiV1<{ tag_id: string; lock_version: number | null }>('/project-tags', {
+      method: 'POST',
+      body: data,
+      idempotencyKey: nextIdempotencyKey('project-tag-create'),
+    })
 
-    if (error) {
-      return { success: false, error: error.message }
+    if (isApiFailure(response)) {
+      return { success: false, error: response.error.message }
     }
 
     revalidatePath('/lab/settings')
 
-    return { success: true, tagId: tag.id }
+    return { success: true, tagId: response.data.tag_id }
 
   } catch (error) {
     console.error('Error creating project tag:', error)
@@ -319,21 +270,14 @@ export async function createProjectTag(data: ProjectTagFormData): Promise<{ succ
 }
 
 export async function deleteProjectTag(tagId: string): Promise<{ success: boolean; error?: string }> {
-  const supabase = await createClient()
-  const userId = await getUserId(supabase)
-
-  if (!userId) {
-    return { success: false, error: 'You must be logged in' }
-  }
-
   try {
-    const { error } = await supabase
-      .from('project_tags')
-      .delete()
-      .eq('id', tagId)
+    const response = await callApiV1<{ tag_id: string }>(`/project-tags/${tagId}`, {
+      method: 'DELETE',
+      idempotencyKey: nextIdempotencyKey('project-tag-delete'),
+    })
 
-    if (error) {
-      return { success: false, error: error.message }
+    if (isApiFailure(response)) {
+      return { success: false, error: response.error.message }
     }
 
     revalidatePath('/lab/settings')
@@ -350,18 +294,17 @@ export async function assignTagToProject(
   projectId: string,
   tagId: string
 ): Promise<{ success: boolean; error?: string }> {
-  const supabase = await createClient()
-
   try {
-    const { error } = await supabase
-      .from('project_tag_assignments')
-      .insert({
-        project_id: projectId,
-        tag_id: tagId
-      })
+    const response = await callApiV1<{ project_id: string; tag_id: string; lock_version: number | null }>(
+      `/projects/${projectId}/tags/${tagId}`,
+      {
+        method: 'PUT',
+        idempotencyKey: nextIdempotencyKey('project-tag-assign'),
+      }
+    )
 
-    if (error) {
-      return { success: false, error: error.message }
+    if (isApiFailure(response)) {
+      return { success: false, error: response.error.message }
     }
 
     revalidatePath(`/lab/projects/${projectId}`)
@@ -378,17 +321,14 @@ export async function removeTagFromProject(
   projectId: string,
   tagId: string
 ): Promise<{ success: boolean; error?: string }> {
-  const supabase = await createClient()
-
   try {
-    const { error } = await supabase
-      .from('project_tag_assignments')
-      .delete()
-      .eq('project_id', projectId)
-      .eq('tag_id', tagId)
+    const response = await callApiV1<{ project_id: string; tag_id: string }>(`/projects/${projectId}/tags/${tagId}`, {
+      method: 'DELETE',
+      idempotencyKey: nextIdempotencyKey('project-tag-remove'),
+    })
 
-    if (error) {
-      return { success: false, error: error.message }
+    if (isApiFailure(response)) {
+      return { success: false, error: response.error.message }
     }
 
     revalidatePath(`/lab/projects/${projectId}`)
@@ -531,18 +471,14 @@ export async function assignProjectToTeam(
   }
 
   try {
-    const supabaseAdmin = createSupabaseClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
-    )
+    const response = await callApiV1<{ project_id: string; team_id: string | null }>(`/projects/${projectId}/team`, {
+      method: 'PUT',
+      body: { team_id: teamId },
+      idempotencyKey: nextIdempotencyKey('project-team-assign'),
+    })
 
-    const { error } = await supabaseAdmin
-      .from('projects')
-      .update({ team_id: teamId })
-      .eq('id', projectId)
-
-    if (error) {
-      return { success: false, error: error.message }
+    if (isApiFailure(response)) {
+      return { success: false, error: response.error.message }
     }
 
     revalidatePath(`/lab/projects/${projectId}`)
@@ -564,18 +500,14 @@ export async function removeProjectFromTeam(projectId: string): Promise<{ succes
   }
 
   try {
-    const supabaseAdmin = createSupabaseClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
-    )
+    const response = await callApiV1<{ project_id: string; team_id: string | null }>(`/projects/${projectId}/team`, {
+      method: 'PUT',
+      body: { team_id: null },
+      idempotencyKey: nextIdempotencyKey('project-team-remove'),
+    })
 
-    const { error } = await supabaseAdmin
-      .from('projects')
-      .update({ team_id: null })
-      .eq('id', projectId)
-
-    if (error) {
-      return { success: false, error: error.message }
+    if (isApiFailure(response)) {
+      return { success: false, error: response.error.message }
     }
 
     revalidatePath(`/lab/projects/${projectId}`)
@@ -597,18 +529,26 @@ export async function removeUserFromTeam(userId: string): Promise<{ success: boo
   }
 
   try {
-    const supabaseAdmin = createSupabaseClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    const { data: member } = await supabase
+      .from('profiles')
+      .select('team_id')
+      .eq('id', userId)
+      .single()
+
+    if (!member?.team_id) {
+      return { success: true }
+    }
+
+    const response = await callApiV1<{ user_id: string; team_id: null }>(
+      `/teams/${member.team_id}/members?user_id=${userId}`,
+      {
+        method: 'DELETE',
+        idempotencyKey: nextIdempotencyKey('team-member-remove'),
+      }
     )
 
-    const { error } = await supabaseAdmin
-      .from('profiles')
-      .update({ team_id: null })
-      .eq('id', userId)
-
-    if (error) {
-      return { success: false, error: error.message }
+    if (isApiFailure(response)) {
+      return { success: false, error: response.error.message }
     }
 
     revalidatePath('/lab/settings')
@@ -633,18 +573,14 @@ export async function setTeamLead(
   }
 
   try {
-    const supabaseAdmin = createSupabaseClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
-    )
+    const response = await callApiV1<{ team_id: string; lead_id: string }>(`/teams/${teamId}/lead`, {
+      method: 'PUT',
+      body: { user_id: userId },
+      idempotencyKey: nextIdempotencyKey('team-lead-set'),
+    })
 
-    const { error } = await supabaseAdmin
-      .from('teams')
-      .update({ lead_id: userId, updated_at: new Date().toISOString() })
-      .eq('id', teamId)
-
-    if (error) {
-      return { success: false, error: error.message }
+    if (isApiFailure(response)) {
+      return { success: false, error: response.error.message }
     }
 
     revalidatePath('/lab/teams')
@@ -680,6 +616,7 @@ export async function getTeamMembers(teamId: string) {
 }
 
 export interface UserRoleAndTeam {
+  userId: string
   role: string
   teamId: string | null
   isAdmin: boolean
@@ -704,6 +641,7 @@ export async function getUserRoleAndTeam(): Promise<UserRoleAndTeam | null> {
   const isLead = isAdmin ? false : await checkIsTeamLead(user.id)
 
   return {
+    userId: user.id,
     role: profile.role,
     teamId: profile.team_id,
     isAdmin,

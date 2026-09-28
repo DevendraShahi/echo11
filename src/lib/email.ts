@@ -1,8 +1,8 @@
-import { Resend } from 'resend'
-
-const resend = process.env.RESEND_API_KEY
-  ? new Resend(process.env.RESEND_API_KEY)
-  : null
+async function getResendClient() {
+  if (!process.env.RESEND_API_KEY) return null
+  const { Resend } = await import('resend')
+  return new Resend(process.env.RESEND_API_KEY)
+}
 
 const FROM_EMAIL = process.env.FROM_EMAIL || 'echo11 (no-reply) <onboarding@echo11.com>'
 const DEFAULT_APP_ORIGIN = 'https://echo11.tech'
@@ -72,6 +72,7 @@ export async function sendClientInvitation({
   const appOrigin = getOrigin(APP_URL)
   const inviteBaseUrl = resolveClientBaseUrl(CLIENT_URL)
   const targetProjectName = projectName || companyName
+  const resend = await getResendClient()
 
   if (!resend) {
     console.log('📧 [DEV MODE] Client invitation email would be sent to:', to)
@@ -188,6 +189,7 @@ export async function sendWelcomeEmail({
   name,
   projectName
 }: WelcomeEmailParams): Promise<{ success: boolean; error?: string }> {
+  const resend = await getResendClient()
   if (!resend) {
     console.log('📧 [DEV MODE] Welcome email would be sent to:', to)
     return { success: true }
@@ -428,6 +430,7 @@ export async function sendTeamInvitation({
 }: TeamInvitationParams): Promise<{ success: boolean; error?: string }> {
   const LAB_URL = process.env.NEXT_PUBLIC_LAB_URL || 'http://localhost:3000/lab'
   const signupLink = `${LAB_URL}/auth/team-signup?invite=${inviteId}`
+  const resend = await getResendClient()
 
   if (!resend) {
     console.log('📧 [DEV MODE] Team invite email would be sent to:', to)
@@ -452,6 +455,116 @@ export async function sendTeamInvitation({
     return { success: true }
   } catch (error) {
     console.error('Failed to send team invitation email:', error)
+    return { success: false, error: 'Failed to send email' }
+  }
+}
+
+interface SendContactInquiryParams {
+  name: string
+  email: string
+  company?: string
+  projectType: string
+  timeline: string
+  budget?: string
+  message: string
+}
+
+export async function sendContactInquiry({
+  name,
+  email,
+  company,
+  projectType,
+  timeline,
+  budget,
+  message
+}: SendContactInquiryParams): Promise<{ success: boolean; error?: string }> {
+  const resend = await getResendClient()
+
+  if (!resend) {
+    console.log('📧 [DEV MODE] Contact inquiry from:', name, email)
+    console.log('📧 [DEV MODE] Project type:', projectType)
+    return { success: true }
+  }
+
+  try {
+    const { error } = await resend.emails.send({
+      from: FROM_EMAIL,
+      to: 'echo11.labs@gmail.com',
+      replyTo: email,
+      subject: `New project inquiry from ${name}`,
+      html: `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body style="margin: 0; padding: 0; font-family: system-ui, sans-serif; background-color: #0f0f0f; color: #ffffff;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #0f0f0f; padding: 40px 20px;">
+    <tr>
+      <td align="center">
+        <table width="100%" cellpadding="0" cellspacing="0" style="max-width: 500px; background-color: #1a1a1a; border-radius: 0; overflow: hidden;">
+          <tr>
+            <td style="background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%); padding: 40px; text-align: center; border-bottom: 2px solid #00E5FF;">
+              <img src="${DEFAULT_APP_ORIGIN}/echo11-logo-white.png" alt="echo11" style="height: 44px; width: auto; display: inline-block; border: 0;" />
+              <p style="margin: 12px 0 0; font-size: 14px; color: #a1a1a1; text-transform: uppercase; letter-spacing: 2px;">New Project Inquiry</p>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding: 40px 30px;">
+              <h2 style="margin: 0 0 20px 0; font-size: 22px; font-weight: 600; color: #ffffff;">
+                New inquiry from ${name}
+              </h2>
+              <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #0a0a0a; border: 1px solid #222222; margin-bottom: 24px;">
+                <tr>
+                  <td style="padding: 20px;">
+                    <p style="margin: 0 0 8px; font-size: 12px; color: #00E5FF; text-transform: uppercase; letter-spacing: 1px;">Contact</p>
+                    <p style="margin: 0 0 4px; font-size: 16px; color: #fcfcfc; font-weight: 600;">${name}</p>
+                    <p style="margin: 0 0 4px; font-size: 14px; color: #a1a1a1;">${email}</p>
+                    ${company ? `<p style="margin: 0; font-size: 14px; color: #a1a1a1;">${company}</p>` : ''}
+                  </td>
+                </tr>
+              </table>
+              <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #0a0a0a; border: 1px solid #222222; margin-bottom: 24px;">
+                <tr>
+                  <td style="padding: 20px;">
+                    <p style="margin: 0 0 8px; font-size: 12px; color: #00E5FF; text-transform: uppercase; letter-spacing: 1px;">Project Details</p>
+                    <p style="margin: 0 0 4px; font-size: 14px; color: #a1a1a1;">Type: <span style="color: #fcfcfc;">${projectType}</span></p>
+                    <p style="margin: 0 0 4px; font-size: 14px; color: #a1a1a1;">Timeline: <span style="color: #fcfcfc;">${timeline}</span></p>
+                    ${budget ? `<p style="margin: 0; font-size: 14px; color: #a1a1a1;">Budget: <span style="color: #fcfcfc;">${budget}</span></p>` : ''}
+                  </td>
+                </tr>
+              </table>
+              <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #0a0a0a; border: 1px solid #222222;">
+                <tr>
+                  <td style="padding: 20px;">
+                    <p style="margin: 0 0 8px; font-size: 12px; color: #00E5FF; text-transform: uppercase; letter-spacing: 1px;">Message</p>
+                    <p style="margin: 0; font-size: 14px; color: #a1a1a1; line-height: 1.6; white-space: pre-wrap;">${message}</p>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          <tr>
+            <td style="background-color: #0a0a0a; padding: 24px; text-align: center; border-top: 1px solid #222222;">
+              <p style="margin: 0; font-size: 12px; color: #666;">&copy; ${new Date().getFullYear()} echo11. All rights reserved.</p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`,
+    })
+
+    if (error) {
+      console.error('Resend error:', error)
+      return { success: false, error: error.message }
+    }
+
+    return { success: true }
+  } catch (error) {
+    console.error('Failed to send contact inquiry:', error)
     return { success: false, error: 'Failed to send email' }
   }
 }

@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { Bell, Check, Trash2, FileText, Users, Calendar, AlertCircle, ExternalLink } from 'lucide-react'
-import { motion, AnimatePresence } from 'framer-motion'
 import Link from 'next/link'
 import { Notification } from '@/types/lab'
 import { getNotifications, getUnreadCount, markAsRead, markAllAsRead, deleteNotification } from '@/lib/actions/notification-actions'
@@ -104,9 +103,7 @@ export function NotificationBell() {
 
   return (
     <div className="relative" ref={dropdownRef}>
-      <motion.button 
-        whileHover={{ scale: 1.05 }}
-        whileTap={{ scale: 0.95 }}
+      <button
         onClick={() => setIsOpen(!isOpen)}
         className="relative p-2 text-white/50 hover:text-white hover:bg-white/5 rounded-none transition-all duration-200"
       >
@@ -114,17 +111,10 @@ export function NotificationBell() {
         {unreadCount > 0 && (
           <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-accent rounded-full shadow-[0_0_8px_var(--accent-glow)]" />
         )}
-      </motion.button>
+      </button>
 
-      <AnimatePresence>
-        {isOpen && (
-          <motion.div
-            initial={{ opacity: 0, y: 10, scale: 0.95 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 10, scale: 0.95 }}
-            transition={{ duration: 0.15 }}
-            className="absolute right-0 top-full mt-2 w-80 bg-[#0a0a0a] border border-white/10 shadow-2xl overflow-hidden z-50"
-          >
+      {isOpen ? (
+        <div className="absolute right-0 top-full mt-2 w-80 bg-[#0a0a0a] border border-white/10 shadow-2xl overflow-hidden z-50">
             <div className="flex items-center justify-between p-3 border-b border-white/5">
               <h3 className="text-sm font-semibold text-white font-sans">Notifications</h3>
               {unreadCount > 0 && (
@@ -211,9 +201,8 @@ export function NotificationBell() {
                 </div>
               )}
             </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+        </div>
+      ) : null}
     </div>
   )
 }

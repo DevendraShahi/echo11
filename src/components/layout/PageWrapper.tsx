@@ -13,7 +13,7 @@ export function PageWrapper({ children }: { children: React.ReactNode }) {
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -20 }}
       transition={{ duration: 0.5, ease: "easeOut" }}
-      className="relative z-0 flex min-h-screen flex-col overflow-x-clip"
+      className="relative z-0 flex flex-col flex-1 overflow-x-clip"
     >
       <div className="grain-overlay fixed inset-0 z-50 pointer-events-none" />
 
@@ -25,7 +25,7 @@ export function PageWrapper({ children }: { children: React.ReactNode }) {
         </div>
       )}
 
-      <div className="relative z-10 flex flex-col min-h-screen">
+      <div className="relative z-10 flex flex-col flex-1">
         {children}
       </div>
     </motion.div>

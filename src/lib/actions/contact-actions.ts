@@ -3,7 +3,8 @@
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { ClientContact, ContactRole } from '@/types/lab'
-import { requireAdminOrLead } from './role-helpers'
+import { callApiV1 } from '@/lib/api/v1/internal-client'
+import { isApiFailure } from '@/lib/api/v1/contracts'
 
 export interface CreateContactParams {
   client_id: string
@@ -24,6 +25,10 @@ export interface UpdateContactParams {
   notes?: string
 }
 
+function nextIdempotencyKey(prefix: string): string {
+  return `${prefix}-${crypto.randomUUID()}`
+}
+
 export async function createContact(
   params: CreateContactParams
 ): Promise<{ success: boolean; contact?: ClientContact; error?: string }> {
@@ -34,41 +39,36 @@ export async function createContact(
     return { success: false, error: 'You must be logged in' }
   }
 
-  const allowed = await requireAdminOrLead(user.id)
-  if (!allowed) {
-    return { success: false, error: 'Only admins or team leads can add contacts' }
-  }
-
   if (!params.name?.trim()) {
     return { success: false, error: 'Contact name is required' }
   }
 
   try {
-    if (params.is_primary) {
-      await supabase
-        .from('client_contacts')
-        .update({ is_primary: false })
-        .eq('client_id', params.client_id)
+    const response = await callApiV1<{ contact_id: string; client_id: string; lock_version: number | null }>(
+      `/clients/${params.client_id}/contacts`,
+      {
+        method: 'POST',
+        body: {
+          name: params.name,
+          email: params.email,
+          phone: params.phone,
+          role: params.role,
+          is_primary: params.is_primary,
+          notes: params.notes,
+        },
+        idempotencyKey: nextIdempotencyKey('contact-create'),
+      }
+    )
+
+    if (isApiFailure(response)) {
+      return { success: false, error: response.error.message }
     }
 
-    const { data: contact, error } = await supabase
+    const { data: contact } = await supabase
       .from('client_contacts')
-      .insert({
-        client_id: params.client_id,
-        name: params.name.trim(),
-        email: params.email || undefined,
-        phone: params.phone || undefined,
-        role: params.role || undefined,
-        is_primary: params.is_primary || false,
-        notes: params.notes || undefined
-      })
-      .select()
+      .select('*')
+      .eq('id', response.data.contact_id)
       .single()
-
-    if (error) {
-      console.error('Error creating contact:', error)
-      return { success: false, error: error.message }
-    }
 
     await supabase.from('activities').insert({
       user_id: user.id,
@@ -100,37 +100,29 @@ export async function updateContact(
     return { success: false, error: 'You must be logged in' }
   }
 
-  const allowed = await requireAdminOrLead(user.id)
-  if (!allowed) {
-    return { success: false, error: 'Only admins or team leads can update contacts' }
-  }
-
   if (params.name !== undefined && !params.name.trim()) {
     return { success: false, error: 'Contact name cannot be empty' }
   }
 
   try {
-    if (params.is_primary) {
-      await supabase
-        .from('client_contacts')
-        .update({ is_primary: false })
-        .eq('client_id', clientId)
-    }
+    const response = await callApiV1<{ contact_id: string; client_id: string; lock_version: number | null }>(
+      `/clients/${clientId}/contacts/${contactId}`,
+      {
+        method: 'PATCH',
+        body: {
+          name: params.name,
+          email: params.email,
+          phone: params.phone,
+          role: params.role,
+          is_primary: params.is_primary,
+          notes: params.notes,
+        },
+        idempotencyKey: nextIdempotencyKey('contact-update'),
+      }
+    )
 
-    const { error } = await supabase
-      .from('client_contacts')
-      .update({
-        name: params.name,
-        email: params.email || undefined,
-        phone: params.phone || undefined,
-        role: params.role || undefined,
-        is_primary: params.is_primary || false,
-        notes: params.notes || undefined
-      })
-      .eq('id', contactId)
-
-    if (error) {
-      return { success: false, error: error.message }
+    if (isApiFailure(response)) {
+      return { success: false, error: response.error.message }
     }
 
     revalidatePath(`/lab/clients/${clientId}`)
@@ -153,37 +145,14 @@ export async function deleteContact(
     return { success: false, error: 'You must be logged in' }
   }
 
-  const allowed = await requireAdminOrLead(user.id)
-  if (!allowed) {
-    return { success: false, error: 'Only admins or team leads can delete contacts' }
-  }
-
   try {
-    // Prevent deleting primary contact if others exist
-    const { data: contactToDelete } = await supabase
-      .from('client_contacts')
-      .select('is_primary')
-      .eq('id', contactId)
-      .single()
+    const response = await callApiV1<{ contact_id: string; client_id: string }>(`/clients/${clientId}/contacts/${contactId}`, {
+      method: 'DELETE',
+      idempotencyKey: nextIdempotencyKey('contact-delete'),
+    })
 
-    if (contactToDelete?.is_primary) {
-      const { count } = await supabase
-        .from('client_contacts')
-        .select('*', { count: 'exact', head: true })
-        .eq('client_id', clientId)
-
-      if ((count ?? 0) > 1) {
-        return { success: false, error: 'Cannot delete the primary contact while other contacts exist. Assign a new primary first.' }
-      }
-    }
-
-    const { error } = await supabase
-      .from('client_contacts')
-      .delete()
-      .eq('id', contactId)
-
-    if (error) {
-      return { success: false, error: error.message }
+    if (isApiFailure(response)) {
+      return { success: false, error: response.error.message }
     }
 
     revalidatePath(`/lab/clients/${clientId}`)
@@ -206,24 +175,17 @@ export async function setPrimaryContact(
     return { success: false, error: 'You must be logged in' }
   }
 
-  const allowed = await requireAdminOrLead(user.id)
-  if (!allowed) {
-    return { success: false, error: 'Only admins or team leads can change primary contacts' }
-  }
-
   try {
-    await supabase
-      .from('client_contacts')
-      .update({ is_primary: false })
-      .eq('client_id', clientId)
+    const response = await callApiV1<{ contact_id: string; client_id: string; lock_version: number | null }>(
+      `/clients/${clientId}/contacts/${contactId}/primary`,
+      {
+        method: 'PUT',
+        idempotencyKey: nextIdempotencyKey('contact-primary'),
+      }
+    )
 
-    const { error } = await supabase
-      .from('client_contacts')
-      .update({ is_primary: true })
-      .eq('id', contactId)
-
-    if (error) {
-      return { success: false, error: error.message }
+    if (isApiFailure(response)) {
+      return { success: false, error: response.error.message }
     }
 
     revalidatePath(`/lab/clients/${clientId}`)

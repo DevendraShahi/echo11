@@ -1,197 +1,78 @@
-import { PageHeader } from '@/components/ui/PageHeader'
-import { LabCard, LabCardContent, LabCardHeader, LabCardTitle } from '@/components/ui/LabCard'
-import { CheckSquare, Briefcase, FileSignature, BookOpen, Users, Settings, LayoutDashboard } from 'lucide-react'
+import { BookOpen, Building2, CheckSquare, DollarSign, MessageSquare, Settings } from 'lucide-react'
+import { LabPageHeader } from '@/components/lab/primitives/LabPageHeader'
+import { MetricStrip } from '@/components/lab/primitives/MetricStrip'
+import { PanelSection } from '@/components/lab/primitives/PanelSection'
 
 export const metadata = {
-  title: 'Team Onboarding | echo11Lab',
-  description: 'A complete guide to using every granular feature of the Echo11 Lab platform.',
+  title: 'Lab Architecture Guide | echo11Lab',
+  description: 'Operating guide for the rebuilt project-centric /lab architecture.',
 }
 
 export default function DocsPage() {
   return (
-    <div className="space-y-16">
-      
-      {/* Intro */}
-      <section>
-        <PageHeader 
-          title="Echo11 Lab Master Guide" 
-          description="A complete and detailed overview of every feature available in your workspace."
-        />
-        <p className="mt-8 text-lg font-sans text-white/80 leading-relaxed border-l-4 border-accent pl-6">
-          This system is your central nervous system. Using these features properly ensures our internal team and our clients always have a single source of truth.
-        </p>
-      </section>
+    <div className="space-y-6">
+      <LabPageHeader
+        title="Lab Architecture Guide"
+        description="Project-centric operating model, page responsibilities, and workflow standards"
+        icon={BookOpen}
+      />
 
-      {/* 1. Dashboard */}
-      <section id="dashboard" className="scroll-mt-12">
-        <div className="flex items-center gap-3 border-b border-white/10 pb-4 mb-6">
-          <LayoutDashboard className="w-5 h-5 text-accent" />
-          <h2 className="text-2xl font-bold font-sans">1. Dashboard & Feed</h2>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <LabCard>
-            <LabCardHeader><LabCardTitle>Statistics & Charts</LabCardTitle></LabCardHeader>
-            <LabCardContent>
-              <ul className="list-disc list-inside text-sm text-white/70 space-y-2">
-                <li><strong>Stats Cards:</strong> Quick numeric views of Active Projects, Tasks Completed, Monthly Revenue, and Upcoming Meetings.</li>
-                <li><strong>Revenue Chart:</strong> 6-month line chart tracking financial trends.</li>
-                <li><strong>Status Chart:</strong> Donut chart of project distributions (Active, Hold, Completed, Archived).</li>
-              </ul>
-            </LabCardContent>
-          </LabCard>
-          <LabCard>
-            <LabCardHeader><LabCardTitle>Activity & Actions</LabCardTitle></LabCardHeader>
-            <LabCardContent>
-              <ul className="list-disc list-inside text-sm text-white/70 space-y-2">
-                <li><strong>Activity Feed:</strong> A chronological live ledger of every action team members perform.</li>
-                <li><strong>Quick Actions:</strong> Top-level buttons to instantly create a new Project, Task, Meeting, or Invoice.</li>
-                <li><strong>Active Items:</strong> Lists the 5 most recently updated projects and any overdue tasks.</li>
-              </ul>
-            </LabCardContent>
-          </LabCard>
-        </div>
-      </section>
+      <MetricStrip
+        items={[
+          { label: 'Canonical Surfaces', value: '5', hint: 'command, projects, clients, messages, settings' },
+          { label: 'Project Cockpit Tabs', value: '6', hint: 'overview, delivery, finance, client, team, activity' },
+          { label: 'Primary Principle', value: 'In-Context', tone: 'accent', hint: 'Avoid cross-page route hopping' },
+          { label: 'Architecture Goal', value: 'Single Source', hint: 'Shared primitives + feature modules' },
+        ]}
+      />
 
-      {/* 2. Clients & Teams */}
-      <section id="clients" className="scroll-mt-12">
-        <div className="flex items-center gap-3 border-b border-white/10 pb-4 mb-6">
-          <Users className="w-5 h-5 text-accent" />
-          <h2 className="text-2xl font-bold font-sans">2. Clients & Teams</h2>
-        </div>
-        <div className="space-y-6">
-          <LabCard>
-            <LabCardHeader><LabCardTitle>Client Lifecycle & Access</LabCardTitle></LabCardHeader>
-            <LabCardContent>
-              <ul className="list-disc list-inside text-sm text-white/70 space-y-2">
-                <li><strong>Lifecycle Status:</strong> Track client journey using flags like Lead, Prospect, Active, At Risk, or Inactive.</li>
-                <li><strong>Client Detail Tabbing:</strong> Every client has sub-tabs for Contacts, Projects, Invoices, Documents, and Activity history.</li>
-                <li><strong>Client Access:</strong> You can explicitly trigger &quot;Send Invitation&quot; to create auth accounts for clients to access their own client area.</li>
-              </ul>
-            </LabCardContent>
-          </LabCard>
-          <LabCard>
-            <LabCardHeader><LabCardTitle>Team Hierarchy</LabCardTitle></LabCardHeader>
-            <LabCardContent>
-              <ul className="list-disc list-inside text-sm text-white/70 space-y-2">
-                <li><strong>Roles:</strong> Assign members as &quot;Admin&quot; (sees and manages everything) or &quot;Member&quot; (sees their assigned scope).</li>
-                <li><strong>Team Lead Access:</strong> Leaders can see all work underneath their designated team hierarchy.</li>
-                <li><strong>Team Assignment:</strong> Organize staff into teams (e.g. Design Team, Dev Team) with distinctly assigned colors.</li>
-              </ul>
-            </LabCardContent>
-          </LabCard>
-        </div>
-      </section>
+      <div id="surface-contracts" className="scroll-mt-24">
+      <PanelSection title="1. Top-Level Surface Contracts" description="What each canonical page owns">
+        <ul className="space-y-2 text-sm text-white/70 font-sans">
+          <li><strong>Command:</strong> global operational pulse, alerts, and launch actions.</li>
+          <li><strong>Projects:</strong> entry list for delivery workspaces and project creation.</li>
+          <li><strong>Clients:</strong> relationship directory, status lifecycle, and client-level summaries.</li>
+          <li><strong>Messages:</strong> client conversation queue and unread triage.</li>
+          <li><strong>Settings:</strong> user and workspace configuration.</li>
+        </ul>
+      </PanelSection>
+      </div>
 
-      {/* 3. Projects & Milestones */}
-      <section id="projects" className="scroll-mt-12">
-        <div className="flex items-center gap-3 border-b border-white/10 pb-4 mb-6">
-          <Briefcase className="w-5 h-5 text-accent" />
-          <h2 className="text-2xl font-bold font-sans">3. Projects & Milestones</h2>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <LabCard>
-            <LabCardHeader><LabCardTitle>Project Board Output</LabCardTitle></LabCardHeader>
-            <LabCardContent>
-              <ul className="list-disc list-inside text-sm text-white/70 space-y-2">
-                <li><strong>Grid vs List View:</strong> Toggle between visual cards or a compact table layout showing detailed budgets.</li>
-                <li><strong>Status Filtering:</strong> Filter board by Active, On Hold, Completed, or Archived.</li>
-                <li><strong>Project Categories:</strong> Categorize as Website, Mobile, Branding, Consulting, etc.</li>
-              </ul>
-            </LabCardContent>
-          </LabCard>
-          <LabCard>
-            <LabCardHeader><LabCardTitle>Internal Tracking</LabCardTitle></LabCardHeader>
-            <LabCardContent>
-              <ul className="list-disc list-inside text-sm text-white/70 space-y-2">
-                <li><strong>Tab Hierarchy:</strong> Every project houses internal tabs for its Tasks, Time Entries, Meetings, and Invoices.</li>
-                <li><strong>Milestones:</strong> Break projects down. Completing milestones automatically calculates the numeric Progress bar.</li>
-                <li><strong>Expenses:</strong> Auto-calculates your project Total Budget automatically when external expenses are logged.</li>
-              </ul>
-            </LabCardContent>
-          </LabCard>
-        </div>
-      </section>
+      <div id="project-workflow" className="scroll-mt-24">
+      <PanelSection title="2. Project-Centric Workflow" description="All execution work happens in project context">
+        <ul className="space-y-2 text-sm text-white/70 font-sans">
+          <li className="flex items-start gap-2"><CheckSquare className="mt-0.5 h-4 w-4 text-accent" /><span><strong>Delivery:</strong> kanban + task stream in one project workspace.</span></li>
+          <li className="flex items-start gap-2"><DollarSign className="mt-0.5 h-4 w-4 text-accent" /><span><strong>Finance:</strong> invoices, contracts, and expense ledger tied to project margin visibility.</span></li>
+          <li className="flex items-start gap-2"><Building2 className="mt-0.5 h-4 w-4 text-accent" /><span><strong>Client:</strong> brief snapshot with direct bridge to full client profile.</span></li>
+          <li className="flex items-start gap-2"><MessageSquare className="mt-0.5 h-4 w-4 text-accent" /><span><strong>Activity:</strong> traceable project action timeline.</span></li>
+        </ul>
+      </PanelSection>
+      </div>
 
-      {/* 4. Tasks & Meetings */}
-      <section id="tasks" className="scroll-mt-12">
-        <div className="flex items-center gap-3 border-b border-white/10 pb-4 mb-6">
-          <CheckSquare className="w-5 h-5 text-accent" />
-          <h2 className="text-2xl font-bold font-sans">4. Tasks & Meetings</h2>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <LabCard>
-            <LabCardHeader><LabCardTitle>Tasks & Sorting</LabCardTitle></LabCardHeader>
-            <LabCardContent>
-              <ul className="list-disc list-inside text-sm text-white/70 space-y-2">
-                <li><strong>Kanban Drag & Drop:</strong> Columns for To Do, In Progress, Review, and Done.</li>
-                <li><strong>Priorities:</strong> Assign colors for Urgency (Gray: Low, Blue: Medium, Orange: High, Red: Urgent).</li>
-                <li><strong>Task Detail Panel:</strong> Click a task to log time entries or attach physical files. Use <code>ESC</code> to quickly exit modals.</li>
-              </ul>
-            </LabCardContent>
-          </LabCard>
-          <LabCard>
-            <LabCardHeader><LabCardTitle>Meeting Calendar</LabCardTitle></LabCardHeader>
-            <LabCardContent>
-              <ul className="list-disc list-inside text-sm text-white/70 space-y-2">
-                <li><strong>Date Grouping:</strong> Organizes syncs perfectly into Today, Tomorrow, This Week, and Later headers.</li>
-                <li><strong>Quick Joins:</strong> Stores Zoom/Meet links with a 1-click Join button.</li>
-                <li><strong>Project Linking:</strong> Tie meetings directly into the historical log of a Client Project.</li>
-              </ul>
-            </LabCardContent>
-          </LabCard>
-        </div>
-      </section>
+      <div id="frontend-rules" className="scroll-mt-24">
+      <PanelSection title="3. Frontend Architecture Rules" description="Engineering standards for future /lab changes">
+        <ul className="space-y-2 text-sm text-white/70 font-sans">
+          <li>Use shared primitives (`LabPageHeader`, `MetricStrip`, `PanelSection`, `DataState`) before introducing custom wrappers.</li>
+          <li>Route files should focus on data loading/composition; reusable behavior belongs in feature modules.</li>
+          <li>Avoid duplicate page-level state machines for filtering/searching when existing patterns can be reused.</li>
+          <li>Preserve industrial-editorial tokens: sharp borders, mono metadata, dense hierarchy, dark/cyan accent system.</li>
+        </ul>
+      </PanelSection>
+      </div>
 
-      {/* 5. Invoices & Contracts */}
-      <section id="invoices" className="scroll-mt-12">
-        <div className="flex items-center gap-3 border-b border-white/10 pb-4 mb-6">
-          <FileSignature className="w-5 h-5 text-accent" />
-          <h2 className="text-2xl font-bold font-sans">5. Invoices & Contracts</h2>
-        </div>
-        <div className="space-y-6">
-          <LabCard>
-            <LabCardHeader><LabCardTitle>Invoicing Logic</LabCardTitle></LabCardHeader>
-            <LabCardContent>
-              <ul className="list-disc list-inside text-sm text-white/70 space-y-2">
-                <li><strong>Status Workflow:</strong> Track invoices down the pipe: Draft → Sent → Paid (or Overdue / Cancelled).</li>
-                <li><strong>PDF Exporting:</strong> Generates fully stylized PDF invoices from your line items.</li>
-                <li><strong>Automated Math:</strong> Provide Quantity and Rates; the system handles sub-totals and fractional Tax percentages flawlessly.</li>
-              </ul>
-            </LabCardContent>
-          </LabCard>
-          <LabCard>
-            <LabCardHeader><LabCardTitle>Contracts</LabCardTitle></LabCardHeader>
-            <LabCardContent>
-              <ul className="list-disc list-inside text-sm text-white/70 space-y-2">
-                <li><strong>Status Tracking:</strong> Track Legal scopes through Draft, Pending, Signed, Expired, or Terminated markers.</li>
-                <li><strong>Financial Alignment:</strong> Stores monetary scope values alongside the uploaded documentation files.</li>
-              </ul>
-            </LabCardContent>
-          </LabCard>
-        </div>
-      </section>
+      <div id="navigation-boundaries" className="scroll-mt-24">
+      <PanelSection title="4. Navigation Boundaries" description="What is intentionally not a primary nav destination">
+        <ul className="space-y-2 text-sm text-white/70 font-sans">
+          <li>Legacy split workflows (`/lab/tasks`, `/lab/invoices`, `/lab/contracts`, `/lab/dashboard`) are deprecated as top-level IA.</li>
+          <li>Detail pages can still exist for deep links, but user journeys should begin from command/projects/clients/messages/settings.</li>
+          <li>When adding new capabilities, first ask: does it belong in a project cockpit tab?</li>
+        </ul>
+      </PanelSection>
+      </div>
 
-      {/* 6. Settings */}
-      <section id="settings" className="scroll-mt-12 pt-8">
-        <div className="flex items-center gap-3 border-b border-white/10 pb-4 mb-6">
-          <Settings className="w-5 h-5 text-accent" />
-          <h2 className="text-2xl font-bold font-sans">6. Settings & Profile</h2>
-        </div>
-        <LabCard>
-          <LabCardContent className="pt-6">
-            <ul className="list-disc list-inside text-sm text-white/70 space-y-2">
-              <li><strong>Profile Adjustments:</strong> Assign your personal Avatar, Name, and view your Team status.</li>
-              <li><strong>Notification Toggles:</strong> Enable or disable specific email notifications like Task Reminders or Meeting alerts.</li>
-              <li><strong>Appearance Toggles:</strong> Switch global layout themes between Dark mode (recommended), Light, or System syncing.</li>
-            </ul>
-          </LabCardContent>
-        </LabCard>
-      </section>
-
-      <div className="pt-20 pb-10 flex items-center justify-center opacity-30">
-        <div className="w-8 h-8 rounded-none bg-accent/20 flex items-center justify-center border border-accent">
-          <BookOpen className="w-4 h-4 text-accent" />
-        </div>
+      <div className="border border-white/10 bg-black/40 p-4 text-xs text-white/45 font-mono flex items-center gap-2">
+        <Settings className="h-3.5 w-3.5 text-accent" />
+        Keep this guide updated when /lab page responsibilities or canonical routes change.
       </div>
     </div>
   )

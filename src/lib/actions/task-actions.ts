@@ -184,7 +184,8 @@ export async function createTask(data: TaskFormData): Promise<{ success: boolean
       })
     }
 
-    revalidatePath('/lab/tasks')
+    revalidatePath('/lab/projects')
+    revalidatePath('/lab/command')
     revalidatePath(`/lab/projects/${data.project_id}`)
     revalidateClientSurface({ projectId: data.project_id })
     revalidateLegacyPortalSurface()
@@ -286,7 +287,8 @@ export async function updateTask(
     }
 
     // Revalidate paths
-    revalidatePath('/lab/tasks')
+    revalidatePath('/lab/projects')
+    revalidatePath('/lab/command')
     if (oldTask?.project_id) {
       revalidatePath(`/lab/projects/${oldTask.project_id}`)
       revalidateClientSurface({ projectId: oldTask.project_id })
@@ -349,7 +351,8 @@ export async function deleteTask(taskId: string): Promise<{ success: boolean; er
       console.warn('Failed to log activity:', activityError)
     }
 
-    revalidatePath('/lab/tasks')
+    revalidatePath('/lab/projects')
+    revalidatePath('/lab/command')
     if (task?.project_id) {
       revalidatePath(`/lab/projects/${task.project_id}`)
       revalidateClientSurface({ projectId: task.project_id })
@@ -427,7 +430,8 @@ export async function updateTaskStatus(
       console.warn('Failed to log activity:', activityError)
     }
 
-    revalidatePath('/lab/tasks')
+    revalidatePath('/lab/projects')
+    revalidatePath('/lab/command')
     revalidatePath(`/lab/tasks/${taskId}`)
     if (access.projectId) {
       revalidatePath(`/lab/projects/${access.projectId}`)
@@ -467,7 +471,8 @@ export async function logTime(data: TimeLogData): Promise<{ success: boolean; er
       return { success: false, error: error.message }
     }
 
-    revalidatePath('/lab/tasks')
+    revalidatePath(`/lab/tasks/${data.task_id}`)
+    revalidatePath('/lab/projects')
 
     return { success: true }
 
@@ -511,7 +516,8 @@ export async function addTaskComment(data: TaskCommentData): Promise<{ success: 
       return { success: false, error: error.message }
     }
 
-    revalidatePath('/lab/tasks')
+    revalidatePath(`/lab/tasks/${data.task_id}`)
+    revalidatePath('/lab/projects')
 
     return { success: true }
 
@@ -530,6 +536,12 @@ export async function deleteTaskComment(commentId: string): Promise<{ success: b
   }
 
   try {
+    const { data: comment } = await supabase
+      .from('task_comments')
+      .select('task_id')
+      .eq('id', commentId)
+      .single()
+
     const { error } = await supabase
       .from('task_comments')
       .delete()
@@ -540,7 +552,10 @@ export async function deleteTaskComment(commentId: string): Promise<{ success: b
       return { success: false, error: error.message }
     }
 
-    revalidatePath('/lab/tasks')
+    if (comment?.task_id) {
+      revalidatePath(`/lab/tasks/${comment.task_id}`)
+    }
+    revalidatePath('/lab/projects')
 
     return { success: true }
 
@@ -674,7 +689,8 @@ export async function uploadTaskAttachment(
       return { success: false, error: dbError.message }
     }
 
-    revalidatePath('/lab/tasks')
+    revalidatePath(`/lab/tasks/${taskId}`)
+    revalidatePath('/lab/projects')
 
     return { success: true, attachmentId: attachment.id }
 
@@ -696,7 +712,7 @@ export async function deleteTaskAttachment(attachmentId: string): Promise<{ succ
     // Get attachment info first
     const { data: attachment } = await supabase
       .from('task_attachments')
-      .select('file_path, uploaded_by')
+      .select('file_path, uploaded_by, task_id')
       .eq('id', attachmentId)
       .single()
 
@@ -733,7 +749,10 @@ export async function deleteTaskAttachment(attachmentId: string): Promise<{ succ
       return { success: false, error: deleteError.message }
     }
 
-    revalidatePath('/lab/tasks')
+    if (attachment.task_id) {
+      revalidatePath(`/lab/tasks/${attachment.task_id}`)
+    }
+    revalidatePath('/lab/projects')
 
     return { success: true }
 

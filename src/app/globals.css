@@ -18,6 +18,14 @@
 
     --card: #111111;
     --card-foreground: #fcfcfc;
+
+    /* Lab editorial system tokens */
+    --lab-surface-1: #050505;
+    --lab-surface-2: #0a0a0a;
+    --lab-surface-3: #101010;
+    --lab-border-soft: rgba(255, 255, 255, 0.08);
+    --lab-border-strong: rgba(255, 255, 255, 0.18);
+    --lab-grid-gap: 1rem;
   }
 }
 
@@ -35,6 +43,13 @@
   /* Glassmorphism utility base */
   .glass {
     @apply bg-white/5 backdrop-blur-md border border-white/10;
+  }
+
+  .lab-editorial-grid {
+    background-image:
+      linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+    background-size: 36px 36px;
   }
   
   /* Animated gradient mesh background or subtle grain overlay */

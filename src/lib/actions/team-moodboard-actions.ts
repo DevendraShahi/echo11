@@ -4,6 +4,8 @@ import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { createNotification } from '@/lib/actions/notification-actions'
 import { requireTeamMember } from '@/lib/actions/role-helpers'
+import { callApiV1 } from '@/lib/api/v1/internal-client'
+import { isApiFailure } from '@/lib/api/v1/contracts'
 
 export interface TeamMessage {
   id: string
@@ -21,6 +23,10 @@ export interface TeamNote {
   created_by: string
   created_at: string
   user?: { full_name: string | null; avatar_url: string | null }
+}
+
+function nextIdempotencyKey(prefix: string): string {
+  return `${prefix}-${crypto.randomUUID()}`
 }
 
 /** Fetch all messages for a team, newest first */
@@ -53,15 +59,18 @@ export async function postTeamMessage(
   const isMember = await requireTeamMember(user.id, teamId)
   if (!isMember) return { success: false, error: 'You are not a member of this team' }
 
-  const { error } = await supabase.from('team_messages').insert({
-    team_id: teamId,
-    content,
-    created_by: user.id,
-  })
+  const response = await callApiV1<{ message_id: string; team_id: string; lock_version: number | null }>(
+    `/teams/${teamId}/moodboard/messages`,
+    {
+      method: 'POST',
+      body: { content },
+      idempotencyKey: nextIdempotencyKey('team-message-create'),
+    }
+  )
 
-  if (error) {
-    console.error('Error posting message:', error)
-    return { success: false, error: error.message }
+  if (isApiFailure(response)) {
+    console.error('Error posting message:', response.error)
+    return { success: false, error: response.error.message }
   }
 
   try {
@@ -119,15 +128,18 @@ export async function addTeamNote(teamId: string, content: string): Promise<{ su
   const isMember = await requireTeamMember(user.id, teamId)
   if (!isMember) return { success: false, error: 'You are not a member of this team' }
 
-  const { error } = await supabase.from('team_notes').insert({
-    team_id: teamId,
-    content,
-    created_by: user.id,
-  })
+  const response = await callApiV1<{ note_id: string; team_id: string; lock_version: number | null }>(
+    `/teams/${teamId}/moodboard/notes`,
+    {
+      method: 'POST',
+      body: { content },
+      idempotencyKey: nextIdempotencyKey('team-note-create'),
+    }
+  )
 
-  if (error) {
-    console.error('Error adding note:', error)
-    return { success: false, error: error.message }
+  if (isApiFailure(response)) {
+    console.error('Error adding note:', response.error)
+    return { success: false, error: response.error.message }
   }
 
   revalidatePath(`/lab/teams/${teamId}/moodboard`)

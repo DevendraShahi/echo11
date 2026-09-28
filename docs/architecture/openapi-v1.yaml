@@ -1,0 +1,680 @@
+openapi: 3.1.0
+info:
+  title: Echo11 API v1
+  version: 1.0.0
+  description: |
+    Unified API surface for lab/client/admin domains with idempotent writes,
+    optimistic concurrency, and event/audit metadata.
+servers:
+  - url: /api/v1
+components:
+  schemas:
+    ApiError:
+      type: object
+      required: [code, message]
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+        details:
+          type: object
+          additionalProperties: true
+    MutationMeta:
+      type: object
+      required: [resource_id, lock_version, event_id, correlation_id]
+      properties:
+        resource_id:
+          type: string
+          format: uuid
+        lock_version:
+          type: integer
+          nullable: true
+        event_id:
+          type: string
+          format: uuid
+          nullable: true
+        correlation_id:
+          type: string
+          format: uuid
+    ApiSuccess:
+      type: object
+      required: [ok, data]
+      properties:
+        ok:
+          type: boolean
+          const: true
+        data:
+          type: object
+        meta:
+          $ref: '#/components/schemas/MutationMeta'
+    ApiFailure:
+      type: object
+      required: [ok, error]
+      properties:
+        ok:
+          type: boolean
+          const: false
+        error:
+          $ref: '#/components/schemas/ApiError'
+paths:
+  /internal/outbox/dispatch:
+    post:
+      summary: Dispatch pending domain events and refresh projections (internal)
+      parameters:
+        - in: header
+          name: x-outbox-dispatch-secret
+          required: true
+          schema: { type: string }
+  /internal/outbox/metrics:
+    get:
+      summary: Read outbox lag/retry/projection staleness metrics (internal)
+      parameters:
+        - in: header
+          name: x-outbox-dispatch-secret
+          required: true
+          schema: { type: string }
+  /internal/outbox/health:
+    get:
+      summary: Evaluate outbox health against configured alert thresholds (internal)
+      parameters:
+        - in: header
+          name: x-outbox-dispatch-secret
+          required: true
+          schema: { type: string }
+  /teams:
+    get:
+      summary: List teams
+    post:
+      summary: Create team
+      parameters:
+        - in: header
+          name: idempotency-key
+          schema: { type: string }
+  /teams/{teamId}:
+    get:
+      summary: Get team
+    patch:
+      summary: Update team
+      parameters:
+        - in: path
+          name: teamId
+          required: true
+          schema: { type: string, format: uuid }
+        - in: header
+          name: idempotency-key
+          schema: { type: string }
+    delete:
+      summary: Delete team
+      parameters:
+        - in: path
+          name: teamId
+          required: true
+          schema: { type: string, format: uuid }
+        - in: header
+          name: idempotency-key
+          schema: { type: string }
+  /teams/{teamId}/members:
+    post:
+      summary: Assign user to team
+      parameters:
+        - in: path
+          name: teamId
+          required: true
+          schema: { type: string, format: uuid }
+        - in: header
+          name: idempotency-key
+          schema: { type: string }
+    delete:
+      summary: Remove user from team
+      parameters:
+        - in: path
+          name: teamId
+          required: true
+          schema: { type: string, format: uuid }
+        - in: query
+          name: user_id
+          required: true
+          schema: { type: string, format: uuid }
+        - in: header
+          name: idempotency-key
+          schema: { type: string }
+  /teams/{teamId}/lead:
+    put:
+      summary: Set team lead
+      parameters:
+        - in: header
+          name: idempotency-key
+          schema: { type: string }
+  /teams/{teamId}/moodboard/messages:
+    post:
+      summary: Create team moodboard message
+      parameters:
+        - in: path
+          name: teamId
+          required: true
+          schema: { type: string, format: uuid }
+        - in: header
+          name: idempotency-key
+          schema: { type: string }
+  /teams/{teamId}/moodboard/notes:
+    post:
+      summary: Create team moodboard note
+      parameters:
+        - in: path
+          name: teamId
+          required: true
+          schema: { type: string, format: uuid }
+        - in: header
+          name: idempotency-key
+          schema: { type: string }
+  /identity/memberships/{memberId}/role:
+    put:
+      summary: Update member role
+      parameters:
+        - in: header
+          name: idempotency-key
+          schema: { type: string }
+  /identity/profile:
+    patch:
+      summary: Update authenticated user profile
+      parameters:
+        - in: header
+          name: idempotency-key
+          schema: { type: string }
+  /identity/preferences:
+    patch:
+      summary: Update authenticated user preferences
+      parameters:
+        - in: header
+          name: idempotency-key
+          schema: { type: string }
+  /identity/password:
+    put:
+      summary: Change authenticated user password
+      parameters:
+        - in: header
+          name: idempotency-key
+          schema: { type: string }
+  /identity/team-invites:
+    post:
+      summary: Create team invite
+      parameters:
+        - in: header
+          name: idempotency-key
+          schema: { type: string }
+  /identity/team-invites/{inviteId}:
+    delete:
+      summary: Cancel team invite
+      parameters:
+        - in: path
+          name: inviteId
+          required: true
+          schema: { type: string, format: uuid }
+        - in: header
+          name: idempotency-key
+          schema: { type: string }
+  /identity/team-invites/{inviteId}/resend:
+    put:
+      summary: Resend team invite
+      parameters:
+        - in: path
+          name: inviteId
+          required: true
+          schema: { type: string, format: uuid }
+        - in: header
+          name: idempotency-key
+          schema: { type: string }
+  /identity/team-invites/{inviteId}/accept:
+    put:
+      summary: Accept team invite
+      parameters:
+        - in: path
+          name: inviteId
+          required: true
+          schema: { type: string, format: uuid }
+        - in: header
+          name: idempotency-key
+          schema: { type: string }
+  /project-tags:
+    get:
+      summary: List project tags
+    post:
+      summary: Create project tag
+      parameters:
+        - in: header
+          name: idempotency-key
+          schema: { type: string }
+  /project-tags/{tagId}:
+    delete:
+      summary: Delete project tag
+      parameters:
+        - in: path
+          name: tagId
+          required: true
+          schema: { type: string, format: uuid }
+        - in: header
+          name: idempotency-key
+          schema: { type: string }
+  /projects:
+    get:
+      summary: List projects
+    post:
+      summary: Create project
+      parameters:
+        - in: header
+          name: idempotency-key
+          schema: { type: string }
+  /projects/{projectId}:
+    get:
+      summary: Get project
+    patch:
+      summary: Update project (supports expected_lock_version)
+      parameters:
+        - in: header
+          name: idempotency-key
+          schema: { type: string }
+    delete:
+      summary: Delete project
+      parameters:
+        - in: header
+          name: idempotency-key
+          schema: { type: string }
+  /projects/{projectId}/team:
+    put:
+      summary: Assign/remove project team (supports expected_lock_version)
+      parameters:
+        - in: header
+          name: idempotency-key
+          schema: { type: string }
+  /projects/{projectId}/tags/{tagId}:
+    put:
+      summary: Assign tag to project
+      parameters:
+        - in: path
+          name: projectId
+          required: true
+          schema: { type: string, format: uuid }
+        - in: path
+          name: tagId
+          required: true
+          schema: { type: string, format: uuid }
+        - in: header
+          name: idempotency-key
+          schema: { type: string }
+    delete:
+      summary: Remove tag from project
+      parameters:
+        - in: path
+          name: projectId
+          required: true
+          schema: { type: string, format: uuid }
+        - in: path
+          name: tagId
+          required: true
+          schema: { type: string, format: uuid }
+        - in: header
+          name: idempotency-key
+          schema: { type: string }
+  /finance/invoices:
+    get:
+      summary: List invoices
+    post:
+      summary: Create invoice
+      parameters:
+        - in: header
+          name: idempotency-key
+          schema: { type: string }
+  /finance/invoices/{invoiceId}:
+    get:
+      summary: Get invoice
+    patch:
+      summary: Update invoice (supports expected_lock_version)
+      parameters:
+        - in: header
+          name: idempotency-key
+          schema: { type: string }
+    delete:
+      summary: Delete invoice
+      parameters:
+        - in: header
+          name: idempotency-key
+          schema: { type: string }
+  /finance/invoices/{invoiceId}/status:
+    put:
+      summary: Update invoice status (supports expected_lock_version)
+      parameters:
+        - in: header
+          name: idempotency-key
+          schema: { type: string }
+  /contracts:
+    get:
+      summary: List contracts
+    post:
+      summary: Create contract
+      parameters:
+        - in: header
+          name: idempotency-key
+          schema: { type: string }
+  /contracts/{contractId}:
+    get:
+      summary: Get contract
+    patch:
+      summary: Update contract (supports expected_lock_version)
+      parameters:
+        - in: header
+          name: idempotency-key
+          schema: { type: string }
+    delete:
+      summary: Delete contract
+      parameters:
+        - in: header
+          name: idempotency-key
+          schema: { type: string }
+  /contracts/{contractId}/status:
+    put:
+      summary: Update contract status (supports expected_lock_version)
+      parameters:
+        - in: header
+          name: idempotency-key
+          schema: { type: string }
+  /messages/client:
+    get:
+      summary: List current client thread messages
+    post:
+      summary: Send message as authenticated client
+      parameters:
+        - in: header
+          name: idempotency-key
+          schema: { type: string }
+  /messages/client/read:
+    put:
+      summary: Mark team messages as read for current client thread
+      parameters:
+        - in: header
+          name: idempotency-key
+          schema: { type: string }
+  /messages/team/{clientId}:
+    get:
+      summary: List client thread messages for authorized team member
+  /messages/team/{clientId}/send:
+    post:
+      summary: Send message as team member to client thread
+      parameters:
+        - in: header
+          name: idempotency-key
+          schema: { type: string }
+  /messages/team/{clientId}/read:
+    put:
+      summary: Mark client messages as read for team on thread
+      parameters:
+        - in: header
+          name: idempotency-key
+          schema: { type: string }
+  /notifications:
+    post:
+      summary: Create notification
+      parameters:
+        - in: header
+          name: idempotency-key
+          schema: { type: string }
+  /notifications/{notificationId}:
+    delete:
+      summary: Delete notification for current user
+      parameters:
+        - in: path
+          name: notificationId
+          required: true
+          schema: { type: string, format: uuid }
+        - in: header
+          name: idempotency-key
+          schema: { type: string }
+  /notifications/{notificationId}/read:
+    put:
+      summary: Mark notification read for current user
+      parameters:
+        - in: path
+          name: notificationId
+          required: true
+          schema: { type: string, format: uuid }
+        - in: header
+          name: idempotency-key
+          schema: { type: string }
+  /notifications/read-all:
+    put:
+      summary: Mark all notifications as read for current user
+      parameters:
+        - in: header
+          name: idempotency-key
+          schema: { type: string }
+  /tasks:
+    get:
+      summary: List tasks
+    post:
+      summary: Create task
+      parameters:
+        - in: header
+          name: idempotency-key
+          schema: { type: string }
+  /tasks/{taskId}:
+    get:
+      summary: Get task
+    patch:
+      summary: Update task (supports expected_lock_version)
+      parameters:
+        - in: header
+          name: idempotency-key
+          schema: { type: string }
+    delete:
+      summary: Delete task
+      parameters:
+        - in: header
+          name: idempotency-key
+          schema: { type: string }
+  /meetings:
+    get:
+      summary: List meetings
+    post:
+      summary: Create meeting
+      parameters:
+        - in: header
+          name: idempotency-key
+          schema: { type: string }
+  /meetings/{meetingId}:
+    get:
+      summary: Get meeting
+      parameters:
+        - in: path
+          name: meetingId
+          required: true
+          schema: { type: string, format: uuid }
+    patch:
+      summary: Update meeting
+      parameters:
+        - in: path
+          name: meetingId
+          required: true
+          schema: { type: string, format: uuid }
+        - in: header
+          name: idempotency-key
+          schema: { type: string }
+    delete:
+      summary: Delete meeting
+      parameters:
+        - in: path
+          name: meetingId
+          required: true
+          schema: { type: string, format: uuid }
+        - in: header
+          name: idempotency-key
+          schema: { type: string }
+  /clients:
+    get:
+      summary: List clients
+    post:
+      summary: Create client
+      parameters:
+        - in: header
+          name: idempotency-key
+          schema: { type: string }
+  /clients/{clientId}:
+    get:
+      summary: Get client
+    patch:
+      summary: Update client (supports expected_lock_version)
+      parameters:
+        - in: header
+          name: idempotency-key
+          schema: { type: string }
+    delete:
+      summary: Delete client
+      parameters:
+        - in: header
+          name: idempotency-key
+          schema: { type: string }
+  /clients/{clientId}/invite:
+    put:
+      summary: Set client portal invitation token metadata
+      parameters:
+        - in: path
+          name: clientId
+          required: true
+          schema: { type: string, format: uuid }
+        - in: header
+          name: idempotency-key
+          schema: { type: string }
+  /clients/self/profile:
+    patch:
+      summary: Update authenticated client self profile
+      parameters:
+        - in: header
+          name: idempotency-key
+          schema: { type: string }
+  /clients/invites/accept:
+    put:
+      summary: Accept client invite
+      parameters:
+        - in: header
+          name: idempotency-key
+          schema: { type: string }
+  /clients/{clientId}/contacts:
+    post:
+      summary: Create client contact
+      parameters:
+        - in: path
+          name: clientId
+          required: true
+          schema: { type: string, format: uuid }
+        - in: header
+          name: idempotency-key
+          schema: { type: string }
+  /clients/{clientId}/contacts/{contactId}:
+    patch:
+      summary: Update client contact
+      parameters:
+        - in: path
+          name: clientId
+          required: true
+          schema: { type: string, format: uuid }
+        - in: path
+          name: contactId
+          required: true
+          schema: { type: string, format: uuid }
+        - in: header
+          name: idempotency-key
+          schema: { type: string }
+    delete:
+      summary: Delete client contact
+      parameters:
+        - in: path
+          name: clientId
+          required: true
+          schema: { type: string, format: uuid }
+        - in: path
+          name: contactId
+          required: true
+          schema: { type: string, format: uuid }
+        - in: header
+          name: idempotency-key
+          schema: { type: string }
+  /clients/{clientId}/contacts/{contactId}/primary:
+    put:
+      summary: Set primary client contact
+      parameters:
+        - in: path
+          name: clientId
+          required: true
+          schema: { type: string, format: uuid }
+        - in: path
+          name: contactId
+          required: true
+          schema: { type: string, format: uuid }
+        - in: header
+          name: idempotency-key
+          schema: { type: string }
+  /clients/{clientId}/notes:
+    post:
+      summary: Create client note
+      parameters:
+        - in: path
+          name: clientId
+          required: true
+          schema: { type: string, format: uuid }
+        - in: header
+          name: idempotency-key
+          schema: { type: string }
+  /clients/{clientId}/notes/{noteId}:
+    patch:
+      summary: Update client note
+      parameters:
+        - in: path
+          name: clientId
+          required: true
+          schema: { type: string, format: uuid }
+        - in: path
+          name: noteId
+          required: true
+          schema: { type: string, format: uuid }
+        - in: header
+          name: idempotency-key
+          schema: { type: string }
+    delete:
+      summary: Delete client note
+      parameters:
+        - in: path
+          name: clientId
+          required: true
+          schema: { type: string, format: uuid }
+        - in: path
+          name: noteId
+          required: true
+          schema: { type: string, format: uuid }
+        - in: header
+          name: idempotency-key
+          schema: { type: string }
+  /clients/{clientId}/documents:
+    post:
+      summary: Create client document metadata
+      parameters:
+        - in: path
+          name: clientId
+          required: true
+          schema: { type: string, format: uuid }
+        - in: header
+          name: idempotency-key
+          schema: { type: string }
+  /clients/{clientId}/documents/{documentId}:
+    delete:
+      summary: Delete client document metadata
+      parameters:
+        - in: path
+          name: clientId
+          required: true
+          schema: { type: string, format: uuid }
+        - in: path
+          name: documentId
+          required: true
+          schema: { type: string, format: uuid }
+        - in: header
+          name: idempotency-key
+          schema: { type: string }

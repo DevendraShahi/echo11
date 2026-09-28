@@ -1,4 +1,5 @@
-import { createMetadata } from "@/lib/seo";
+import { createMetadata, breadcrumbJsonLd, absoluteUrl } from "@/lib/seo";
+import { JsonLd } from "@/components/seo/JsonLd";
 
 export const metadata = createMetadata({
   title: "Terms of Service | echo11",
@@ -12,5 +13,13 @@ export default function TermsLayout({
 }: {
   children: React.ReactNode;
 }) {
-  return <>{children}</>;
+  return (
+    <>
+      <JsonLd data={[breadcrumbJsonLd([
+        { name: "Home", item: absoluteUrl("/") },
+        { name: "Terms of Service", item: absoluteUrl("/terms") },
+      ])]} />
+      {children}
+    </>
+  );
 }

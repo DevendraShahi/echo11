@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react'
 import { createPortal } from 'react-dom'
-import { motion, AnimatePresence } from 'framer-motion'
 import { FolderKanban, CheckSquare, Receipt, FileText, Users, ArrowRight, X } from 'lucide-react'
 
 const WELCOME_KEY = 'echo11_welcome_seen'
@@ -40,22 +39,9 @@ export function WelcomeModal({ onDismiss }: WelcomeModalProps) {
   if (!mounted) return null
 
   return createPortal(
-    <AnimatePresence>
-      {visible && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.2 }}
-          className="fixed inset-0 z-[10000] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm"
-        >
-          <motion.div
-            initial={{ opacity: 0, scale: 0.96, y: 16 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.96, y: 16 }}
-            transition={{ duration: 0.25, ease: 'easeOut' }}
-            className="relative w-full max-w-lg bg-[#0a0a0a] border border-white/10 shadow-2xl"
-          >
+    visible ? (
+      <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+        <div className="relative w-full max-w-lg bg-[#0a0a0a] border border-white/10 shadow-2xl">
             {/* Accent bar */}
             <div className="h-px bg-accent w-full" style={{ boxShadow: '0 0 12px var(--accent-glow)' }} />
 
@@ -115,10 +101,9 @@ export function WelcomeModal({ onDismiss }: WelcomeModalProps) {
                 </button>
               </div>
             </div>
-          </motion.div>
-        </motion.div>
-      )}
-    </AnimatePresence>,
+        </div>
+      </div>
+    ) : null,
     document.body
   )
 }

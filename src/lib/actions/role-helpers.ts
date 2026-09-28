@@ -1,13 +1,6 @@
 'use server'
 
-import { createClient as createServiceClient } from '@supabase/supabase-js'
-
-function getServiceClient() {
-  return createServiceClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-  )
-}
+import { createClient } from '@/lib/supabase/server'
 
 /**
  * Returns true if the user is:
@@ -19,9 +12,9 @@ export async function requireAdminOrLead(
   userId: string,
   teamId?: string | null
 ): Promise<boolean> {
-  const service = getServiceClient()
+  const supabase = await createClient()
 
-  const { data: profile } = await service
+  const { data: profile } = await supabase
     .from('profiles')
     .select('role')
     .eq('id', userId)
@@ -30,21 +23,24 @@ export async function requireAdminOrLead(
   if (profile?.role === 'admin') return true
 
   if (teamId) {
-    const { data: team } = await service
+    const { data: team } = await supabase
       .from('teams')
       .select('lead_id')
       .eq('id', teamId)
       .single()
+
     return team?.lead_id === userId
   }
 
   // No specific team: allow if user leads any team
-  const { count } = await service
+  const { data: team } = await supabase
     .from('teams')
-    .select('*', { count: 'exact', head: true })
+    .select('id')
     .eq('lead_id', userId)
+    .limit(1)
+    .maybeSingle()
 
-  return (count ?? 0) > 0
+  return Boolean(team)
 }
 
 /**
@@ -57,9 +53,9 @@ export async function requireTeamMember(
   userId: string,
   teamId: string
 ): Promise<boolean> {
-  const service = getServiceClient()
+  const supabase = await createClient()
 
-  const { data: profile } = await service
+  const { data: profile } = await supabase
     .from('profiles')
     .select('role, team_id')
     .eq('id', userId)
@@ -68,7 +64,7 @@ export async function requireTeamMember(
   if (profile?.role === 'admin') return true
   if (profile?.team_id === teamId) return true
 
-  const { data: team } = await service
+  const { data: team } = await supabase
     .from('teams')
     .select('lead_id')
     .eq('id', teamId)

@@ -6,7 +6,11 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "check:openapi:v1": "node scripts/check-openapi-v1.mjs",
+    "check:policy:matrix": "node scripts/check-policy-matrix.mjs",
+    "check:policy:matrix:live": "node scripts/check-policy-matrix.mjs --live",
+    "verify:architecture": "npm run check:openapi:v1 && npm run check:policy:matrix"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",
@@ -19,10 +23,12 @@
     "date-fns": "^4.1.0",
     "framer-motion": "^11.5.0",
     "lucide-react": "^0.435.0",
+    "motion": "^12.40.0",
     "next": "15",
     "react": "^19",
     "react-dom": "^19",
     "react-joyride": "^3.0.2",
+    "react-use-measure": "^2.1.7",
     "recharts": "^3.8.1",
     "resend": "^6.10.0",
     "tailwind-merge": "^2.5.2",

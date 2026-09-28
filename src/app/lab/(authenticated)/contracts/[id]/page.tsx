@@ -5,7 +5,7 @@ import { LabButton } from '@/components/ui/LabButton'
 import { Contract, ContractStatus } from '@/types/lab'
 import { getContractDetail, updateContractStatus, uploadContractFile, generateContractFromTemplate, sendContractToClient, deleteContract } from '@/lib/actions/contract-actions'
 import { 
-  ArrowLeft, FileText, Calendar, DollarSign, Mail, Download, Send, 
+  FileText, Calendar, DollarSign, Mail, Download, Send, 
   Upload, Wand2, Trash2, Loader2, Check, File, ExternalLink, X
 } from 'lucide-react'
 import { format } from 'date-fns'
@@ -16,6 +16,10 @@ import { downloadContractPDF } from '@/lib/contract-pdf'
 import { substituteVariables, getDefaultVariables } from '@/lib/contract-template-engine'
 import { ContractAgreementPreview } from '@/components/contracts/ContractAgreementPreview'
 import { useAppFeedback } from '@/components/ui/AppFeedbackProvider'
+import { createClient } from '@/lib/supabase/client'
+import { DataState } from '@/components/lab/primitives/DataState'
+import { EntityHeader } from '@/components/lab/primitives/EntityHeader'
+import { MetricStrip } from '@/components/lab/primitives/MetricStrip'
 
 interface ContractPageProps {
   params: Promise<{ id: string }>
@@ -40,6 +44,7 @@ export default function ContractPage({ params }: ContractPageProps) {
   const [previewContent, setPreviewContent] = useState('')
   const [showSendModal, setShowSendModal] = useState(false)
   const [sendEmail, setSendEmail] = useState('')
+  const [backHref, setBackHref] = useState('/lab/projects')
   const router = useRouter()
 
   useEffect(() => {
@@ -51,6 +56,25 @@ export default function ContractPage({ params }: ContractPageProps) {
     setLoading(true)
     const data = await getContractDetail(id)
     setContract(data)
+
+    if (data?.client_id) {
+      const supabase = createClient()
+      const { data: project } = await supabase
+        .from('projects')
+        .select('id')
+        .eq('client_id', data.client_id)
+        .order('updated_at', { ascending: false })
+        .limit(1)
+        .maybeSingle()
+
+      if (project?.id) {
+        setBackHref(`/lab/projects/${project.id}/finance`)
+      } else {
+        setBackHref('/lab/projects')
+      }
+    } else {
+      setBackHref('/lab/projects')
+    }
     
     if (data?.generated_content) {
       setPreviewContent(data.generated_content)
@@ -173,7 +197,7 @@ export default function ContractPage({ params }: ContractPageProps) {
       setActionLoading(null)
       return
     }
-    router.push('/lab/contracts')
+    router.push(backHref)
   }
 
   if (loading) {
@@ -186,7 +210,18 @@ export default function ContractPage({ params }: ContractPageProps) {
 
   if (!contract) {
     return (
-      <div className="text-center py-12 text-white/30 font-mono text-sm">Contract not found</div>
+      <div className="min-h-[320px] flex items-center justify-center">
+        <DataState
+          title="Contract not found"
+          description="The contract may have been deleted or is not available to your account."
+          icon={FileText}
+          action={
+            <Link href={backHref} className="text-accent hover:text-accent/80 transition-colors font-mono text-sm uppercase tracking-[0.13em]">
+              Back to finance
+            </Link>
+          }
+        />
+      </div>
     )
   }
 
@@ -195,38 +230,42 @@ export default function ContractPage({ params }: ContractPageProps) {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <Link href="/lab/contracts" className="p-2 border border-white/10 hover:border-white/20 text-white/40 hover:text-white transition-colors">
-            <ArrowLeft className="w-4 h-4" />
+      <div className="space-y-4">
+        <EntityHeader
+          title={contract.title}
+          subtitle={client?.company_name || 'Unknown Client'}
+          status={contract.status}
+          backHref={backHref}
+          backLabel="Back to finance"
+          action={
+            <div className="flex items-center gap-2">
+              <LabButton variant="ghost" size="sm" onClick={handleDownloadPDF} disabled={actionLoading !== null}>
+                <Download className="w-3.5 h-3.5 mr-1.5" />Download
+              </LabButton>
+              <LabButton variant="ghost" size="sm" onClick={() => setShowSendModal(true)} disabled={actionLoading !== null}>
+                <Send className="w-3.5 h-3.5 mr-1.5" />Send
+              </LabButton>
+              <LabButton variant="ghost" size="sm" onClick={handleDelete} disabled={actionLoading !== null}>
+                <Trash2 className="w-3.5 h-3.5 mr-1.5" />Delete
+              </LabButton>
+            </div>
+          }
+        />
+        <MetricStrip
+          items={[
+            { label: 'Contract Number', value: contract.contract_number || 'Draft' },
+            { label: 'Value', value: `$${(contract.value || 0).toLocaleString()}`, tone: contract.status === 'signed' ? 'success' : 'accent' },
+            { label: 'Start Date', value: contract.start_date ? format(new Date(contract.start_date), 'MMM d, yyyy') : 'Not set' },
+            { label: 'End Date', value: contract.end_date ? format(new Date(contract.end_date), 'MMM d, yyyy') : 'Not set', tone: contract.status === 'expired' ? 'danger' : 'default' },
+          ]}
+        />
+        <div className="flex items-center gap-3">
+          <Link href={`/lab/clients/${contract.client_id}`} className="text-sm text-white/50 font-mono hover:text-accent transition-colors">
+            {client?.company_name || 'Unknown Client'}
           </Link>
-          <div>
-            <div className="flex items-center gap-3">
-              <h1 className="text-lg font-sans text-white">{contract.title}</h1>
-              {contract.contract_number && (
-                <span className="text-xs text-white/30 font-mono">{contract.contract_number}</span>
-              )}
-            </div>
-            <div className="flex items-center gap-3 mt-1">
-              <Link href={`/lab/clients/${contract.client_id}`} className="text-sm text-white/50 font-mono hover:text-accent transition-colors">
-                {client?.company_name || 'Unknown Client'}
-              </Link>
-              <span className={cn("px-2 py-0.5 text-xs font-mono uppercase tracking-wider border", statusColors[contract.status || 'draft'])}>
-                {contract.status}
-              </span>
-            </div>
-          </div>
-        </div>
-        <div className="flex items-center gap-2">
-          <LabButton variant="ghost" size="sm" onClick={handleDownloadPDF} disabled={actionLoading !== null}>
-            <Download className="w-3.5 h-3.5 mr-1.5" />Download
-          </LabButton>
-          <LabButton variant="ghost" size="sm" onClick={() => setShowSendModal(true)} disabled={actionLoading !== null}>
-            <Send className="w-3.5 h-3.5 mr-1.5" />Send
-          </LabButton>
-          <LabButton variant="ghost" size="sm" onClick={handleDelete} disabled={actionLoading !== null}>
-            <Trash2 className="w-3.5 h-3.5 mr-1.5" />Delete
-          </LabButton>
+          <span className={cn("px-2 py-0.5 text-xs font-mono uppercase tracking-wider border", statusColors[contract.status || 'draft'])}>
+            {contract.status}
+          </span>
         </div>
       </div>
 

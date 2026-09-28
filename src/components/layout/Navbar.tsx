@@ -6,7 +6,7 @@ import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { Menu, X } from "lucide-react";
-import { Button } from "@/components/ui/Button";
+import { CornerButton } from "@/components/ui/CornerButton";
 
 const navItems = [
   { name: "Home", href: "/" },
@@ -77,17 +77,14 @@ export function Navbar() {
         </nav>
 
         <div className="hidden xl:flex shrink-0 items-center gap-4">
-          <Button 
-            asChild 
-            variant="outline" 
-            className={`font-mono text-xs transition-all ${
-              pathname !== "/" 
-                ? "border-white/40 text-white hover:bg-white hover:text-black shadow-[0_0_15px_rgba(255,255,255,0.1)] hover:shadow-[0_0_20px_rgba(255,255,255,0.4)]" 
-                : ""
-            }`}
+          <CornerButton
+            href="/contact"
+            size="sm"
+            containerClassName="shrink-0"
+            className="min-w-[230px]"
           >
-            <Link href="/contact">Book Discovery</Link>
-          </Button>
+            Talk Through a Project
+          </CornerButton>
         </div>
 
         {/* Mobile menu toggle */}
@@ -127,17 +124,15 @@ export function Navbar() {
                   {item.name}
                 </Link>
               ))}
-              <Button 
-                asChild 
-                variant={pathname === "/" ? "default" : "outline"} 
-                className={`w-full mt-4 font-mono text-sm ${
-                  pathname !== "/" 
-                    ? "border-white/40 text-white hover:bg-white hover:text-black shadow-[0_0_15px_rgba(255,255,255,0.1)] hover:shadow-[0_0_20px_rgba(255,255,255,0.4)]" 
-                    : ""
-                }`}
+              <CornerButton
+                href="/contact"
+                size="md"
+                onClick={() => setMobileMenuOpen(false)}
+                containerClassName="mt-4 w-full"
+                className="w-full"
               >
-                <Link href="/contact" onClick={() => setMobileMenuOpen(false)}>Book Discovery</Link>
-              </Button>
+                Talk Through a Project
+              </CornerButton>
             </div>
           </motion.div>
         )}

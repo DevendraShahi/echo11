@@ -36,6 +36,24 @@ function FloatingParticle({ delay = 0, x = 0, y = 0 }: { delay?: number; x?: num
   );
 }
 
+const particlePositions = [
+  { x: 12, y: 18 },
+  { x: 22, y: 72 },
+  { x: 31, y: 35 },
+  { x: 44, y: 16 },
+  { x: 52, y: 64 },
+  { x: 61, y: 28 },
+  { x: 68, y: 78 },
+  { x: 74, y: 42 },
+  { x: 82, y: 20 },
+  { x: 88, y: 66 },
+  { x: 17, y: 48 },
+  { x: 36, y: 84 },
+  { x: 57, y: 12 },
+  { x: 79, y: 88 },
+  { x: 93, y: 36 },
+];
+
 function AnimatedMetric({ value, label, delay = 0 }: { value: string; label: string; delay?: number }) {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true });
@@ -92,12 +110,12 @@ export function CaseStudyContent({ project, prevProject, nextProject }: CaseStud
         <div className="absolute inset-0" style={{ background: `radial-gradient(circle_at_30%_20%, ${project.color}15, transparent_50%)` }} />
         
         <div className="absolute inset-0 overflow-hidden">
-          {[...Array(15)].map((_, i) => (
+          {particlePositions.map((position, i) => (
             <FloatingParticle 
               key={i} 
               delay={i * 0.3}
-              x={10 + Math.random() * 80}
-              y={10 + Math.random() * 80}
+              x={position.x}
+              y={position.y}
             />
           ))}
         </div>

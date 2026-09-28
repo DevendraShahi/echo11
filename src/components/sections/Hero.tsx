@@ -3,13 +3,12 @@
 import { useRef } from "react";
 import { motion, useScroll, useTransform } from "framer-motion";
 import { Container } from "@/components/ui/Container";
-import { Button } from "@/components/ui/Button";
-import Link from "next/link";
+import { CornerButton } from "@/components/ui/CornerButton";
 import { ArrowRight } from "lucide-react";
 
 import { WavesBackground } from "@/components/ui/WavesBackground";
 
-const TITLE = "We engineer digital products people trust.";
+const TITLE = "Plan, design, and build software your business can rely on.";
 
 const sentenceVariants = {
   hidden: { opacity: 0 },
@@ -83,7 +82,7 @@ export function Hero() {
               transition={{ delay: 1, duration: 0.8 }}
               className="max-w-2xl text-lg sm:text-lg text-white/50 mb-12 font-mono font-medium tracking-wide"
             >
-              Strategy, design, and engineering in one focused team. We build fast, scalable products with clear UX, resilient architecture, and measurable business outcomes.
+              Echo11 helps founders and growing teams turn messy digital requirements into clear websites, product platforms, portals, and internal tools.
             </motion.p>
 
             {/* CTA Buttons */}
@@ -93,15 +92,24 @@ export function Hero() {
               transition={{ delay: 1.2, duration: 0.5 }}
               className="flex flex-col sm:flex-row items-center gap-4"
             >
-              <Button size="lg" className="w-full sm:w-auto gap-2 group relative overflow-hidden font-mono text-xs md:text-sm uppercase tracking-widest font-bold">
-                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
-                <Link href="/contact" className="flex items-center gap-2">
-                  START YOUR PROJECT <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
-                </Link>
-              </Button>
-              <Button size="lg" variant="glass" className="w-full sm:w-auto font-mono text-xs md:text-sm uppercase tracking-widest">
-                <Link href="/work">SEE CASE STUDIES</Link>
-              </Button>
+              <CornerButton
+                href="/contact"
+                size="xl"
+                containerClassName="w-full sm:w-auto"
+                className="w-full min-w-0 sm:w-auto sm:min-w-[320px]"
+              >
+                TALK THROUGH A PROJECT
+                <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+              </CornerButton>
+              <CornerButton
+                href="/work"
+                size="xl"
+                tone="white"
+                containerClassName="w-full sm:w-auto"
+                className="w-full min-w-0 sm:w-auto sm:min-w-[260px]"
+              >
+                VIEW CURRENT WORK
+              </CornerButton>
             </motion.div>
           </div>
         </Container>

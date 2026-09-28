@@ -1,38 +1,23 @@
 'use client'
 
 import Link from 'next/link'
-import { usePathname, useRouter } from 'next/navigation'
+import { usePathname } from 'next/navigation'
 import { useState, useEffect, useMemo, useCallback } from 'react'
 import { cn } from '@/lib/utils'
-import { motion } from 'framer-motion'
-import {
-  LayoutDashboard,
-  FolderKanban,
-  CheckSquare,
-  Calendar,
-  Receipt,
-  FileText,
-  Users,
-  UserCircle,
-  Settings,
-  LogOut
-} from 'lucide-react'
-import { OnboardingChecklist, HelpModal } from '@/components/onboarding'
-import { setPendingTour } from '@/components/onboarding/tourState'
+import { FolderKanban, LayoutDashboard, LogOut, MessageSquare, Settings, UserCircle } from 'lucide-react'
+import { OnboardingChecklist } from '@/components/onboarding/OnboardingChecklist'
+import { HelpModal } from '@/components/onboarding/HelpModal'
 import { createClient } from '@/lib/supabase/client'
 import { getTeamUnreadClientMessagesCount } from '@/lib/actions/client-message-actions'
+import { useLabNavigation } from './LabNavigationContext'
 
 const navigation = [
-  { name: 'Dashboard', href: '/lab/dashboard', icon: LayoutDashboard, pageId: 'dashboard' },
+  { name: 'Command', href: '/lab/command', icon: LayoutDashboard, pageId: 'command' },
   { name: 'Projects', href: '/lab/projects', icon: FolderKanban, pageId: 'projects' },
-  { name: 'Tasks', href: '/lab/tasks', icon: CheckSquare, pageId: 'tasks' },
-  { name: 'Meetings', href: '/lab/meetings', icon: Calendar, pageId: 'meetings' },
-  { name: 'Invoices', href: '/lab/invoices', icon: Receipt, pageId: 'invoices' },
-  { name: 'Contracts', href: '/lab/contracts', icon: FileText, pageId: 'contracts' },
   { name: 'Clients', href: '/lab/clients', icon: UserCircle, pageId: 'clients' },
-  { name: 'Teams', href: '/lab/teams', icon: Users, pageId: 'teams' },
+  { name: 'Messages', href: '/lab/messages', icon: MessageSquare, pageId: 'messages' },
   { name: 'Settings', href: '/lab/settings', icon: Settings, pageId: 'settings' },
-]
+] as const
 
 function getPageId(pathname: string): string {
   for (const item of navigation) {
@@ -40,7 +25,7 @@ function getPageId(pathname: string): string {
       return item.pageId
     }
   }
-  return 'dashboard'
+  return 'command'
 }
 
 interface LabSidebarProps {
@@ -49,7 +34,7 @@ interface LabSidebarProps {
 
 export function LabSidebar({ initialUnreadClientMessagesCount = 0 }: LabSidebarProps) {
   const pathname = usePathname()
-  const router = useRouter()
+  const { isSidebarOpen, closeSidebar } = useLabNavigation()
   const [helpOpen, setHelpOpen] = useState(false)
   const [unreadClientMessagesCount, setUnreadClientMessagesCount] = useState(initialUnreadClientMessagesCount)
   const supabase = useMemo(() => createClient(), [])
@@ -76,102 +61,72 @@ export function LabSidebar({ initialUnreadClientMessagesCount = 0 }: LabSidebarP
     }
   }, [loadUnreadClientMessagesCount, supabase])
 
-  const handleStartTour = (pageId: string) => {
-    localStorage.removeItem(`echo11_tour_${pageId}_done`)
-    setPendingTour(pageId)
-    router.push(`/lab/${pageId}`)
-  }
-
   return (
     <>
-      <aside className="w-64 bg-black/50 backdrop-blur-md border-r border-white/5 flex flex-col font-sans">
-        <div className="p-6">
-          <Link href="/lab/dashboard" className="flex items-center gap-2 group">
-            <div
-              className="w-8 h-8 bg-accent flex items-center justify-center"
-              style={{ boxShadow: '0 0 15px var(--accent-glow)' }}
-            >
-              <span className="text-black font-bold text-sm font-mono">e11</span>
+      <aside
+        className={cn(
+          'fixed inset-y-0 left-0 z-50 w-72 border-r border-white/10 bg-[radial-gradient(circle_at_10%_0%,rgba(0,229,255,0.08),transparent_45%),#030303] backdrop-blur-md flex flex-col font-sans transition-transform duration-200 lg:static lg:translate-x-0',
+          isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
+        )}
+      >
+        <div className="px-5 py-4 border-b border-white/10">
+          <Link href="/lab/command" className="group flex items-center gap-3" onClick={closeSidebar}>
+            <div className="h-9 w-9 border border-accent/30 bg-accent/10 flex items-center justify-center">
+              <span className="text-[11px] text-accent font-bold font-mono tracking-[0.15em]">E11</span>
             </div>
-            <span className="font-semibold text-foreground group-hover:text-accent transition-colors font-sans">
-              echo11Lab
-            </span>
+            <div>
+              <p className="text-sm uppercase tracking-[0.16em] text-white/40 font-mono">echo11</p>
+              <p className="text-base text-foreground group-hover:text-accent transition-colors">Lab Command</p>
+            </div>
           </Link>
         </div>
 
-        <nav className="flex-1 px-3 space-y-1">
-          {navigation.map((item, index) => {
+        <nav className="flex-1 space-y-1 px-3 py-4">
+          {navigation.map((item) => {
             const isActive = pathname === item.href || pathname.startsWith(`${item.href}/`)
-
             return (
-              <motion.div
+              <Link
                 key={item.name}
-                initial={{ opacity: 0, x: -10 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: index * 0.05 }}
+                href={item.href}
+                onClick={closeSidebar}
+                className={cn(
+                  'group relative flex items-center gap-3 border px-3 py-2.5 transition-colors',
+                  isActive
+                    ? 'border-accent/35 bg-accent/10 text-accent'
+                    : 'border-transparent text-white/55 hover:border-white/15 hover:bg-white/5 hover:text-white'
+                )}
               >
-                <Link
-                  href={item.href}
-                  className={cn(
-                    'flex items-center gap-3 px-3 py-2.5 rounded-none text-sm font-medium transition-all duration-200 relative group font-sans',
-                    isActive
-                      ? 'text-accent'
-                      : 'text-white/50 hover:text-white hover:bg-white/5'
-                  )}
-                >
-                  {isActive && (
-                    <motion.div
-                      layoutId="activeNav"
-                      className="absolute left-0 top-0 bottom-0 w-0.5 bg-accent"
-                      style={{ boxShadow: '0 0 10px var(--accent-glow)' }}
-                    />
-                  )}
-                  <item.icon className={cn(
-                    'w-5 h-5 transition-all duration-200',
-                    isActive ? 'text-accent' : 'text-white/50 group-hover:text-white'
-                  )} />
-                  <span className="relative z-10 font-sans">{item.name}</span>
-                  {item.pageId === 'clients' && unreadClientMessagesCount > 0 && (
-                    <span className={cn(
-                      'ml-auto px-1.5 py-0.5 text-[10px] font-mono border',
-                      isActive
-                        ? 'bg-accent/10 border-accent/30 text-accent'
-                        : 'bg-white/5 border-white/20 text-white/70 group-hover:text-accent group-hover:border-accent/30'
-                    )}>
-                      {unreadClientMessagesCount}
-                    </span>
-                  )}
-                  {isActive && (
-                    <motion.div
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      className="absolute right-2 w-1.5 h-1.5 rounded-full bg-accent"
-                      style={{ boxShadow: '0 0 8px var(--accent-glow)' }}
-                    />
-                  )}
-                </Link>
-              </motion.div>
+                <item.icon className={cn('h-4 w-4', isActive ? 'text-accent' : 'text-white/45 group-hover:text-white')} />
+                <span className="text-xs uppercase tracking-[0.14em] font-mono">{item.name}</span>
+                {item.pageId === 'messages' && unreadClientMessagesCount > 0 ? (
+                  <span className="ml-auto border border-amber-400/30 bg-amber-500/10 px-1.5 py-0.5 text-[10px] font-mono text-amber-300">
+                    {unreadClientMessagesCount}
+                  </span>
+                ) : null}
+              </Link>
             )
           })}
         </nav>
 
         <OnboardingChecklist
           onHelpClick={() => setHelpOpen(true)}
-          onStartTour={handleStartTour}
+          onStartTour={() => {
+            window.location.href = '/lab/command'
+          }}
         />
 
-        <div className="p-3 border-t border-white/5">
+        <div className="p-3 border-t border-white/10">
           <button
-            className="flex items-center gap-3 px-3 py-2.5 w-full rounded-none text-sm font-medium text-white/50 hover:text-white hover:bg-white/5 transition-all duration-200 font-sans"
+            className="flex w-full items-center gap-3 border border-transparent px-3 py-2.5 text-xs uppercase tracking-[0.14em] font-mono text-white/50 transition-colors hover:border-white/15 hover:bg-white/5 hover:text-white"
             onClick={async () => {
-              const { createClient } = await import('@/lib/supabase/client')
-              const supabase = createClient()
-              await supabase.auth.signOut()
+              const { createClient: getClient } = await import('@/lib/supabase/client')
+              const client = getClient()
+              await client.auth.signOut()
               window.location.href = '/lab/auth/login'
             }}
           >
-            <LogOut className="w-5 h-5" />
-            <span className="font-sans">Sign out</span>
+            <LogOut className="h-4 w-4" />
+            Sign out
           </button>
         </div>
       </aside>

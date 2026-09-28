@@ -5,9 +5,9 @@ export const siteConfig = {
   url: "https://echo11.tech",
   title: "echo11 — Strategy, Design & Product Engineering Studio",
   description:
-    "We design and engineer digital products with clear strategy, strong systems, and premium execution — crafted to perform, convert, and scale.",
+    "Echo11 helps teams plan, design, and build reliable websites, portals, platforms, and digital products with clear scope and dependable engineering.",
   ogDescription:
-    "From concept to scale, echo11 builds digital products that perform, convert, and last. Strategy-first. Design-led. Engineering-driven.",
+    "A Nepal-based product engineering studio for websites, portals, platforms, and digital products that need clear planning and dependable execution.",
   openGraphImage: "/opengraph-image",
   twitterImage: "/twitter-image",
   logo: "/echo11-logo.png",
@@ -123,5 +123,43 @@ export function breadcrumbJsonLd(items: Array<{ name: string; item: string }>) {
       name: item.name,
       item: item.item,
     })),
+  };
+}
+
+export function faqJsonLd(faqs: Array<{ q: string; a: string }>) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: faqs.map((faq) => ({
+      "@type": "Question",
+      name: faq.q,
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: faq.a,
+      },
+    })),
+  };
+}
+
+export function serviceJsonLd(services: Array<{ name: string; description: string; url: string }>) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "ProfessionalService",
+    name: siteConfig.name,
+    url: siteConfig.url,
+    description: siteConfig.description,
+    hasOfferCatalog: {
+      "@type": "OfferCatalog",
+      name: "Digital Product Services",
+      itemListElement: services.map((service) => ({
+        "@type": "Offer",
+        itemOffered: {
+          "@type": "Service",
+          name: service.name,
+          description: service.description,
+          url: service.url,
+        },
+      })),
+    },
   };
 }

@@ -28,7 +28,7 @@ export default async function ClientLayout({
     .single()
 
   if (profile?.role === 'admin' || profile?.role === 'member') {
-    redirect('/lab/dashboard')
+    redirect('/lab/command')
   }
 
   if (profile?.role !== 'client') {

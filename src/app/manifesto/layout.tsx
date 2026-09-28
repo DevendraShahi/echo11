@@ -1,9 +1,10 @@
-import { createMetadata } from "@/lib/seo";
+import { createMetadata, breadcrumbJsonLd, absoluteUrl } from "@/lib/seo";
+import { JsonLd } from "@/components/seo/JsonLd";
 
 export const metadata = createMetadata({
   title: "Manifesto | echo11",
   description:
-    "The product beliefs behind echo11's approach to clarity, useful design, transparent delivery, and durable craft.",
+    "The principles behind echo11's approach to product clarity, useful design, transparent delivery, and engineering craft that earns trust.",
   path: "/manifesto",
 });
 
@@ -12,5 +13,13 @@ export default function ManifestoLayout({
 }: {
   children: React.ReactNode;
 }) {
-  return <>{children}</>;
+  return (
+    <>
+      <JsonLd data={[breadcrumbJsonLd([
+        { name: "Home", item: absoluteUrl("/") },
+        { name: "Manifesto", item: absoluteUrl("/manifesto") },
+      ])]} />
+      {children}
+    </>
+  );
 }

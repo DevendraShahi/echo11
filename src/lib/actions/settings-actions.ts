@@ -1,10 +1,10 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
-import { createClient as createServiceClient } from '@supabase/supabase-js'
 import { revalidatePath } from 'next/cache'
 import { UserPreferences, Theme } from '@/types/lab'
-import { sendTeamInvitation } from '@/lib/email'
+import { callApiV1 } from '@/lib/api/v1/internal-client'
+import { isApiFailure } from '@/lib/api/v1/contracts'
 
 export interface UpdateProfileParams {
   full_name?: string
@@ -16,6 +16,10 @@ export interface UpdatePreferencesParams {
   task_reminders?: boolean
   meeting_reminders?: boolean
   theme?: Theme
+}
+
+function nextIdempotencyKey(prefix: string): string {
+  return `${prefix}-${crypto.randomUUID()}`
 }
 
 export async function getUserProfile() {
@@ -73,18 +77,18 @@ export async function updateProfile(
   }
 
   try {
-    const { error } = await supabase
-      .from('profiles')
-      .update({
-        full_name: params.full_name,
-        avatar_url: params.avatar_url,
-        updated_at: new Date().toISOString()
-      })
-      .eq('id', user.id)
+    const response = await callApiV1<{ user_id: string }>('/identity/profile', {
+      method: 'PATCH',
+      body: {
+        full_name: params.full_name ?? null,
+        avatar_url: params.avatar_url ?? null,
+      },
+      idempotencyKey: nextIdempotencyKey('profile-update'),
+    })
 
-    if (error) {
-      console.error('Error updating profile:', error)
-      return { success: false, error: error.message }
+    if (isApiFailure(response)) {
+      console.error('Error updating profile:', response.error)
+      return { success: false, error: response.error.message }
     }
 
     revalidatePath('/lab/settings')
@@ -106,20 +110,20 @@ export async function updatePreferences(
   }
 
   try {
-    const { error } = await supabase
-      .from('user_preferences')
-      .update({
+    const response = await callApiV1<{ user_id: string }>('/identity/preferences', {
+      method: 'PATCH',
+      body: {
         email_notifications: params.email_notifications,
         task_reminders: params.task_reminders,
         meeting_reminders: params.meeting_reminders,
         theme: params.theme,
-        updated_at: new Date().toISOString()
-      })
-      .eq('user_id', user.id)
+      },
+      idempotencyKey: nextIdempotencyKey('preferences-update'),
+    })
 
-    if (error) {
-      console.error('Error updating preferences:', error)
-      return { success: false, error: error.message }
+    if (isApiFailure(response)) {
+      console.error('Error updating preferences:', response.error)
+      return { success: false, error: response.error.message }
     }
 
     revalidatePath('/lab/settings')
@@ -142,22 +146,17 @@ export async function changePassword(
   }
 
   try {
-    const { error: verifyError } = await supabase.auth.signInWithPassword({
-      email: user.email || '',
-      password: currentPassword
+    const response = await callApiV1<{ user_id: string }>('/identity/password', {
+      method: 'PUT',
+      body: {
+        current_password: currentPassword,
+        new_password: newPassword,
+      },
+      idempotencyKey: nextIdempotencyKey('password-change'),
     })
 
-    if (verifyError) {
-      return { success: false, error: 'Current password is incorrect' }
-    }
-
-    const { error: updateError } = await supabase.auth.updateUser({
-      password: newPassword
-    })
-
-    if (updateError) {
-      console.error('Error changing password:', updateError)
-      return { success: false, error: updateError.message }
+    if (isApiFailure(response)) {
+      return { success: false, error: response.error.message }
     }
 
     return { success: true }
@@ -179,53 +178,23 @@ export async function getTeamMembers() {
     .single()
 
   if (currentProfile?.role !== 'admin') return []
-
-  // Use service role to bypass any RLS and to backfill missing profiles
-  const service = createServiceClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-  )
-
-  // Fetch auth users (first page; adjust perPage if org grows)
-  const { data: authUsers, error: authError } = await service.auth.admin.listUsers({ page: 1, perPage: 200 })
-  if (authError) {
-    console.error('Failed to list auth users', authError)
-  }
-
-  const { data: profiles } = await service
+  const { data: profiles, error } = await supabase
     .from('profiles')
     .select('id, email, full_name, role, team_id, job_title, created_at')
     .order('created_at', { ascending: true })
 
-  const profileMap = new Map((profiles || []).map(p => [p.id, p]))
-  const missing = (authUsers?.users || []).filter(u => !profileMap.has(u.id))
-
-  if (missing.length > 0) {
-    const rows = missing.map(u => ({
-      id: u.id,
-      email: u.email,
-      full_name: u.user_metadata?.full_name || null,
-      role: 'member',
-      team_id: null,
-      job_title: null,
-      created_at: new Date().toISOString(),
-    }))
-    try {
-      await service.from('profiles').upsert(rows)
-      rows.forEach(r => profileMap.set(r.id, r))
-    } catch (e) {
-      console.error('Failed to backfill missing profiles', e)
-    }
+  if (error) {
+    console.error('Failed to load team members', error)
+    return []
   }
 
-  return Array.from(profileMap.values())
+  return profiles || []
 }
 
 export async function updateMemberRole(
   memberId: string,
   role: 'admin' | 'member' | 'client'
 ): Promise<{ success: boolean; error?: string }> {
-  const { createClient: createSupabaseClient } = await import('@supabase/supabase-js')
   const supabase = await createClient()
   
   const { data: { user } } = await supabase.auth.getUser()
@@ -256,19 +225,18 @@ export async function updateMemberRole(
   }
 
   try {
-    const supabaseAdmin = createSupabaseClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    const response = await callApiV1<{ member_id: string; role: 'admin' | 'member' | 'client' }>(
+      `/identity/memberships/${memberId}/role`,
+      {
+        method: 'PUT',
+        body: { role },
+        idempotencyKey: `member-role-${crypto.randomUUID()}`,
+      }
     )
 
-    const { error } = await supabaseAdmin
-      .from('profiles')
-      .update({ role, updated_at: new Date().toISOString() })
-      .eq('id', memberId)
-
-    if (error) {
-      console.error('Error updating member role:', error)
-      return { success: false, error: error.message }
+    if (isApiFailure(response)) {
+      console.error('Error updating member role:', response.error)
+      return { success: false, error: response.error.message }
     }
 
     revalidatePath('/lab/settings')
@@ -329,65 +297,39 @@ export async function inviteTeamMember(
     return { success: false, error: 'You must be logged in' }
   }
 
-  const { data: currentUser } = await supabase
-    .from('profiles')
-    .select('role')
-    .eq('id', user.id)
-    .single()
-
-  if (currentUser?.role !== 'admin') {
-    return { success: false, error: 'Only admins can invite team members' }
-  }
-
   try {
-    const { data: existingProfile } = await supabase
-      .from('profiles')
-      .select('id')
-      .eq('email', email.toLowerCase())
-      .single()
+    const response = await callApiV1<{
+      invite_id: string
+      email: string
+      role: 'admin' | 'member' | 'client'
+      job_title: string | null
+      expires_at: string
+    }>('/identity/team-invites', {
+      method: 'POST',
+      body: {
+        email: email.toLowerCase(),
+        role,
+        job_title: jobTitle || null,
+      },
+      idempotencyKey: nextIdempotencyKey('team-invite-create'),
+    })
 
-    if (existingProfile) {
-      return { success: false, error: 'A user with this email already exists' }
-    }
-
-    const { data: existingInvite } = await supabase
-      .from('team_invites')
-      .select('id')
-      .eq('email', email.toLowerCase())
-      .eq('status', 'pending')
-      .gt('expires_at', new Date().toISOString())
-      .single()
-
-    if (existingInvite) {
-      return { success: false, error: 'An invitation is already pending for this email' }
-    }
-
-    const expiresAt = new Date()
-    expiresAt.setDate(expiresAt.getDate() + 7)
-
-    const { data: newInvite, error } = await supabase.from('team_invites').insert({
-      email: email.toLowerCase(),
-      role,
-      job_title: jobTitle,
-      invited_by: user.id,
-      status: 'pending',
-      expires_at: expiresAt.toISOString()
-    }).select('id').single()
-
-    if (error) {
-      console.error('Error creating invite:', error)
-      return { success: false, error: error.message }
+    if (isApiFailure(response)) {
+      return { success: false, error: response.error.message }
     }
 
     // Send the actual email
+    const { sendTeamInvitation } = await import('@/lib/email')
     await sendTeamInvitation({
       to: email.toLowerCase(),
       role,
-      inviteId: newInvite.id,
+      inviteId: response.data.invite_id,
       invitedByEmail: user.email || 'A team member',
       jobTitle
     })
 
+    revalidatePath('/lab/teams')
+    revalidatePath('/lab/settings')
     return { success: true }
   } catch (error) {
     console.error('Error creating invite:', error)
@@ -404,14 +346,13 @@ export async function cancelInvite(inviteId: string): Promise<{ success: boolean
   }
 
   try {
-    const { error } = await supabase
-      .from('team_invites')
-      .delete()
-      .eq('id', inviteId)
-      .eq('invited_by', user.id)
+    const response = await callApiV1<{ invite_id: string }>(`/identity/team-invites/${inviteId}`, {
+      method: 'DELETE',
+      idempotencyKey: nextIdempotencyKey('team-invite-cancel'),
+    })
 
-    if (error) {
-      return { success: false, error: error.message }
+    if (isApiFailure(response)) {
+      return { success: false, error: response.error.message }
     }
 
     revalidatePath('/lab/teams')
@@ -432,19 +373,32 @@ export async function resendInvite(inviteId: string): Promise<{ success: boolean
   }
 
   try {
-    const expiresAt = new Date()
-    expiresAt.setDate(expiresAt.getDate() + 7)
+    const response = await callApiV1<{
+      invite_id: string
+      email: string
+      role: 'admin' | 'member' | 'client'
+      job_title: string | null
+      expires_at: string
+    }>(`/identity/team-invites/${inviteId}/resend`, {
+      method: 'PUT',
+      idempotencyKey: nextIdempotencyKey('team-invite-resend'),
+    })
 
-    const { error } = await supabase
-      .from('team_invites')
-      .update({ expires_at: expiresAt.toISOString(), created_at: new Date().toISOString() })
-      .eq('id', inviteId)
-      .eq('invited_by', user.id)
-
-    if (error) {
-      return { success: false, error: error.message }
+    if (isApiFailure(response)) {
+      return { success: false, error: response.error.message }
     }
 
+    const { sendTeamInvitation } = await import('@/lib/email')
+    await sendTeamInvitation({
+      to: response.data.email,
+      role: response.data.role,
+      inviteId: response.data.invite_id,
+      invitedByEmail: user.email || 'A team member',
+      jobTitle: response.data.job_title || undefined,
+    })
+
+    revalidatePath('/lab/teams')
+    revalidatePath('/lab/settings')
     return { success: true }
   } catch (error) {
     console.error('Error resending invite:', error)
@@ -452,25 +406,18 @@ export async function resendInvite(inviteId: string): Promise<{ success: boolean
   }
 }
 
-import { createClient as createSupabaseClient } from '@supabase/supabase-js'
-
 export async function getInviteDetails(inviteId: string) {
-  // We use the admin client because the user is not authenticated yet and RLS blocks them
-  const supabaseAdmin = createSupabaseClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-  )
-  
+  const supabase = await createClient()
+
   try {
-    const { data: invite, error } = await supabaseAdmin
-      .from('team_invites')
-      .select('email, role, job_title, status, expires_at')
-      .eq('id', inviteId)
-      .single()
+    const { data, error } = await supabase.rpc('get_team_invite_details', {
+      p_invite_id: inviteId
+    })
 
-    if (error || !invite) return null
+    if (error) return null
 
-    if (invite.status !== 'pending' || new Date(invite.expires_at) < new Date()) {
+    const invite = Array.isArray(data) ? data[0] : data
+    if (!invite) {
       return null
     }
 
@@ -481,32 +428,19 @@ export async function getInviteDetails(inviteId: string) {
 }
 
 export async function acceptTeamInvite(inviteId: string, userId: string, fullName: string) {
-  // Use admin client because standard newly-created user might not have permissions to accept invites
-  const supabaseAdmin = createSupabaseClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-  )
-
   try {
-    const { data: invite } = await supabaseAdmin
-      .from('team_invites')
-      .select('role, job_title')
-      .eq('id', inviteId)
-      .single()
+    const response = await callApiV1<{ invite_id: string; user_id: string }>(`/identity/team-invites/${inviteId}/accept`, {
+      method: 'PUT',
+      body: {
+        user_id: userId,
+        full_name: fullName,
+      },
+      idempotencyKey: nextIdempotencyKey('team-invite-accept'),
+    })
 
-    if (!invite) return { success: false, error: 'Invite not found' }
-
-    // Update their profile role based on the invite
-    await supabaseAdmin.from('profiles').update({
-      role: invite.role,
-      job_title: invite.job_title,
-      full_name: fullName
-    }).eq('id', userId)
-
-    // Mark invite as accepted
-    await supabaseAdmin.from('team_invites').update({
-      status: 'accepted'
-    }).eq('id', inviteId)
+    if (isApiFailure(response)) {
+      return { success: false, error: response.error.message }
+    }
 
     return { success: true }
   } catch (err) {

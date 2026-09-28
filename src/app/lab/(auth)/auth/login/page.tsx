@@ -29,7 +29,7 @@ export default function LoginPage() {
     }
 
     if (profile?.role === 'admin' || profile?.role === 'member') {
-      router.push('/lab/dashboard')
+      router.push('/lab/command')
       router.refresh()
       return true
     }

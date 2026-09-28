@@ -1,0 +1,66 @@
+# Echo11 Unified Architecture (Implementation Baseline)
+
+## What Is Implemented
+- DB tenancy/membership/concurrency/event/audit foundation migration.
+- Invite RPC hardening migration to remove service-role invite acceptance flows.
+- API v1 route surface for key domains:
+  - `identity`
+  - `teams`
+  - `projects`
+  - `project-tags`
+  - `tasks`
+  - `meetings`
+  - `clients`
+  - `client contacts`
+  - `client notes`
+  - `client documents`
+  - `notifications`
+  - `team moodboard`
+  - `finance/invoices`
+  - `contracts`
+  - `messages`
+- Shared API primitives:
+  - actor context resolution
+  - idempotency persistence
+  - mutation metadata envelope
+  - event + audit artifact writes
+  - internal outbox dispatcher with projection refresh hooks and lag/error metrics
+  - internal outbox metrics endpoint for pending lag, retry saturation, and projection staleness
+  - internal outbox health endpoint with threshold-based degraded status for alert checks
+  - compatibility helpers for phased rollout
+- Contract conformance guardrails:
+  - `scripts/check-openapi-v1.mjs` verifies OpenAPI path/method coverage against `/src/app/api/v1/**/route.ts`
+  - `npm run check:openapi:v1` is available as the route-contract drift check
+- Policy matrix guardrails:
+  - `scripts/check-policy-matrix.mjs` validates core authz helper/policy coverage from migration SQL
+  - optional live matrix assertions available via `npm run check:policy:matrix:live`
+  - static matrix gate available via `npm run check:policy:matrix`
+- CI gating:
+  - `.github/workflows/ci.yml` runs `npm run verify:architecture` and `npm run build` on push/PR
+- Server action migrations:
+  - team and settings mutation paths now call API v1 wrappers
+  - client/project/task core write paths migrated to API v1 wrappers
+  - project-tag CRUD and project-tag assignment writes migrated to API v1 wrappers
+  - meeting create/update/delete writes migrated to API v1 wrappers
+  - contact/note/document mutation writes migrated to API v1 wrappers
+  - notification and team-moodboard mutation writes migrated to API v1 wrappers
+  - invoice and contract core write/status paths migrated to API v1 wrappers
+  - client/team messaging send/read mutations migrated to API v1 wrappers
+  - identity settings mutations (profile/preferences/password) migrated to API v1 wrappers
+  - team/client invite mutation surfaces migrated to API v1 wrappers
+  - service-role permission bypass removed from user-triggered actions
+- Read-side projection adoption:
+  - client list/stats reads now prefer `client_dashboard_projection` with fallback to source tables
+  - unread notification counts now prefer `unread_counts_projection` with fallback to source tables
+  - lab dashboard recent activity now prefers `activity_projection` with fallback to `activities`
+  - lab dashboard workload stat cards now prefer `team_workload_projection` with fallback to source tables
+  - client activity feed now prefers `activity_projection` with fallback to `activities`
+  - lab client detail activity tab now uses projection-first `getLabClientActivityFeed` with fallback to `activities`
+  - lab project detail recent activity now prefers `activity_projection` with fallback to `activities`
+  - portal activity feed now reuses projection-first client activity server action
+
+## Pending Next Steps
+- Run live policy matrix assertions in staging.
+- Add scheduler wiring + alert thresholds for outbox failures/retry saturation.
+- Extend projection-backed reads beyond activity/stat widgets to remaining detail lists where needed.
+- Remove legacy role assumptions from UI and actions after validation window.

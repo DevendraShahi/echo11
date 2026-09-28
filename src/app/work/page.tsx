@@ -1,16 +1,21 @@
 import { PageWrapper } from "@/components/layout/PageWrapper";
 import { SelectedWork } from "@/components/sections/SelectedWork";
-import { createMetadata } from "@/lib/seo";
+import { createMetadata, breadcrumbJsonLd, absoluteUrl } from "@/lib/seo";
+import { JsonLd } from "@/components/seo/JsonLd";
 
 export const metadata = createMetadata({
   title: "Work | echo11",
-  description: "Case studies from shipped products across commerce, SaaS, content, and creative platforms.",
+  description: "See how echo11 plans, designs, and builds websites, platforms, and digital products. Case studies from e-commerce, civic media, and education.",
   path: "/work",
 });
 
 export default function WorkPage() {
   return (
     <PageWrapper>
+      <JsonLd data={[breadcrumbJsonLd([
+        { name: "Home", item: absoluteUrl("/") },
+        { name: "Work", item: absoluteUrl("/work") },
+      ])]} />
       <div className="pt-32 pb-16 min-h-screen">
         <SelectedWork standalone={true} />
       </div>

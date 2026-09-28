@@ -3,32 +3,10 @@
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { createNotification } from './notification-actions'
-import { createClient as createServiceClient } from '@supabase/supabase-js'
 import { revalidateClientSurface, revalidateLegacyPortalSurface } from './client-surface-revalidate'
-
-async function requireAdminOrLead(userId: string, teamId?: string | null) {
-  const service = createServiceClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-  )
-
-  const { data: profile } = await service
-    .from('profiles')
-    .select('role')
-    .eq('id', userId)
-    .single()
-
-  if (profile?.role === 'admin') return true
-  if (!teamId) return false
-
-  const { data: team } = await service
-    .from('teams')
-    .select('lead_id')
-    .eq('id', teamId)
-    .single()
-
-  return team?.lead_id === userId
-}
+import { requireAdminOrLead } from './role-helpers'
+import { callApiV1 } from '@/lib/api/v1/internal-client'
+import { isApiFailure } from '@/lib/api/v1/contracts'
 
 export interface ProjectUpdateData {
   name?: string
@@ -78,9 +56,9 @@ export async function createProject(data: ProjectCreateData): Promise<{ success:
   if (!allowed) return { success: false, error: 'Only admins or team leads can create projects' }
 
   try {
-    const { data: project, error } = await supabase
-      .from('projects')
-      .insert({
+    const response = await callApiV1<{ project_id: string; lock_version: number | null }>('/projects', {
+      method: 'POST',
+      body: {
         name: data.name.trim(),
         description: data.description || null,
         client_id: data.client_id || null,
@@ -93,26 +71,26 @@ export async function createProject(data: ProjectCreateData): Promise<{ success:
         color: data.color || null,
         created_by: user.id,
         progress: 0,
-      })
-      .select('id')
-      .single()
+      },
+      idempotencyKey: `project-create-${crypto.randomUUID()}`,
+    })
 
-    if (error) return { success: false, error: error.message }
+    if (isApiFailure(response)) return { success: false, error: response.error.message }
 
     try {
       await supabase.from('activities').insert({
         user_id: user.id,
         action: 'created project',
         entity_type: 'project',
-        entity_id: project.id,
+        entity_id: response.data.project_id,
         metadata: { name: data.name },
       })
     } catch { /* non-critical */ }
 
     revalidatePath('/lab/projects')
-    revalidateClientSurface({ projectId: project.id })
+    revalidateClientSurface({ projectId: response.data.project_id })
     revalidateLegacyPortalSurface()
-    return { success: true, projectId: project.id }
+    return { success: true, projectId: response.data.project_id }
   } catch (error) {
     console.error('Error creating project:', error)
     return { success: false, error: 'An unexpected error occurred' }
@@ -144,17 +122,14 @@ export async function updateProject(
       return { success: false, error: 'Only admins or team leads can update this project' }
     }
 
-    // Update project
-    const { error: projectError } = await supabase
-      .from('projects')
-      .update({
-        ...data,
-        updated_at: new Date().toISOString()
-      })
-      .eq('id', projectId)
+    const projectUpdateResponse = await callApiV1<{ project_id: string; lock_version: number | null }>(`/projects/${projectId}`, {
+      method: 'PATCH',
+      body: data,
+      idempotencyKey: `project-update-${crypto.randomUUID()}`,
+    })
 
-    if (projectError) {
-      return { success: false, error: projectError.message }
+    if (isApiFailure(projectUpdateResponse)) {
+      return { success: false, error: projectUpdateResponse.error.message }
     }
 
     // Handle expenses if provided
@@ -190,10 +165,15 @@ export async function updateProject(
 
       // Recalculate budget from expenses
       const totalBudget = expenses.reduce((sum, e) => sum + e.amount, 0)
-      await supabase
-        .from('projects')
-        .update({ budget: totalBudget })
-        .eq('id', projectId)
+      const budgetUpdate = await callApiV1<{ project_id: string; lock_version: number | null }>(`/projects/${projectId}`, {
+        method: 'PATCH',
+        body: { budget: totalBudget },
+        idempotencyKey: `project-budget-${crypto.randomUUID()}`,
+      })
+
+      if (isApiFailure(budgetUpdate)) {
+        return { success: false, error: budgetUpdate.error.message }
+      }
     }
 
     // Calculate new progress from milestones
@@ -206,10 +186,15 @@ export async function updateProject(
       const totalWeight = milestones.reduce((sum, m) => sum + (m.weight || 0), 0)
       const completedWeight = milestones.filter(m => m.completed).reduce((sum, m) => sum + (m.weight || 0), 0)
       const calculatedProgress = totalWeight > 0 ? Math.round((completedWeight / totalWeight) * 100) : 0
-      await supabase
-        .from('projects')
-        .update({ progress: calculatedProgress })
-        .eq('id', projectId)
+      const progressUpdate = await callApiV1<{ project_id: string; lock_version: number | null }>(`/projects/${projectId}`, {
+        method: 'PATCH',
+        body: { progress: calculatedProgress },
+        idempotencyKey: `project-progress-${crypto.randomUUID()}`,
+      })
+
+      if (isApiFailure(progressUpdate)) {
+        return { success: false, error: progressUpdate.error.message }
+      }
     }
 
     // Log activity (don't fail if this fails)
@@ -281,14 +266,13 @@ export async function deleteProject(projectId: string): Promise<{ success: boole
       return { success: false, error: 'Only admins or team leads can delete this project' }
     }
 
-    // Delete project (cascades to milestones, tasks, expenses)
-    const { error: deleteError } = await supabase
-      .from('projects')
-      .delete()
-      .eq('id', projectId)
+    const response = await callApiV1<{ project_id: string }>(`/projects/${projectId}`, {
+      method: 'DELETE',
+      idempotencyKey: `project-delete-${crypto.randomUUID()}`,
+    })
 
-    if (deleteError) {
-      return { success: false, error: deleteError.message }
+    if (isApiFailure(response)) {
+      return { success: false, error: response.error.message }
     }
 
     // Log activity (don't fail if this fails)
@@ -370,16 +354,16 @@ export async function toggleTaskStatus(
       return { success: false, error: 'You can only update tasks assigned to you' }
     }
 
-    const { error } = await supabase
-      .from('tasks')
-      .update({
-        status: completed ? 'done' : 'todo',
-        updated_at: new Date().toISOString()
-      })
-      .eq('id', taskId)
+    const response = await callApiV1<{ task_id: string; lock_version: number | null }>(`/tasks/${taskId}`, {
+      method: 'PATCH',
+      body: {
+        status: completed ? 'done' : 'todo'
+      },
+      idempotencyKey: `project-toggle-task-${crypto.randomUUID()}`,
+    })
 
-    if (error) {
-      return { success: false, error: error.message }
+    if (isApiFailure(response)) {
+      return { success: false, error: response.error.message }
     }
 
     if (task?.project_id) {
@@ -439,11 +423,16 @@ export async function updateProjectProgress(projectId: string): Promise<{ succes
       const completedWeight = milestones.filter(m => m.completed).reduce((sum, m) => sum + (m.weight || 0), 0)
       
       const calculatedProgress = totalWeight > 0 ? Math.round((completedWeight / totalWeight) * 100) : 0
-      
-      await supabase
-        .from('projects')
-        .update({ progress: calculatedProgress, updated_at: new Date().toISOString() })
-        .eq('id', projectId)
+
+      const response = await callApiV1<{ project_id: string; lock_version: number | null }>(`/projects/${projectId}`, {
+        method: 'PATCH',
+        body: { progress: calculatedProgress },
+        idempotencyKey: `project-progress-refresh-${crypto.randomUUID()}`,
+      })
+
+      if (isApiFailure(response)) {
+        return { success: false }
+      }
 
       revalidatePath(`/lab/projects/${projectId}`)
       revalidatePath('/lab/projects')

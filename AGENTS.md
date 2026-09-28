@@ -171,7 +171,7 @@ export async function doSomething(param: string): Promise<{ success: boolean; er
 }
 ```
 
-### Server Action Files (13 total)
+### Server Action Files (14 total)
 - `client-actions.ts` — Client CRUD, portal invites
 - `project-actions.ts` — Project CRUD, task toggling, milestone-based progress
 - `task-actions.ts` — Task CRUD
@@ -183,7 +183,8 @@ export async function doSomething(param: string): Promise<{ success: boolean; er
 - `document-actions.ts` — Document management
 - `notification-actions.ts` — Notifications
 - `settings-actions.ts` — User preferences
-- `contact-actions.ts` — Contact form
+- `contact-actions.ts` — Lab client contacts CRUD
+- `marketing-contact-actions.ts` — Marketing inquiry form submission via Resend
 - `client-message-actions.ts` — Client portal messaging
 
 ### Tailwind CSS
@@ -331,9 +332,9 @@ SUPABASE_SERVICE_ROLE_KEY=     # server-only (not currently used by server clien
 
 Use these as canonical project narratives for marketing copy (homepage selected works + `src/data/caseStudies.ts`):
 
-- **The Leaders NP** — A Nepal history, political, and social platform that publishes articles, ideas, and data-backed context.
-- **Green Lifestyle** — A sustainability platform where users share, read, and interact around day-to-day practices to build a greener environment.
-- **StudentStack** — A student benefits platform for discovering deals/offers/subscriptions, with details and clear step-by-step claim guidance.
+- **TrueLuxe Nepal** — A premium e-commerce platform for skincare discovery, built with conversion-focused product education, local payment integration, and mobile-first performance.
+- **The Leaders NP** — A Nepal history, political, and social platform that publishes articles, ideas, and data-backed context with structured editorial workflows.
+- **curriculum.os** — A curriculum planning platform that helps educators and learning teams organize programs, module structures, and delivery details in a clear digital workspace.
 
 When updating portfolio copy:
 - Keep these narratives consistent across `src/components/sections/SelectedWork.tsx` and `src/data/caseStudies.ts`.

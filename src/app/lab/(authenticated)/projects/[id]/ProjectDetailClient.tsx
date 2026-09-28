@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { LabCard, LabCardHeader, LabCardTitle, LabCardContent } from '@/components/ui/LabCard'
+import { Section } from '@/components/lab/patterns/Section'
 import { LabButton } from '@/components/ui/LabButton'
 import { MilestoneList } from '@/components/lab/MilestoneList'
 import { sendClientPortalInvite } from '@/lib/actions/client-actions'
@@ -152,13 +152,10 @@ export function ProjectDetailClient({
     <>
       {/* Client Access Card */}
       {hasClient && (
-        <LabCard>
-          <LabCardHeader>
-            <LabCardTitle className="font-sans">Client Access</LabCardTitle>
-          </LabCardHeader>
-          <LabCardContent>
+        <Section title="Client Access">
+          <div className="p-4 bg-white/5 border border-white/10">
             {clientHasPortalAccess ? (
-                <div className="flex items-center gap-3 p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-lg">
+              <div className="flex items-center gap-3 p-3 bg-emerald-500/10 border border-emerald-500/20">
                 <CheckCircle className="w-5 h-5 text-emerald-400" />
                 <div className="flex-1">
                   <p className="text-sm text-foreground font-sans">Client has access</p>
@@ -166,7 +163,7 @@ export function ProjectDetailClient({
                 </div>
               </div>
             ) : clientHasPendingInvite ? (
-              <div className="flex items-center gap-3 p-3 bg-amber-500/10 border border-amber-500/20 rounded-lg">
+              <div className="flex items-center gap-3 p-3 bg-amber-500/10 border border-amber-500/20">
                 <Send className="w-5 h-5 text-amber-400" />
                 <div className="flex-1">
                   <p className="text-sm text-foreground font-sans">Invitation pending</p>
@@ -177,7 +174,7 @@ export function ProjectDetailClient({
               <button
                 onClick={handleInviteClient}
                 disabled={inviting}
-                className="w-full flex items-center justify-center gap-2 p-3 bg-white/5 border border-white/10 hover:border-accent rounded-lg transition-colors text-foreground"
+                className="w-full flex items-center justify-center gap-2 p-3 bg-white/5 border border-white/10 hover:border-accent transition-colors text-foreground"
               >
                 {inviting ? (
                   <Loader2 className="w-4 h-4 animate-spin" />
@@ -187,130 +184,122 @@ export function ProjectDetailClient({
                 <span className="font-sans">Invite to Client Area</span>
               </button>
             )}
-          </LabCardContent>
-        </LabCard>
+          </div>
+        </Section>
       )}
 
       {/* Milestones Card */}
-      <LabCard>
-        <LabCardHeader className="flex flex-row items-center justify-between">
-          <LabCardTitle className="font-sans">Milestones</LabCardTitle>
-        </LabCardHeader>
-        <LabCardContent>
+      <Section title="Milestones">
+        <div className="p-4 bg-white/5 border border-white/10">
           <MilestoneList
             projectId={projectId}
             milestones={milestones}
             onMilestonesChange={setMilestones}
           />
-        </LabCardContent>
-      </LabCard>
+        </div>
+      </Section>
 
       {/* Expenses Card */}
-      <LabCard>
-        <LabCardHeader className="flex flex-row items-center justify-between">
-          <LabCardTitle className="font-sans">Services & Budget</LabCardTitle>
-        </LabCardHeader>
-        <LabCardContent>
-          <div className="space-y-3">
-            {expenses.length === 0 ? (
-              <p className="text-sm text-white/40 text-center py-4 font-sans">No services added yet</p>
-            ) : (
-              expenses.map((expense) => (
-                <div key={expense.id} className="flex items-center justify-between p-3 bg-white/5 border border-white/10 rounded-lg">
-                  <div>
-                    <p className="text-sm text-foreground font-sans">{expense.description || expense.service?.name}</p>
-                    <p className="text-xs text-white/40 font-mono">
-                      {expense.quantity} × ${(expense.rate ?? 0).toFixed(2)}
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <span className="text-sm font-mono text-foreground">${(expense.amount || 0).toLocaleString()}</span>
-                    <button
-                      onClick={() => deleteExpense(expense.id)}
-                      className="p-1 hover:bg-white/5 rounded-lg text-white/30 hover:text-red-400 transition-colors"
-                    >
-                      <Trash2 className="w-3 h-3" />
-                    </button>
-                  </div>
+      <Section title="Services & Budget">
+        <div className="p-4 bg-white/5 border border-white/10 space-y-3">
+          {expenses.length === 0 ? (
+            <p className="text-sm text-white/40 text-center py-4 font-sans">No services added yet</p>
+          ) : (
+            expenses.map((expense) => (
+              <div key={expense.id} className="flex items-center justify-between p-3 bg-white/5 border border-white/10">
+                <div>
+                  <p className="text-sm text-foreground font-sans">{expense.description || expense.service?.name}</p>
+                  <p className="text-xs text-white/40 font-mono">
+                    {expense.quantity} × ${(expense.rate ?? 0).toFixed(2)}
+                  </p>
                 </div>
-              ))
-            )}
+                <div className="flex items-center gap-3">
+                  <span className="text-sm font-mono text-foreground">${(expense.amount || 0).toLocaleString()}</span>
+                  <button
+                    onClick={() => deleteExpense(expense.id)}
+                    className="p-1 hover:bg-white/5 rounded text-white/30 hover:text-red-400 transition-colors"
+                  >
+                    <Trash2 className="w-3 h-3" />
+                  </button>
+                </div>
+              </div>
+            ))
+          )}
 
-            {showExpenseForm ? (
-              <div className="p-3 bg-white/5 border border-white/10 rounded-lg space-y-2">
-                <Dropdown
-                  options={serviceOptions}
-                  value={newExpense.service_id}
-                  onChange={handleServiceChange}
-                  placeholder="Select a service"
-                />
-                {newExpense.service_id && (
-                  <>
+          {showExpenseForm ? (
+            <div className="p-3 bg-white/5 border border-white/10 space-y-2">
+              <Dropdown
+                options={serviceOptions}
+                value={newExpense.service_id}
+                onChange={handleServiceChange}
+                placeholder="Select a service"
+              />
+              {newExpense.service_id && (
+                <>
+                  <div className="flex gap-2">
+                    <input
+                      type="number"
+                      min="1"
+                      value={newExpense.quantity}
+                      onChange={(e) => setNewExpense({ ...newExpense, quantity: parseInt(e.target.value) || 1 })}
+                      placeholder="Qty"
+                      className="w-20 px-3 py-2 bg-white/5 border border-white/10 text-foreground font-mono text-sm"
+                    />
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={newExpense.rate}
+                      onChange={(e) => setNewExpense({ ...newExpense, rate: parseFloat(e.target.value) || 0 })}
+                      placeholder="Rate"
+                      className="flex-1 px-3 py-2 bg-white/5 border border-white/10 text-foreground font-mono text-sm"
+                    />
+                  </div>
+                  <div className="flex justify-between items-center pt-2">
+                    <span className="text-xs text-white/50">
+                      Total: ${(newExpense.quantity * newExpense.rate).toFixed(2)}
+                    </span>
                     <div className="flex gap-2">
-                      <input
-                        type="number"
-                        min="1"
-                        value={newExpense.quantity}
-                        onChange={(e) => setNewExpense({ ...newExpense, quantity: parseInt(e.target.value) || 1 })}
-                        placeholder="Qty"
-                        className="w-20 px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-foreground font-mono text-sm"
-                      />
-                      <input
-                        type="number"
-                        step="0.01"
-                        value={newExpense.rate}
-                        onChange={(e) => setNewExpense({ ...newExpense, rate: parseFloat(e.target.value) || 0 })}
-                        placeholder="Rate"
-                        className="flex-1 px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-foreground font-mono text-sm"
-                      />
+                      <LabButton
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setShowExpenseForm(false)}
+                        className="font-sans"
+                      >
+                        Cancel
+                      </LabButton>
+                      <LabButton
+                        size="sm"
+                        onClick={addExpense}
+                        disabled={loading || (!newExpense.description && !newExpense.service_id)}
+                        className="font-sans"
+                      >
+                        {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Add'}
+                      </LabButton>
                     </div>
-                    <div className="flex justify-between items-center pt-2">
-                      <span className="text-xs text-white/50">
-                        Total: ${(newExpense.quantity * newExpense.rate).toFixed(2)}
-                      </span>
-                      <div className="flex gap-2">
-                        <LabButton 
-                          type="button" 
-                          variant="ghost" 
-                          size="sm" 
-                          onClick={() => setShowExpenseForm(false)}
-                          className="font-sans"
-                        >
-                          Cancel
-                        </LabButton>
-                        <LabButton 
-                          size="sm" 
-                          onClick={addExpense} 
-                          disabled={loading || (!newExpense.description && !newExpense.service_id)}
-                          className="font-sans"
-                        >
-                          {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Add'}
-                        </LabButton>
-                      </div>
-                    </div>
-                  </>
-                )}
-              </div>
-            ) : (
-              <LabButton type="button" variant="ghost" size="sm" onClick={() => setShowExpenseForm(true)} className="font-sans">
-                <Plus className="w-4 h-4 mr-2" />
-                Add Service
-              </LabButton>
-            )}
+                  </div>
+                </>
+              )}
+            </div>
+          ) : (
+            <LabButton type="button" variant="ghost" size="sm" onClick={() => setShowExpenseForm(true)} className="font-sans">
+              <Plus className="w-4 h-4 mr-2" />
+              Add Service
+            </LabButton>
+          )}
 
-            {expenseError && (
-              <p className="text-sm text-rose-400 font-mono mt-2">{expenseError}</p>
-            )}
+          {expenseError && (
+            <p className="text-sm text-rose-400 font-mono mt-2">{expenseError}</p>
+          )}
 
-            {expenses.length > 0 && (
-              <div className="flex justify-between pt-3 border-t border-white/10">
-                <span className="text-sm text-white/50 font-sans">Total Budget</span>
-                <span className="text-lg font-bold text-foreground font-mono">${totalBudget.toLocaleString()}</span>
-              </div>
-            )}
-          </div>
-        </LabCardContent>
-      </LabCard>
+          {expenses.length > 0 && (
+            <div className="flex justify-between pt-3 border-t border-white/10">
+              <span className="text-sm text-white/50 font-sans">Total Budget</span>
+              <span className="text-lg font-bold text-foreground font-mono">${totalBudget.toLocaleString()}</span>
+            </div>
+          )}
+        </div>
+      </Section>
     </>
   )
 }

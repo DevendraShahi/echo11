@@ -56,22 +56,19 @@ export default async function DocsLayout({
           
           <nav className="flex-1 px-4 overflow-y-auto space-y-6">
             <div>
-              <h3 className="text-xs font-mono uppercase tracking-widest text-white/30 mb-3 px-2">Onboarding Guide</h3>
+              <h3 className="text-xs font-mono uppercase tracking-widest text-white/30 mb-3 px-2">Architecture Guide</h3>
               <ul className="space-y-1">
-                <li><a href="#dashboard" className="block px-2 py-1.5 text-sm font-medium text-white/60 hover:text-accent transition-colors">Dashboard & Feed</a></li>
-                <li><a href="#clients" className="block px-2 py-1.5 text-sm font-medium text-white/60 hover:text-accent transition-colors">Clients & Teams</a></li>
-                <li><a href="#projects" className="block px-2 py-1.5 text-sm font-medium text-white/60 hover:text-accent transition-colors">Projects & Milestones</a></li>
-                <li><a href="#tasks" className="block px-2 py-1.5 text-sm font-medium text-white/60 hover:text-accent transition-colors">Tasks & Meetings</a></li>
-                <li><a href="#documents" className="block px-2 py-1.5 text-sm font-medium text-white/60 hover:text-accent transition-colors">Documents & Notes</a></li>
-                <li><a href="#invoices" className="block px-2 py-1.5 text-sm font-medium text-white/60 hover:text-accent transition-colors">Invoices & Contracts</a></li>
-                <li><a href="#settings" className="block px-2 py-1.5 text-sm font-medium text-white/60 hover:text-accent transition-colors">Settings & Profile</a></li>
+                <li><a href="#surface-contracts" className="block px-2 py-1.5 text-sm font-medium text-white/60 hover:text-accent transition-colors">Top-Level Contracts</a></li>
+                <li><a href="#project-workflow" className="block px-2 py-1.5 text-sm font-medium text-white/60 hover:text-accent transition-colors">Project Workflow</a></li>
+                <li><a href="#frontend-rules" className="block px-2 py-1.5 text-sm font-medium text-white/60 hover:text-accent transition-colors">Frontend Rules</a></li>
+                <li><a href="#navigation-boundaries" className="block px-2 py-1.5 text-sm font-medium text-white/60 hover:text-accent transition-colors">Navigation Boundaries</a></li>
               </ul>
             </div>
           </nav>
           
           <div className="p-4 border-t border-white/5 bg-black/20">
             <Link 
-              href="/lab/dashboard" 
+              href="/lab/command" 
               className="flex items-center gap-2 px-3 py-2 text-sm font-bold text-white hover:bg-white/5 transition-colors border border-white/10"
             >
               <ArrowLeft className="w-4 h-4 text-accent" />

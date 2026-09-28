@@ -66,7 +66,6 @@ export function TaskDetailModal({ taskId, isOpen, onClose, onDelete }: TaskDetai
 
   async function loadData() {
     setLoading(true)
-    console.log('Starting loadData for taskId:', taskId)
     try {
       const supabase = createClient()
       
@@ -77,10 +76,7 @@ export function TaskDetailModal({ taskId, isOpen, onClose, onDelete }: TaskDetai
         supabase.from('task_attachments').select('*, user:profiles(id, full_name, avatar_url)').eq('task_id', taskId).order('created_at', { ascending: false })
       ])
 
-      console.log('Task query result:', taskResult)
-
       if (taskResult.data) {
-        console.log('Setting task data:', taskResult.data)
         setTask(taskResult.data)
         setFormData({
           title: taskResult.data.title || '',

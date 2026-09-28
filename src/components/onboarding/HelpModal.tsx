@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react'
 import { createPortal } from 'react-dom'
-import { motion, AnimatePresence } from 'framer-motion'
 import { X, Search, ExternalLink, HelpCircle } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -20,6 +19,18 @@ interface PageHelp {
 }
 
 const helpContent: Record<string, PageHelp> = {
+  command: {
+    title: 'Command Help',
+    topics: [
+      { id: 'overview', title: 'Command Surface', content: 'Command centralizes operational status for projects, tasks, meetings, and revenue in one screen.' },
+      { id: 'stream', title: 'Live Project Stream', content: 'Use the stream to jump directly to active projects and continue delivery work in project tabs.' },
+      { id: 'actions', title: 'Action Rail', content: 'Use quick actions to create projects and open core surfaces without leaving command context.' },
+    ],
+    quickActions: [
+      { label: 'Create Project', href: '/lab/projects/new' },
+      { label: 'Open Projects', href: '/lab/projects' }
+    ]
+  },
   dashboard: {
     title: 'Dashboard Help',
     topics: [
@@ -30,7 +41,7 @@ const helpContent: Record<string, PageHelp> = {
     ],
     quickActions: [
       { label: 'Create Project', href: '/lab/projects/new' },
-      { label: 'Create Task', href: '/lab/tasks/new' }
+      { label: 'Open Projects', href: '/lab/projects' }
     ]
   },
   projects: {
@@ -39,9 +50,13 @@ const helpContent: Record<string, PageHelp> = {
       { id: 'create', title: 'Creating a Project', content: 'Click "New Project" to create. Required: Project name. Optional: Client, description, dates, budget.' },
       { id: 'views', title: 'Grid vs List View', content: 'Toggle between card-based grid view and table-based list view.' },
       { id: 'filters', title: 'Filtering Projects', content: 'Use status tabs: All, Active, On Hold, Completed, Archived.' },
+      { id: 'workspace', title: 'Project Workspace Tabs', content: 'Open a project to work inside overview, delivery, finance, client, team, and activity tabs.' },
       { id: 'milestones', title: 'Using Milestones', content: 'Milestones help track project progress. Each milestone has a weight.' }
     ],
-    quickActions: [{ label: 'Create Project', href: '/lab/projects/new' }]
+    quickActions: [
+      { label: 'Create Project', href: '/lab/projects/new' },
+      { label: 'Open Delivery', href: '/lab/projects' }
+    ]
   },
   tasks: {
     title: 'Tasks Help',
@@ -51,7 +66,7 @@ const helpContent: Record<string, PageHelp> = {
       { id: 'priority', title: 'Priority Levels', content: 'Four levels: Low, Medium, High, Urgent. Urgent tasks are highlighted.' },
       { id: 'due-dates', title: 'Due Dates', content: 'Tasks past due date show in red.' }
     ],
-    quickActions: [{ label: 'Create Task', href: '/lab/tasks/new' }]
+    quickActions: [{ label: 'Open Project Delivery', href: '/lab/projects' }]
   },
   meetings: {
     title: 'Meetings Help',
@@ -60,7 +75,7 @@ const helpContent: Record<string, PageHelp> = {
       { id: 'video', title: 'Video Calls', content: 'Add a video link (Zoom, Google Meet) when creating.' },
       { id: 'filters', title: 'View Filters', content: 'Switch between Upcoming, Past, or All meetings.' }
     ],
-    quickActions: [{ label: 'Schedule Meeting', href: '/lab/meetings/new' }]
+    quickActions: [{ label: 'Open Meetings', href: '/lab/meetings' }]
   },
   invoices: {
     title: 'Invoices Help',
@@ -86,7 +101,19 @@ const helpContent: Record<string, PageHelp> = {
       { id: 'portal', title: 'Client Portal', content: 'Invite clients to view their projects and invoices.' },
       { id: 'lifecycle', title: 'Client Lifecycle', content: 'Track: Lead → Prospect → Active → At Risk → Inactive.' }
     ],
-    quickActions: [{ label: 'Add Client', href: '/lab/clients/new' }]
+    quickActions: [{ label: 'Open Clients', href: '/lab/clients' }]
+  },
+  messages: {
+    title: 'Messages Help',
+    topics: [
+      { id: 'stream', title: 'Conversation Stream', content: 'Messages groups client conversations so your team can see unread queues and reply quickly.' },
+      { id: 'unread', title: 'Unread Priority', content: 'Unread badges show client messages awaiting team response.' },
+      { id: 'open-thread', title: 'Open Client Thread', content: 'Select a conversation row to jump to the client thread page and continue context-aware communication.' },
+    ],
+    quickActions: [
+      { label: 'Open Messages', href: '/lab/messages' },
+      { label: 'Open Clients', href: '/lab/clients' }
+    ]
   },
   teams: {
     title: 'Teams Help',
@@ -156,22 +183,15 @@ export function HelpModal({ pageId, isOpen, onClose }: HelpModalProps) {
   if (!pageHelp || !portalContainer) return null
 
   return createPortal(
-    <AnimatePresence>
-      {isOpen && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          className="fixed inset-0 pointer-events-auto bg-black/70 backdrop-blur-sm flex items-center justify-center p-4"
-          onClick={onClose}
+    isOpen ? (
+      <div
+        className="fixed inset-0 pointer-events-auto bg-black/70 backdrop-blur-sm flex items-center justify-center p-4"
+        onClick={onClose}
+      >
+        <div
+          className="bg-black border border-white/10 shadow-2xl w-full max-w-2xl max-h-[80vh] overflow-hidden flex flex-col"
+          onClick={e => e.stopPropagation()}
         >
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95, y: 20 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95, y: 20 }}
-            className="bg-black border border-white/10 shadow-2xl w-full max-w-2xl max-h-[80vh] overflow-hidden flex flex-col"
-            onClick={e => e.stopPropagation()}
-          >
             <div className="flex items-center justify-between px-6 py-4 border-b border-white/5">
               <div className="flex items-center gap-2">
                 <HelpCircle className="w-5 h-5 text-accent" />
@@ -257,10 +277,9 @@ export function HelpModal({ pageId, isOpen, onClose }: HelpModalProps) {
                 View Full Documentation →
               </a>
             </div>
-          </motion.div>
-        </motion.div>
-      )}
-    </AnimatePresence>,
+        </div>
+      </div>
+    ) : null,
     portalContainer
   )
 }

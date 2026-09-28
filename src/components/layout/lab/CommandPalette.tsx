@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { Search, Command, X, FileText, Users, FolderKanban, CheckSquare, Calendar, ArrowRight } from 'lucide-react'
-import { motion, AnimatePresence } from 'framer-motion'
 import { createClient } from '@/lib/supabase/client'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
@@ -109,6 +108,21 @@ export function CommandPalette() {
         }))
       }
 
+      const { data: contracts } = await supabase
+        .from('contracts')
+        .select('id, title, status')
+        .ilike('title', `%${q}%`)
+        .limit(3)
+      if (contracts) {
+        contracts.forEach(c => newResults.push({
+          id: c.id,
+          type: 'contract',
+          title: c.title,
+          subtitle: c.status,
+          href: `/lab/contracts/${c.id}`
+        }))
+      }
+
       setResults(newResults)
       setSelectedIndex(0)
       setLoading(false)
@@ -141,7 +155,7 @@ export function CommandPalette() {
 
   const typeColors: Record<string, string> = {
     client: 'text-blue-400',
-    project: 'text-purple-400',
+    project: 'text-cyan-300',
     task: 'text-amber-400',
     meeting: 'text-emerald-400',
     invoice: 'text-cyan-400',
@@ -161,23 +175,15 @@ export function CommandPalette() {
         </kbd>
       </button>
 
-      <AnimatePresence>
-        {isOpen && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-start justify-center pt-[15vh] bg-black/60 backdrop-blur-sm"
-            onClick={() => setIsOpen(false)}
+      {isOpen ? (
+        <div
+          className="fixed inset-0 z-50 flex items-start justify-center pt-[15vh] bg-black/60 backdrop-blur-sm"
+          onClick={() => setIsOpen(false)}
+        >
+          <div
+            className="w-full max-w-xl mx-4 bg-[#0a0a0a] border border-white/10 shadow-2xl overflow-hidden"
+            onClick={e => e.stopPropagation()}
           >
-            <motion.div
-              initial={{ opacity: 0, y: -20, scale: 0.95 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: -20, scale: 0.95 }}
-              transition={{ duration: 0.15 }}
-              className="w-full max-w-xl mx-4 bg-[#0a0a0a] border border-white/10 shadow-2xl overflow-hidden"
-              onClick={e => e.stopPropagation()}
-            >
               <div className="flex items-center gap-3 p-4 border-b border-white/5">
                 <Search className="w-5 h-5 text-white/40" />
                 <input
@@ -243,10 +249,9 @@ export function CommandPalette() {
                   <span>Close</span>
                 </div>
               </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+          </div>
+        </div>
+      ) : null}
     </>
   )
 }

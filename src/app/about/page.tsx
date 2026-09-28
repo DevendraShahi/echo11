@@ -4,31 +4,36 @@ import { Button } from "@/components/ui/Button";
 import Link from "next/link";
 import { SkillsTerminal } from "@/components/sections/SkillsTerminal";
 import { PhilosophyGrid } from "@/components/sections/PhilosophyGrid";
-import { createMetadata } from "@/lib/seo";
+import { createMetadata, breadcrumbJsonLd, absoluteUrl } from "@/lib/seo";
+import { JsonLd } from "@/components/seo/JsonLd";
 
 export const metadata = createMetadata({
   title: "About | echo11",
-  description: "Meet the product engineering studio behind echo11's strategy-first, quality-driven digital delivery.",
+  description: "Meet Echo11, a Nepal-based product engineering studio helping teams design and build reliable websites, platforms, and digital tools.",
   path: "/about",
 });
 
 export default function AboutPage() {
   return (
     <PageWrapper>
+      <JsonLd data={[breadcrumbJsonLd([
+        { name: "Home", item: absoluteUrl("/") },
+        { name: "About", item: absoluteUrl("/about") },
+      ])]} />
       {/* Introduction Hero Area */}
       <div className="pt-48 pb-16">
         <Container>
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 lg:gap-8 items-center">
              <div className="lg:col-span-7">
                 <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold font-sans tracking-tight text-foreground mb-8 leading-[1.1]">
-                  We build products that <span className="text-accent text-glow">earn trust.</span>
+                  A focused product team for <span className="text-accent text-glow">serious digital work.</span>
                 </h1>
                 <p className="text-xl text-muted-foreground font-mono leading-relaxed mb-12">
-                  echo11 is a Nepal-based product engineering studio partnering with founders and teams worldwide. We combine clear product strategy, premium interface design, and robust engineering so your product launches strong and scales without chaos.
+                  Echo11 is a Nepal-based product engineering studio. We help founders and companies turn complex requirements into clear, stable, well-designed software without hiding the tradeoffs along the way.
                 </p>
                 <div className="flex flex-col sm:flex-row gap-4">
                   <Button size="lg" className="font-mono bg-white text-black hover:bg-white/90 shadow-[0_0_20px_rgba(255,255,255,0.2)]">
-                    <Link href="/contact">Book Discovery</Link>
+                    <Link href="/contact">Talk Through a Project</Link>
                   </Button>
                   <Button size="lg" variant="outline" className="font-mono border-white/20 text-white">
                     <Link href="/work">See Our Work</Link>

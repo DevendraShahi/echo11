@@ -1,10 +1,8 @@
 import type { Metadata } from "next";
 import { Syne, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
-import { Navbar } from "@/components/layout/Navbar";
+import { RootChrome } from "@/components/layout/RootChrome";
 import { Footer } from "@/components/layout/Footer";
-import { SplashScreen } from "@/components/layout/SplashScreen";
-import { Cursor } from "@/components/ui/Cursor";
 import { JsonLd } from "@/components/seo/JsonLd";
 import {
   createMetadata,
@@ -22,7 +20,7 @@ const syne = Syne({
 const spaceMono = JetBrains_Mono({
   weight: ["400", "700"],
   subsets: ["latin"],
-  variable: "--font-geist-mono", // Using user requested variable name
+  variable: "--font-geist-mono",
   display: "swap",
 });
 
@@ -46,9 +44,9 @@ export const metadata: Metadata = {
     icon: "/echo11-logo-white.svg",
     apple: "/echo11-logo-white.png",
   },
-    verification: {
-          google: "b2avGLMCH_nOM8Xv9C-cu7FEvmEsBpb_kw9vqVA68Lc",
-        },
+  verification: {
+    google: "b2avGLMCH_nOM8Xv9C-cu7FEvmEsBpb_kw9vqVA68Lc",
+  },
 };
 
 export default function RootLayout({
@@ -58,13 +56,13 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="dark overflow-x-hidden">
-      <body className={`${syne.variable} ${spaceMono.variable} antialiased selection:bg-accent selection:text-black overflow-x-hidden w-full min-h-screen relative`}>
+      <body className={`${syne.variable} ${spaceMono.variable} antialiased selection:bg-accent selection:text-black overflow-x-hidden w-full relative`}>
         <JsonLd data={[organizationJsonLd(), websiteJsonLd()]} />
-        <SplashScreen />
-        <Cursor />
-        <Navbar />
-        {children}
-        <Footer />
+        <RootChrome />
+        <div className="flex flex-col min-h-screen">
+          {children}
+          <Footer />
+        </div>
       </body>
     </html>
   );

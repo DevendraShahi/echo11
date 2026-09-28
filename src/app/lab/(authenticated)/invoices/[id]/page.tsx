@@ -4,7 +4,7 @@ import { useState, useEffect, use } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { Invoice, Project, Client, InvoiceItem } from '@/types/lab'
 import { LabButton } from '@/components/ui/LabButton'
-import { ArrowLeft, Calendar, DollarSign, User, Folder, Send, CheckCircle, Trash2, Loader2, AlertCircle, Download } from 'lucide-react'
+import { Calendar, DollarSign, User, Folder, Send, CheckCircle, Trash2, Loader2, AlertCircle, Download } from 'lucide-react'
 import Link from 'next/link'
 import { format } from 'date-fns'
 import { cn } from '@/lib/utils'
@@ -12,13 +12,16 @@ import { deleteInvoice, updateInvoiceStatus, emailInvoiceAction } from '@/lib/ac
 import { downloadInvoicePDF, generateInvoicePDF } from '@/lib/invoice-pdf'
 import { Mail } from 'lucide-react'
 import { useAppFeedback } from '@/components/ui/AppFeedbackProvider'
+import { DataState } from '@/components/lab/primitives/DataState'
+import { EntityHeader } from '@/components/lab/primitives/EntityHeader'
+import { MetricStrip } from '@/components/lab/primitives/MetricStrip'
 
 interface InvoicePageProps {
   params: Promise<{ id: string }>
 }
 
 type InvoiceWithRelations = Invoice & {
-  project?: Pick<Project, 'name'> | null
+  project?: Pick<Project, 'id' | 'name'> | null
   client?: Pick<Client, 'company_name' | 'contact_name' | 'email' | 'address' | 'address_line2' | 'city' | 'state' | 'country' | 'postal_code'> | null
   items?: InvoiceItem[]
 }
@@ -48,6 +51,7 @@ export default function InvoiceDetailPage({ params }: InvoicePageProps) {
   const [deleting, setDeleting] = useState(false)
   const [generatingPdf, setGeneratingPdf] = useState(false)
   const [emailing, setEmailing] = useState(false)
+  const backHref = invoice?.project?.id ? `/lab/projects/${invoice.project.id}/finance` : '/lab/projects'
 
   useEffect(() => {
     if (invoiceId) {
@@ -116,7 +120,7 @@ export default function InvoiceDetailPage({ params }: InvoicePageProps) {
     const result = await deleteInvoice(invoiceId)
     
     if (result.success) {
-      window.location.href = '/lab/invoices'
+      window.location.href = backHref
     }
     setDeleting(false)
   }
@@ -183,15 +187,16 @@ export default function InvoiceDetailPage({ params }: InvoicePageProps) {
   if (!invoice) {
     return (
       <div className="min-h-[400px] flex items-center justify-center">
-        <div className="text-center p-8 bg-white/5 border border-white/10">
-          <div className="flex items-center gap-2 text-rose-400 mb-4">
-            <AlertCircle className="w-5 h-5" />
-            <span className="font-medium">Invoice not found</span>
-          </div>
-          <Link href="/lab/invoices" className="text-accent hover:text-accent/80 transition-colors">
-            Back to Invoices
-          </Link>
-        </div>
+        <DataState
+          title="Invoice not found"
+          description="The invoice may have been removed or access may be restricted."
+          icon={AlertCircle}
+          action={
+            <Link href={backHref} className="text-accent hover:text-accent/80 transition-colors font-mono text-sm uppercase tracking-[0.13em]">
+              Back to finance
+            </Link>
+          }
+        />
       </div>
     )
   }
@@ -199,13 +204,23 @@ export default function InvoiceDetailPage({ params }: InvoicePageProps) {
   return (
     <div className="p-6">
       <div className="max-w-4xl mx-auto">
-        <Link 
-          href="/lab/invoices"
-          className="inline-flex items-center gap-2 text-white/50 hover:text-white transition-colors mb-6 font-sans"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          Back to Invoices
-        </Link>
+        <div className="space-y-4 mb-6">
+          <EntityHeader
+            title={invoice.invoice_number}
+            subtitle={invoice.client?.company_name || 'Invoice detail'}
+            status={invoice.status}
+            backHref={backHref}
+            backLabel="Back to finance"
+          />
+          <MetricStrip
+            items={[
+              { label: 'Total', value: `$${(invoice.total || 0).toLocaleString()}`, tone: invoice.status === 'paid' ? 'success' : 'accent' },
+              { label: 'Items', value: invoice.items?.length || 0 },
+              { label: 'Due Date', value: invoice.due_date ? format(new Date(invoice.due_date), 'MMM d, yyyy') : 'Not set', tone: invoice.status === 'overdue' ? 'danger' : 'default' },
+              { label: 'Status', value: statusLabels[invoice.status] || invoice.status, tone: invoice.status === 'overdue' ? 'danger' : invoice.status === 'paid' ? 'success' : 'warning' },
+            ]}
+          />
+        </div>
 
         {invoice.status === 'overdue' && (
           <div className="flex items-center gap-3 p-4 mb-4 bg-rose-500/10 border border-rose-500/20 text-rose-400">

@@ -2,10 +2,11 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { NewProjectForm } from './NewProjectForm'
 import { Client, Service } from '@/types/lab'
+import { PageHeader } from '@/components/lab/patterns/PageHeader'
 
 async function getClients(): Promise<Client[]> {
   const supabase = await createClient()
-  
+
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) {
     redirect('/lab/auth/login')
@@ -24,7 +25,7 @@ async function getClients(): Promise<Client[]> {
 
 async function getServices(): Promise<Service[]> {
   const supabase = await createClient()
-  
+
   const { data, error } = await supabase
     .from('services')
     .select('*')
@@ -44,7 +45,14 @@ export default async function NewProjectPage() {
   ])
 
   return (
-    <div className="py-6">
+    <div className="space-y-6">
+      <PageHeader
+        title="New Project"
+        description="Create a new client project"
+        iconName="projects"
+        backLink="/lab/projects"
+        backLabel="Back to Projects"
+      />
       <NewProjectForm clients={clients} services={services} />
     </div>
   )

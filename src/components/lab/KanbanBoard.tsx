@@ -24,13 +24,14 @@ import { createClient } from '@/lib/supabase/client'
 import { cn } from '@/lib/utils'
 import { Task, TaskStatus } from '@/types/lab'
 import { Plus, Calendar, Filter, X, ExternalLink, Clock, AlertCircle, CheckSquare, Search } from 'lucide-react'
+import { useAppFeedback } from '@/components/ui/AppFeedbackProvider'
 import { TaskFormModal } from './TaskForm'
 import { updateTaskStatus } from '@/lib/actions/task-actions'
 import { Project, Profile } from '@/types/lab'
 import NextImage from 'next/image'
 import Link from 'next/link'
 import { LabButton } from '@/components/ui/LabButton'
-import { PageHeader } from '@/components/ui/PageHeader'
+import { LabPageHeader } from '@/components/lab/primitives/LabPageHeader'
 
 const columns: { id: TaskStatus; title: string; color: string }[] = [
   { id: 'todo', title: 'To Do', color: 'bg-slate-500' },
@@ -44,6 +45,19 @@ const priorityColors: Record<string, string> = {
   medium: 'bg-blue-500/20 text-blue-400',
   high: 'bg-amber-500/20 text-amber-400',
   urgent: 'bg-rose-500/20 text-rose-400',
+}
+
+function getTaskUpdateError(message?: string): string {
+  if (!message) return 'Failed to update task status'
+  const lowered = message.toLowerCase()
+  if (
+    lowered.includes('cannot update this task') ||
+    lowered.includes('you can only update tasks assigned to you') ||
+    lowered.includes('forbidden')
+  ) {
+    return 'You cannot update this task'
+  }
+  return message
 }
 
 interface TaskCardProps {
@@ -213,6 +227,9 @@ function Column({ id, title, color, tasks, onAddTask }: ColumnProps) {
 
 interface KanbanBoardProps {
   defaultProjectId?: string
+  embedded?: boolean
+  title?: string
+  description?: string
 }
 
 interface BoardUserContext {
@@ -223,7 +240,12 @@ interface BoardUserContext {
   isLead: boolean
 }
 
-export function KanbanBoard({ defaultProjectId }: KanbanBoardProps = {}) {
+export function KanbanBoard({
+  defaultProjectId,
+  embedded = false,
+  title = 'Tasks',
+  description = 'Manage tasks across all projects',
+}: KanbanBoardProps = {}) {
   const [tasks, setTasks] = useState<Task[]>([])
   const [activeId, setActiveId] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
@@ -245,7 +267,10 @@ export function KanbanBoard({ defaultProjectId }: KanbanBoardProps = {}) {
   const [canCreateTasks, setCanCreateTasks] = useState(false)
   const [currentUserId, setCurrentUserId] = useState<string | null>(null)
   const [isMemberOnly, setIsMemberOnly] = useState(false)
+  const [updatingTaskId, setUpdatingTaskId] = useState<string | null>(null)
+  const [mutationError, setMutationError] = useState<string | null>(null)
   const isExternalProject = Boolean(defaultProjectId)
+  const { notify } = useAppFeedback()
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -491,6 +516,7 @@ export function KanbanBoard({ defaultProjectId }: KanbanBoardProps = {}) {
   }
 
   const handleDragStart = (event: DragStartEvent) => {
+    if (updatingTaskId) return
     setActiveId(event.active.id as string)
   }
 
@@ -502,6 +528,7 @@ export function KanbanBoard({ defaultProjectId }: KanbanBoardProps = {}) {
 
     const activeTask = tasks.find(t => t.id === active.id)
     if (!activeTask) return
+    if (updatingTaskId) return
 
     const overColumn = columns.find(c => c.id === over.id)
     const overTask = tasks.find(t => t.id === over.id)
@@ -514,22 +541,36 @@ export function KanbanBoard({ defaultProjectId }: KanbanBoardProps = {}) {
     }
 
     if (newStatus === 'done' && !canCompleteTasks) {
-      alert('Only a team lead or admin can move tasks to Done.')
+      const message = 'Only team leads, admins, or assignees can move tasks to Done.'
+      setMutationError(message)
+      notify(message, 'error')
       return
     }
 
     if (newStatus !== activeTask.status) {
-      const previousTasks = tasks
+      const previousStatus = activeTask.status
+      setMutationError(null)
+      setUpdatingTaskId(activeTask.id)
 
-      setTasks(tasks.map(t => 
-        t.id === active.id ? { ...t, status: newStatus } : t
-      ))
+      setTasks((currentTasks) =>
+        currentTasks.map((task) =>
+          task.id === activeTask.id ? { ...task, status: newStatus } : task
+        )
+      )
 
-      const result = await updateTaskStatus(active.id as string, newStatus)
+      const result = await updateTaskStatus(activeTask.id, newStatus)
       if (!result.success) {
-        alert(result.error || 'Failed to update task status')
-        setTasks(previousTasks)
+        const message = getTaskUpdateError(result.error)
+        setMutationError(message)
+        notify(message, 'error')
+        setTasks((currentTasks) =>
+          currentTasks.map((task) =>
+            task.id === activeTask.id ? { ...task, status: previousStatus } : task
+          )
+        )
       }
+
+      setUpdatingTaskId(null)
     }
   }
 
@@ -561,47 +602,88 @@ export function KanbanBoard({ defaultProjectId }: KanbanBoardProps = {}) {
 
   return (
     <div className="h-full flex flex-col">
-      <PageHeader 
-        title="Tasks" 
-        description="Manage tasks across all projects"
-        icon={CheckSquare}
-        action={
-          <div className="flex items-center gap-3">
+      {embedded ? (
+        <div className="mb-4 flex flex-col gap-3 border border-white/10 bg-black/45 p-3 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h3 className="text-sm font-semibold uppercase tracking-[0.13em] text-foreground font-mono">{title}</h3>
+            <p className="text-xs text-white/45 font-mono">{description}</p>
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
             {!isExternalProject && (
               <select
                 value={selectedProjectId}
                 onChange={(e) => setSelectedProjectId(e.target.value)}
-                className="px-4 py-2.5 bg-white/5 border border-white/10 rounded text-white focus:border-accent focus:outline-none transition-all font-sans min-w-[200px]"
+                className="px-3 py-2 bg-white/5 border border-white/10 text-white focus:border-accent focus:outline-none transition-all font-mono text-xs min-w-[190px]"
               >
                 <option value="" className="bg-black" disabled>Select Project</option>
-                {projects.map(p => (
-                  <option key={p.id} value={p.id} className="bg-black">{p.name}</option>
+                {projects.map((project) => (
+                  <option key={project.id} value={project.id} className="bg-black">
+                    {project.name}
+                  </option>
                 ))}
               </select>
             )}
-            <button 
+            <button
               onClick={() => setShowFilters(!showFilters)}
               className={cn(
-                "flex items-center gap-2 px-4 py-2.5 font-medium transition-all font-sans cursor-pointer",
-                showFilters 
-                  ? "bg-accent text-white" 
-                  : "bg-white/5 text-white/70 hover:bg-white/10 border border-white/10"
+                'flex items-center gap-2 px-3 py-2 transition-all font-mono text-xs uppercase tracking-[0.13em] cursor-pointer border',
+                showFilters ? 'bg-accent/10 text-accent border-accent/30' : 'bg-white/5 text-white/65 hover:bg-white/10 border-white/10'
               )}
               data-tour="task-filters"
             >
-              <Filter className="w-4 h-4" />
+              <Filter className="w-3.5 h-3.5" />
               Filters
-              {(filters.assignee_id || filters.priority || filters.search) && (
-                <span className="w-2 h-2 bg-white rounded-full" />
-              )}
+              {(filters.assignee_id || filters.priority || filters.search) && <span className="w-1.5 h-1.5 bg-accent" />}
             </button>
             <LabButton disabled={!selectedProjectId || !canCreateTasks} onClick={() => setIsModalOpen(true)} data-tour="new-task">
               <Plus className="w-4 h-4 mr-2" />
               Add Task
             </LabButton>
           </div>
-        }
-      />
+        </div>
+      ) : (
+        <LabPageHeader
+          title={title}
+          description={description}
+          icon={CheckSquare}
+          action={
+            <div className="flex items-center gap-3">
+              {!isExternalProject && (
+                <select
+                  value={selectedProjectId}
+                  onChange={(e) => setSelectedProjectId(e.target.value)}
+                  className="px-4 py-2.5 bg-white/5 border border-white/10 rounded text-white focus:border-accent focus:outline-none transition-all font-sans min-w-[200px]"
+                >
+                  <option value="" className="bg-black" disabled>Select Project</option>
+                  {projects.map(p => (
+                    <option key={p.id} value={p.id} className="bg-black">{p.name}</option>
+                  ))}
+                </select>
+              )}
+              <button 
+                onClick={() => setShowFilters(!showFilters)}
+                className={cn(
+                  "flex items-center gap-2 px-4 py-2.5 font-medium transition-all font-sans cursor-pointer",
+                  showFilters 
+                    ? "bg-accent text-white" 
+                    : "bg-white/5 text-white/70 hover:bg-white/10 border border-white/10"
+                )}
+                data-tour="task-filters"
+              >
+                <Filter className="w-4 h-4" />
+                Filters
+                {(filters.assignee_id || filters.priority || filters.search) && (
+                  <span className="w-2 h-2 bg-white rounded-full" />
+                )}
+              </button>
+              <LabButton disabled={!selectedProjectId || !canCreateTasks} onClick={() => setIsModalOpen(true)} data-tour="new-task">
+                <Plus className="w-4 h-4 mr-2" />
+                Add Task
+              </LabButton>
+            </div>
+          }
+        />
+      )}
 
       {showFilters && (
         <div className="mb-6 p-4 bg-white/5 border border-white/10">
@@ -653,6 +735,13 @@ export function KanbanBoard({ defaultProjectId }: KanbanBoardProps = {}) {
         </div>
       )}
 
+      {mutationError ? (
+        <div className="mb-4 flex items-start gap-2 border border-rose-500/30 bg-rose-500/10 px-3 py-2">
+          <AlertCircle className="mt-0.5 h-4 w-4 text-rose-300" />
+          <p className="text-xs text-rose-200 font-mono uppercase tracking-[0.12em]">{mutationError}</p>
+        </div>
+      ) : null}
+
       {!selectedProjectId ? (
         <div className="flex-1 flex items-center justify-center">
           <div className="text-center p-8 bg-white/5 border border-white/10 max-w-md">
@@ -681,7 +770,13 @@ export function KanbanBoard({ defaultProjectId }: KanbanBoardProps = {}) {
           onDragStart={handleDragStart}
           onDragEnd={handleDragEnd}
         >
-          <div className="flex-1 flex gap-4 overflow-x-auto pb-4" data-tour="kanban-columns">
+          <div
+            className={cn(
+              'flex-1 flex gap-4 overflow-x-auto pb-4',
+              updatingTaskId && 'pointer-events-none opacity-80'
+            )}
+            data-tour="kanban-columns"
+          >
             {columns.map((column) => (
               <Column
                 key={column.id}

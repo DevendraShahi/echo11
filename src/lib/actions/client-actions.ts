@@ -1,12 +1,14 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
-import { sendClientInvitation } from '@/lib/email'
 import { revalidatePath } from 'next/cache'
 import { randomBytes } from 'crypto'
 import { getUserRoleAndTeam } from './team-actions'
 import { requireAdminOrLead } from './role-helpers'
 import { revalidateClientSurface, revalidateLegacyPortalSurface } from './client-surface-revalidate'
+import { callApiV1 } from '@/lib/api/v1/internal-client'
+import { isApiFailure } from '@/lib/api/v1/contracts'
+import { isMissingRelationOrColumnError } from '@/lib/api/v1/compat'
 
 export interface CreateClientParams {
   company_name: string
@@ -79,6 +81,7 @@ export async function createClientWithAuth(
 
     // If sendInvitation is true, send email
     if (params.sendInvitation && invitationToken) {
+      const { sendClientInvitation } = await import('@/lib/email')
       const emailResult = await sendClientInvitation({
         to: params.email.toLowerCase(),
         contactName: params.contact_name || '',
@@ -92,10 +95,9 @@ export async function createClientWithAuth(
       }
     }
 
-    // Create client record
-    const { data: client, error: clientError } = await supabase
-      .from('clients')
-      .insert({
+    const createResponse = await callApiV1<{ client_id: string; lock_version: number | null }>('/clients', {
+      method: 'POST',
+      body: {
         company_name: params.company_name,
         contact_name: params.contact_name || null,
         email: params.email.toLowerCase(),
@@ -118,14 +120,23 @@ export async function createClientWithAuth(
         country: params.country || null,
         postal_code: params.postal_code || null,
         timezone: params.timezone || null,
-        social_links: params.social_links ? JSON.stringify(params.social_links) : null
-      })
+        social_links: params.social_links || null,
+      },
+      idempotencyKey: `client-create-${crypto.randomUUID()}`,
+    })
+
+    if (isApiFailure(createResponse)) {
+      return { success: false, error: createResponse.error.message }
+    }
+
+    const { data: client, error: clientError } = await supabase
+      .from('clients')
       .select('*, contacts:client_contacts(*), current_status:client_statuses(*)')
+      .eq('id', createResponse.data.client_id)
       .single()
 
-    if (clientError) {
-      console.error('Client insert error:', clientError)
-      return { success: false, error: clientError.message }
+    if (clientError || !client) {
+      return { success: false, error: clientError?.message || 'Client created but failed to reload data' }
     }
 
     // Log activity
@@ -193,6 +204,7 @@ export async function sendClientPortalInvite(clientId: string): Promise<{ succes
     const now = new Date().toISOString()
 
     // Send invitation email
+    const { sendClientInvitation } = await import('@/lib/email')
     await sendClientInvitation({
       to: client.email,
       contactName: client.contact_name || '',
@@ -203,18 +215,18 @@ export async function sendClientPortalInvite(clientId: string): Promise<{ succes
     // Token expires in 7 days
     const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()
 
-    // Update client record
-    const { error: updateError } = await supabase
-      .from('clients')
-      .update({
+    const response = await callApiV1<{ client_id: string; lock_version: number | null }>(`/clients/${clientId}/invite`, {
+      method: 'PUT',
+      body: {
         invitation_sent_at: now,
         invitation_token: invitationToken,
-        invitation_token_expires_at: expiresAt
-      })
-      .eq('id', clientId)
+        invitation_token_expires_at: expiresAt,
+      },
+      idempotencyKey: `client-portal-invite-${crypto.randomUUID()}`,
+    })
 
-    if (updateError) {
-      return { success: false, error: updateError.message }
+    if (isApiFailure(response)) {
+      return { success: false, error: response.error.message }
     }
 
     // Log activity
@@ -282,32 +294,19 @@ export async function updateClientSelfProfile(
   }
 
   try {
-    const { data: client, error: clientError } = await supabase
-      .from('clients')
-      .select('id')
-      .eq('auth_id', user.id)
-      .single()
+    const response = await callApiV1<{ client_id: string; lock_version: number | null }>('/clients/self/profile', {
+      method: 'PATCH',
+      body: {
+        contact_name: normalizeOptionalText(params.contact_name),
+        phone: normalizeOptionalText(params.phone),
+        address: normalizeOptionalText(params.address),
+        website: normalizeOptionalText(params.website),
+      },
+      idempotencyKey: `client-self-profile-update-${crypto.randomUUID()}`,
+    })
 
-    if (clientError || !client) {
-      return { success: false, error: 'Your account is not linked to a client profile' }
-    }
-
-    const payload = {
-      contact_name: normalizeOptionalText(params.contact_name),
-      phone: normalizeOptionalText(params.phone),
-      address: normalizeOptionalText(params.address),
-      website: normalizeOptionalText(params.website),
-      updated_at: new Date().toISOString(),
-    }
-
-    const { error: updateError } = await supabase
-      .from('clients')
-      .update(payload)
-      .eq('id', client.id)
-      .eq('auth_id', user.id)
-
-    if (updateError) {
-      return { success: false, error: updateError.message }
+    if (isApiFailure(response)) {
+      return { success: false, error: response.error.message }
     }
 
     // Non-critical audit insert; ignore failures so profile updates still succeed.
@@ -316,7 +315,7 @@ export async function updateClientSelfProfile(
         user_id: user.id,
         action: 'updated client profile',
         entity_type: 'client',
-        entity_id: client.id,
+        entity_id: response.data.client_id,
         metadata: { source: 'client' }
       })
     } catch {
@@ -326,7 +325,7 @@ export async function updateClientSelfProfile(
     revalidatePath('/client')
     revalidatePath('/client/settings')
     revalidatePath('/lab/clients')
-    revalidatePath(`/lab/clients/${client.id}`)
+    revalidatePath(`/lab/clients/${response.data.client_id}`)
     revalidateLegacyPortalSurface()
 
     return { success: true }
@@ -354,9 +353,9 @@ export async function updateClient(
   }
 
   try {
-    const { error } = await supabase
-      .from('clients')
-      .update({
+    const response = await callApiV1<{ client_id: string; lock_version: number | null }>(`/clients/${clientId}`, {
+      method: 'PATCH',
+      body: {
         company_name: params.company_name,
         contact_name: params.contact_name || null,
         email: params.email?.toLowerCase(),
@@ -374,13 +373,13 @@ export async function updateClient(
         country: params.country || null,
         postal_code: params.postal_code || null,
         timezone: params.timezone || null,
-        social_links: params.social_links ? JSON.stringify(params.social_links) : null,
-        updated_at: new Date().toISOString()
-      })
-      .eq('id', clientId)
+        social_links: params.social_links || null,
+      },
+      idempotencyKey: `client-update-${crypto.randomUUID()}`,
+    })
 
-    if (error) {
-      return { success: false, error: error.message }
+    if (isApiFailure(response)) {
+      return { success: false, error: response.error.message }
     }
 
     await supabase.from('activities').insert({
@@ -450,13 +449,13 @@ export async function deleteClient(clientId: string): Promise<{ success: boolean
       return { success: false, error: 'Cannot delete client with outstanding invoices. Resolve all invoices first.' }
     }
 
-    const { error: deleteError } = await supabase
-      .from('clients')
-      .delete()
-      .eq('id', clientId)
+    const response = await callApiV1<{ client_id: string }>(`/clients/${clientId}`, {
+      method: 'DELETE',
+      idempotencyKey: `client-delete-${crypto.randomUUID()}`,
+    })
 
-    if (deleteError) {
-      return { success: false, error: deleteError.message }
+    if (isApiFailure(response)) {
+      return { success: false, error: response.error.message }
     }
 
     await supabase.from('activities').insert({
@@ -515,6 +514,87 @@ export interface ClientWithRelations {
   unread_client_messages?: number
 }
 
+interface ClientProjectionSummary {
+  clientId: string
+  status: string
+  projectsCount: number
+  paidRevenue: number
+  outstandingRevenue: number
+  openInvoicesCount: number
+}
+
+function asFiniteNumber(value: unknown): number | null {
+  if (typeof value !== 'number' || !Number.isFinite(value)) {
+    return null
+  }
+  return value
+}
+
+function parseClientProjectionSummary(
+  clientId: string,
+  payload: unknown
+): ClientProjectionSummary | null {
+  if (!payload || typeof payload !== 'object') return null
+
+  const record = payload as Record<string, unknown>
+  const client = record.client as Record<string, unknown> | undefined
+  const projects = record.projects as Record<string, unknown> | undefined
+  const invoices = record.invoices as Record<string, unknown> | undefined
+
+  const status = typeof client?.status === 'string' ? client.status : null
+  const projectsCount = asFiniteNumber(projects?.total)
+  const paidRevenue = asFiniteNumber(invoices?.paid_revenue)
+  const outstandingRevenue = asFiniteNumber(invoices?.outstanding_revenue)
+  const openInvoicesCount = asFiniteNumber(invoices?.open_count)
+
+  if (!status || projectsCount === null || paidRevenue === null || outstandingRevenue === null || openInvoicesCount === null) {
+    return null
+  }
+
+  return {
+    clientId,
+    status,
+    projectsCount,
+    paidRevenue,
+    outstandingRevenue,
+    openInvoicesCount,
+  }
+}
+
+async function loadClientProjectionMap(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  clientIds: string[]
+): Promise<Map<string, ClientProjectionSummary> | null> {
+  if (clientIds.length === 0) return new Map()
+
+  const { data, error } = await supabase
+    .from('client_dashboard_projection')
+    .select('client_id, payload')
+    .in('client_id', clientIds)
+
+  if (error) {
+    if (!isMissingRelationOrColumnError(error)) {
+      console.error('Failed to load client dashboard projections:', error)
+    }
+    return null
+  }
+
+  const summaries = new Map<string, ClientProjectionSummary>()
+  for (const row of data || []) {
+    const parsed = parseClientProjectionSummary(row.client_id, row.payload)
+    if (!parsed) {
+      return null
+    }
+    summaries.set(row.client_id, parsed)
+  }
+
+  if (summaries.size !== clientIds.length) {
+    return null
+  }
+
+  return summaries
+}
+
 export async function getClientsWithStats(): Promise<ClientWithRelations[]> {
   const supabase = await createClient()
   const userRoleAndTeam = await getUserRoleAndTeam()
@@ -556,6 +636,34 @@ export async function getClientsWithStats(): Promise<ClientWithRelations[]> {
   }
 
   const visibleClientIds = clients.map((client) => client.id)
+  const projectionMap = await loadClientProjectionMap(supabase, visibleClientIds)
+
+  if (projectionMap) {
+    const { data: unreadMessagesData } = await supabase
+      .from('client_messages')
+      .select('client_id')
+      .in('client_id', visibleClientIds)
+      .eq('sender_type', 'client')
+      .eq('read_by_team', false)
+
+    const unreadMessagesByClient = new Map<string, number>()
+    for (const message of unreadMessagesData || []) {
+      const messageClientId = message.client_id
+      if (!messageClientId) continue
+      unreadMessagesByClient.set(messageClientId, (unreadMessagesByClient.get(messageClientId) || 0) + 1)
+    }
+
+    for (const client of clients) {
+      const summary = projectionMap.get(client.id)
+      if (!summary) continue
+      client.projects_count = summary.projectsCount
+      client.total_revenue = summary.paidRevenue
+      client.active_invoices = summary.openInvoicesCount
+      client.unread_client_messages = unreadMessagesByClient.get(client.id) || 0
+    }
+
+    return clients
+  }
 
   const [
     { data: projectsData },
@@ -650,6 +758,35 @@ export async function getClientStats(): Promise<ClientStats> {
   }
   const { data: clients } = await clientsQuery
 
+  const visibleClientIds = (clients || []).map((client) => client.id)
+  const projectionMap = await loadClientProjectionMap(supabase, visibleClientIds)
+
+  if (projectionMap) {
+    const total = visibleClientIds.length
+    const statusCounts: Record<string, number> = {}
+    let totalRevenue = 0
+    let pendingAmount = 0
+
+    for (const summary of projectionMap.values()) {
+      statusCounts[summary.status] = (statusCounts[summary.status] || 0) + 1
+      totalRevenue += summary.paidRevenue
+      pendingAmount += summary.outstandingRevenue
+    }
+
+    const clientsWithoutStatus = total - Object.values(statusCounts).reduce((a, b) => a + b, 0)
+
+    return {
+      total,
+      active: statusCounts['active'] || clientsWithoutStatus,
+      at_risk: statusCounts['at_risk'] || 0,
+      leads: statusCounts['lead'] || 0,
+      prospects: statusCounts['prospect'] || 0,
+      inactive: statusCounts['inactive'] || 0,
+      totalRevenue,
+      pendingAmount,
+    }
+  }
+
   let invoicesQuery = supabase.from('invoices').select('total, status')
   if (clientIds) {
     invoicesQuery = invoicesQuery.in('client_id', clientIds)
@@ -662,7 +799,7 @@ export async function getClientStats(): Promise<ClientStats> {
   }
   const { data: statuses } = await statusesQuery
 
-  const total = clients?.length || 0
+  const total = visibleClientIds.length
   
   const statusCounts = (statuses || []).reduce((acc, s) => {
     acc[s.status] = (acc[s.status] || 0) + 1
@@ -687,29 +824,22 @@ export async function getClientStats(): Promise<ClientStats> {
   }
 }
 
-import { createClient as createSupabaseClient } from '@supabase/supabase-js'
-
 export async function getClientInviteDetails(token: string) {
-  const supabaseAdmin = createSupabaseClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-  )
-  
+  const supabase = await createClient()
+
   try {
-    const { data: client, error } = await supabaseAdmin
-      .from('clients')
-      .select('id, email, company_name, invitation_token_expires_at')
-      .eq('invitation_token', token)
-      .single()
+    const { data, error } = await supabase.rpc('get_client_invite_details', {
+      p_token: token
+    })
 
-    if (error || !client || !client.email) return null
+    if (error) return null
 
-    // Reject expired tokens
-    if (client.invitation_token_expires_at && new Date(client.invitation_token_expires_at) < new Date()) {
+    const client = Array.isArray(data) ? data[0] : data
+    if (!client || !client.email) {
       return null
     }
 
-    return { id: client.id, email: client.email, companyName: client.company_name }
+    return { id: client.client_id, email: client.email, companyName: client.company_name }
   } catch {
     return null
   }
@@ -721,104 +851,21 @@ export async function acceptClientInvite(
   fullName: string,
   inviteEmail?: string
 ) {
-  const supabaseAdmin = createSupabaseClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-  )
-
   try {
-    const normalizedFullName = fullName.trim()
-    const normalizedInviteEmail = inviteEmail?.trim().toLowerCase() || null
+    const response = await callApiV1<{ client_id: string; user_id: string }>('/clients/invites/accept', {
+      method: 'PUT',
+      body: {
+        client_id: clientId,
+        auth_user_id: authUserId,
+        full_name: fullName,
+        invite_email: inviteEmail || null,
+      },
+      idempotencyKey: `client-invite-accept-${crypto.randomUUID()}`,
+    })
 
-    const resolveAuthUserId = async (): Promise<string | null> => {
-      if (authUserId) {
-        const { data: userById, error: userByIdError } = await supabaseAdmin.auth.admin.getUserById(authUserId)
-        if (!userByIdError && userById?.user?.id) {
-          return userById.user.id
-        }
-      }
-
-      if (!normalizedInviteEmail) {
-        return null
-      }
-
-      let page = 1
-      const perPage = 200
-
-      while (page <= 10) {
-        const { data: usersPage, error: listUsersError } = await supabaseAdmin.auth.admin.listUsers({ page, perPage })
-        if (listUsersError) {
-          break
-        }
-
-        const match = usersPage.users.find((user) => user.email?.toLowerCase() === normalizedInviteEmail)
-        if (match?.id) {
-          return match.id
-        }
-
-        if (usersPage.users.length < perPage) {
-          break
-        }
-
-        page += 1
-      }
-
-      return null
+    if (isApiFailure(response)) {
+      return { success: false, error: response.error.message }
     }
-
-    const resolvedAuthUserId = await resolveAuthUserId()
-    if (!resolvedAuthUserId) {
-      return {
-        success: false,
-        error: 'Could not resolve a valid auth account for this invitation. Please try signing up again.',
-      }
-    }
-
-    const profilePayload: { role: 'client'; full_name?: string } = {
-      role: 'client',
-    }
-    if (normalizedFullName) {
-      profilePayload.full_name = normalizedFullName
-    }
-
-    const { data: updatedProfile, error: profileUpdateError } = await supabaseAdmin
-      .from('profiles')
-      .update(profilePayload)
-      .eq('id', resolvedAuthUserId)
-      .select('id')
-      .maybeSingle()
-
-    if (profileUpdateError) {
-      throw new Error(profileUpdateError.message)
-    }
-
-    if (!updatedProfile) {
-      const { error: profileInsertError } = await supabaseAdmin
-        .from('profiles')
-        .insert({ id: resolvedAuthUserId, ...profilePayload })
-
-      if (profileInsertError && normalizedInviteEmail && /email/i.test(profileInsertError.message)) {
-        const { error: profileInsertWithEmailError } = await supabaseAdmin
-          .from('profiles')
-          .insert({ id: resolvedAuthUserId, ...profilePayload, email: normalizedInviteEmail } as never)
-
-        if (profileInsertWithEmailError) {
-          throw new Error(profileInsertWithEmailError.message)
-        }
-      } else if (profileInsertError) {
-        throw new Error(profileInsertError.message)
-      }
-    }
-
-    // 2. Link the auth_id to the clients record and clear the token
-    const { error: clientUpdateError } = await supabaseAdmin.from('clients').update({
-      auth_id: resolvedAuthUserId,
-      invitation_token: null,
-      invitation_token_expires_at: null,
-      invitation_accepted_at: new Date().toISOString()
-    }).eq('id', clientId)
-
-    if (clientUpdateError) throw new Error(clientUpdateError.message)
 
     return { success: true }
   } catch (err) {

@@ -4,13 +4,16 @@ import { useState, useEffect, useRef, use } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { updateTask, deleteTask, addTaskComment, deleteTaskComment, logTime, uploadTaskAttachment, deleteTaskAttachment } from '@/lib/actions/task-actions'
 import { LabButton } from '@/components/ui/LabButton'
-import { Loader2, Trash2, Clock, MessageSquare, Calendar, Flag, Send, Plus, Paperclip, Download, FileText, ArrowLeft, Edit3, Save, Image as ImageIcon, Folder, AlertCircle } from 'lucide-react'
+import { Loader2, Trash2, Clock, MessageSquare, Calendar, Flag, Send, Plus, Paperclip, Download, FileText, Edit3, Save, Image as ImageIcon, Folder, AlertCircle } from 'lucide-react'
 import { Task, TaskStatus, TaskPriority, TaskComment, TimeLog, TaskAttachment } from '@/types/lab'
 import { format } from 'date-fns'
 import NextImage from 'next/image'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
 import { useAppFeedback } from '@/components/ui/AppFeedbackProvider'
+import { DataState } from '@/components/lab/primitives/DataState'
+import { EntityHeader } from '@/components/lab/primitives/EntityHeader'
+import { MetricStrip } from '@/components/lab/primitives/MetricStrip'
 
 interface TaskPageProps {
   params: Promise<{ id: string }>
@@ -237,7 +240,8 @@ export default function TaskDetailPage({ params }: TaskPageProps) {
 
     const result = await deleteTask(taskId)
     if (result.success) {
-      window.location.href = '/lab/tasks'
+      const projectId = task?.project?.id
+      window.location.href = projectId ? `/lab/projects/${projectId}/delivery` : '/lab/projects'
     } else {
       alert(result.error || 'Failed to delete task')
     }
@@ -353,6 +357,8 @@ export default function TaskDetailPage({ params }: TaskPageProps) {
   }
 
   const totalHours = timeLogs.reduce((sum, log) => sum + log.hours, 0)
+  const taskProjectId = task?.project?.id
+  const taskBackHref = taskProjectId ? `/lab/projects/${taskProjectId}/delivery` : '/lab/projects'
 
   if (loading) {
     return (
@@ -365,15 +371,16 @@ export default function TaskDetailPage({ params }: TaskPageProps) {
   if (!task) {
     return (
       <div className="min-h-[400px] flex items-center justify-center">
-        <div className="text-center p-8 bg-white/5 border border-white/10">
-          <div className="flex items-center gap-2 text-rose-400 mb-4">
-            <AlertCircle className="w-5 h-5" />
-            <span className="font-medium">Task not found</span>
-          </div>
-          <Link href="/lab/tasks" className="text-accent hover:text-accent/80 transition-colors">
-            Back to Tasks
-          </Link>
-        </div>
+        <DataState
+          title="Task not found"
+          description="This task may have been removed or you may no longer have access."
+          icon={AlertCircle}
+          action={
+            <Link href={taskBackHref} className="text-accent hover:text-accent/80 transition-colors font-mono text-sm uppercase tracking-[0.13em]">
+              Back to delivery
+            </Link>
+          }
+        />
       </div>
     )
   }
@@ -381,13 +388,32 @@ export default function TaskDetailPage({ params }: TaskPageProps) {
   return (
     <div className="p-6">
       <div className="max-w-6xl mx-auto">
-        <Link 
-          href="/lab/tasks"
-          className="inline-flex items-center gap-2 text-white/50 hover:text-white transition-colors mb-6 font-sans"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          Back to Tasks
-        </Link>
+        <div className="space-y-4 mb-6">
+          <EntityHeader
+            title={task.title}
+            subtitle={task.project ? `Project: ${task.project.name}` : 'Standalone task'}
+            status={task.status}
+            backHref={taskBackHref}
+            backLabel="Back to delivery"
+            action={canEdit ? (
+              <button
+                onClick={() => setIsEditing((value) => !value)}
+                className="inline-flex items-center gap-2 border border-white/15 bg-white/5 px-3 py-2 text-[11px] uppercase tracking-[0.13em] font-mono text-white/70 hover:border-accent/30 hover:text-accent"
+              >
+                <Edit3 className="h-3.5 w-3.5" />
+                {isEditing ? 'Close Edit' : 'Edit Task'}
+              </button>
+            ) : undefined}
+          />
+          <MetricStrip
+            items={[
+              { label: 'Priority', value: priorityLabels[task.priority], tone: task.priority === 'urgent' ? 'danger' : task.priority === 'high' ? 'warning' : 'accent' },
+              { label: 'Comments', value: comments.length },
+              { label: 'Files', value: attachments.length },
+              { label: 'Logged Hours', value: totalHours.toFixed(1), tone: totalHours > 0 ? 'success' : 'default' },
+            ]}
+          />
+        </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2 space-y-6">
@@ -450,19 +476,11 @@ export default function TaskDetailPage({ params }: TaskPageProps) {
                 </div>
               ) : (
                 <div>
-                  <div className="flex items-start justify-between gap-4 mb-4">
-                    <h1 className="text-2xl font-bold text-white font-sans">{task.title}</h1>
-                    {canEdit && (
-                      <button
-                        onClick={() => setIsEditing(true)}
-                        className="p-2 hover:bg-white/10 rounded-lg text-white/50 hover:text-white transition-colors"
-                      >
-                        <Edit3 className="w-5 h-5" />
-                      </button>
-                    )}
-                  </div>
                   {task.description && (
                     <p className="text-white/70 whitespace-pre-wrap leading-relaxed">{task.description}</p>
+                  )}
+                  {!task.description && (
+                    <p className="text-white/45 font-mono text-sm">No description added.</p>
                   )}
                 </div>
               )}

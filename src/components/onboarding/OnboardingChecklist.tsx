@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useEffect, useRef, useCallback } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
 import { CheckCircle2, Circle, RotateCcw, HelpCircle, Play, ChevronDown, ChevronUp } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -124,16 +123,11 @@ export function OnboardingChecklist({ onHelpClick, onStartTour }: OnboardingChec
       </button>
 
       {/* Panel — renders inline above trigger, no portal */}
-      <AnimatePresence>
-        {isOpen && (
-          <motion.div
-            initial={{ opacity: 0, y: 6, scale: 0.98 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 6, scale: 0.98 }}
-            transition={{ duration: 0.15 }}
-            className="absolute bottom-full left-0 right-0 mb-1 bg-[#0a0a0a] border border-white/10 shadow-2xl flex flex-col z-50"
-            style={{ maxHeight: '60vh' }}
-          >
+      {isOpen ? (
+        <div
+          className="absolute bottom-full left-0 right-0 mb-1 bg-[#0a0a0a] border border-white/10 shadow-2xl flex flex-col z-50"
+          style={{ maxHeight: '60vh' }}
+        >
             {/* Accent bar */}
             <div className="h-px bg-accent flex-shrink-0" style={{ boxShadow: '0 0 8px var(--accent-glow)' }} />
 
@@ -144,10 +138,9 @@ export function OnboardingChecklist({ onHelpClick, onStartTour }: OnboardingChec
                 <span className="text-xs font-mono text-white/30">{completedCount}/{steps.length}</span>
               </div>
               <div className="h-1 bg-white/10 overflow-hidden">
-                <motion.div
+                <div
                   className="h-full bg-accent"
-                  animate={{ width: `${progress}%` }}
-                  transition={{ duration: 0.4, ease: 'easeOut' }}
+                  style={{ width: `${progress}%`, transition: 'width 0.4s ease-out' }}
                 />
               </div>
             </div>
@@ -213,9 +206,8 @@ export function OnboardingChecklist({ onHelpClick, onStartTour }: OnboardingChec
                 </button>
               )}
             </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+        </div>
+      ) : null}
     </div>
   )
 }

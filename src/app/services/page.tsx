@@ -24,7 +24,7 @@ const services = [
   {
     id: "web",
     title: "Website Design & Build",
-    description: "Conversion-focused websites built for speed, trust, and long-term growth.",
+    description: "Custom websites and web experiences that explain your offer clearly, load quickly, and make inquiry easier.",
     icon: MonitorSmartphone,
     color: "#6366F1",
     features: [
@@ -40,7 +40,7 @@ const services = [
   {
     id: "app",
     title: "App Development",
-    description: "Web and mobile products engineered for reliability, adoption, and scale.",
+    description: "Web and mobile products for teams that need clear user flows, reliable releases, and maintainable code.",
     icon: Smartphone,
     color: "#EC4899",
     features: [
@@ -56,14 +56,14 @@ const services = [
   {
     id: "perf",
     title: "Performance & SEO",
-    description: "Technical optimization that improves discoverability, speed, and retention.",
+    description: "Practical improvements to site speed, technical SEO, content structure, and user paths.",
     icon: Search,
     color: "#10B981",
     features: [
-      "Lighthouse 95+ Score",
       "Core Web Vitals",
       "Technical SEO Audit",
       "Image Optimization",
+      "Content Structure",
       "Caching Strategy",
       "CDN Configuration"
     ],
@@ -72,14 +72,14 @@ const services = [
   {
     id: "maintain",
     title: "Maintenance Retainer",
-    description: "Continuous support to keep releases stable, secure, and momentum high.",
+    description: "Ongoing support for fixes, releases, monitoring, and focused product improvements after launch.",
     icon: RefreshCw,
     color: "#F59E0B",
     features: [
       "Security Updates",
       "Bug Fixes",
       "Feature Additions",
-      "24/7 Monitoring",
+      "Monitoring",
       "Performance Reports",
       "Priority Support"
     ],
@@ -88,11 +88,11 @@ const services = [
 ];
 
 const process = [
-  { step: "01", title: "Discovery", desc: "Align on business goals, users, constraints, and success metrics." },
-  { step: "02", title: "Planning", desc: "Define architecture, delivery phases, and technical priorities." },
-  { step: "03", title: "Design", desc: "Translate strategy into clear interface systems and interaction rules." },
-  { step: "04", title: "Build", desc: "Ship production-grade features through disciplined engineering cycles." },
-  { step: "05", title: "Launch", desc: "Release, monitor, and iterate based on product and business signals." }
+  { step: "01", title: "Discovery", desc: "Clarify goals, users, constraints, and what a useful first release should include." },
+  { step: "02", title: "Planning", desc: "Define the architecture, delivery phases, responsibilities, and known risks." },
+  { step: "03", title: "Design", desc: "Turn business logic into clear screens, flows, and interface patterns." },
+  { step: "04", title: "Build", desc: "Develop the product in visible cycles with review points and working releases." },
+  { step: "05", title: "Launch", desc: "Prepare the release, check critical paths, and support the first round of improvements." }
 ];
 
 const techStack = [
@@ -116,16 +116,28 @@ const faqs = [
     a: "Most engagements run 4-12 weeks depending on scope and dependencies. We set timeline ranges and milestones during discovery."
   },
   {
-    q: "What's included in the pricing?",
-    a: "Scope typically includes planning, design, development, QA, launch support, and handover documentation."
+    q: "How do you price your work?",
+    a: "We scope around defined outcomes instead of open-ended hours. After discovery, you get a clear scope, delivery plan, and investment range."
+  },
+  {
+    q: "What is included in a standard project?",
+    a: "A typical scope includes planning, UX and interface design, frontend and backend engineering, QA, launch support, and handover documentation."
+  },
+  {
+    q: "Can you work with an existing codebase?",
+    a: "Yes. We start by understanding the current system, identifying risk, and improving the product without disrupting what already works."
+  },
+  {
+    q: "Do you handle design as well as development?",
+    a: "Yes. Product UX, interface design, and engineering are handled together so the design direction stays practical and buildable."
   },
   {
     q: "Do you offer ongoing support?",
-    a: "Yes. Our retainers cover monitoring, fixes, iterative improvements, and structured release support."
+    a: "Yes. Support can cover monitoring, bug fixes, small improvements, release help, performance checks, and technical guidance."
   },
   {
-    q: "Can you work with existing codebases?",
-    a: "Yes. We audit existing systems, stabilize risky areas, and then improve incrementally without disrupting operations."
+    q: "What do you need from us to start?",
+    a: "A short description of the product, the business goal, your timeline, known constraints, and any existing brand, content, or technical assets."
   }
 ];
 
@@ -224,7 +236,7 @@ export default function ServicesPage() {
                 transition={{ delay: 0.3 }}
                 className="text-xl text-muted-foreground font-mono leading-relaxed mb-12 max-w-2xl"
               >
-                From planning to scale, we provide integrated product strategy, interface design, and engineering delivery.
+                We help teams define the right scope, design the key flows, and build websites or product systems that can launch cleanly and keep improving.
               </motion.p>
 
               <motion.div
@@ -236,7 +248,7 @@ export default function ServicesPage() {
                 <Button size="lg" className="font-mono group relative overflow-hidden">
                   <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
                   <Link href="/contact" className="flex items-center gap-2 relative z-10">
-                    Start Your Project <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+                    Talk Through a Project <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
                   </Link>
                 </Button>
                 <Button size="lg" variant="outline" className="font-mono">
@@ -415,7 +427,7 @@ export default function ServicesPage() {
               Our Tech Stack
             </h2>
             <p className="text-muted-foreground font-mono max-w-2xl">
-              Modern, proven technologies selected for performance, flexibility, and maintainability.
+              Modern, proven tools selected for the product, the team, and the maintenance needs after launch.
             </p>
           </motion.div>
 
@@ -482,17 +494,17 @@ export default function ServicesPage() {
               </div>
 
               <h2 className="text-3xl md:text-4xl font-bold font-sans text-white mb-4">
-                Ready to Build?
+                Have a project in mind?
               </h2>
               <p className="text-muted-foreground font-mono mb-8 max-w-xl mx-auto">
-                Tell us what you need to achieve. We&apos;ll define a practical path from idea to launch.
+                Share the goal, constraints, and timeline. We&apos;ll help you define a practical scope and next step.
               </p>
 
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Button size="lg" className="font-mono group relative overflow-hidden">
                   <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
                   <Link href="/contact" className="flex items-center gap-2 relative z-10">
-                    Book Discovery Call <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+                    Start the Conversation <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
                   </Link>
                 </Button>
                 <Button size="lg" variant="outline" className="font-mono">

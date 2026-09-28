@@ -1,4 +1,5 @@
-import { createMetadata } from "@/lib/seo";
+import { createMetadata, breadcrumbJsonLd, absoluteUrl } from "@/lib/seo";
+import { JsonLd } from "@/components/seo/JsonLd";
 
 export const metadata = createMetadata({
   title: "Methodology | echo11",
@@ -12,5 +13,13 @@ export default function MethodologyLayout({
 }: {
   children: React.ReactNode;
 }) {
-  return <>{children}</>;
+  return (
+    <>
+      <JsonLd data={[breadcrumbJsonLd([
+        { name: "Home", item: absoluteUrl("/") },
+        { name: "Methodology", item: absoluteUrl("/methodology") },
+      ])]} />
+      {children}
+    </>
+  );
 }

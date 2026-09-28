@@ -13,36 +13,36 @@ const pillars = [
     icon: Target,
     title: "Clarity Before Velocity",
     quote: "Fast execution only matters when direction is correct.",
-    desc: "We prioritize sharp problem definition and deliberate decisions so shipping speed compounds instead of creating rework."
+    desc: "We define the problem, audience, and constraints first so speed does not turn into rework."
   },
   {
     icon: Heart,
     title: "Useful by Design",
     quote: "Beautiful products still need to solve real problems.",
-    desc: "Every interface decision is anchored in user intent, task clarity, and measurable outcomes."
+    desc: "We design interfaces to help people understand the next step and complete the task with less friction."
   },
   {
     icon: Eye,
     title: "Transparent Delivery",
     quote: "No mystery timelines. No hidden tradeoffs.",
-    desc: "We communicate scope, progress, risks, and decisions clearly so teams can move confidently."
+    desc: "We communicate scope, progress, risks, and decisions clearly so teams know where the work stands."
   },
   {
     icon: Sparkles,
     title: "Craft Is Strategy",
     quote: "Details are not decoration; they shape trust.",
-    desc: "Strong engineering and refined interaction design create products that feel credible from first click to daily use."
+    desc: "Good engineering and careful interaction design help a product feel credible from first click to daily use."
   }
 ];
 
 const beliefs = [
-  { text: "Product decisions should tie back to one clear business objective." },
+  { text: "Product decisions should tie back to a clear business objective." },
   { text: "Performance is part of user experience, not a post-launch checklist." },
   { text: "Accessibility is a baseline quality standard, not an optional feature." },
   { text: "Technical debt should be measured, tracked, and repaid intentionally." },
   { text: "Simplicity wins, unless complexity clearly returns more value." },
   { text: "Ship early, but only with quality bars that protect user trust." },
-  { text: "Documentation protects velocity across teams and time." },
+  { text: "Useful documentation protects momentum across teams and time." },
   { text: "Great tooling is the tooling your team can sustain." }
 ];
 
@@ -98,7 +98,7 @@ export default function ManifestoPage() {
               </h1>
               
               <p className="text-xl text-muted-foreground font-mono leading-relaxed mb-12 max-w-2xl">
-                These principles shape how we scope, design, build, and support every product we take on.
+                These principles shape how we scope, design, build, and support the products we take on.
               </p>
             </motion.div>
           </Container>
@@ -190,7 +190,7 @@ export default function ManifestoPage() {
             className="mb-16 text-center"
           >
             <h2 className="text-4xl md:text-5xl font-bold font-sans tracking-tight text-foreground mb-4">
-              Small truths that shape <span className="text-accent text-glow">big decisions.</span>
+              Working beliefs that shape <span className="text-accent text-glow">daily decisions.</span>
             </h2>
             <p className="text-muted-foreground font-mono">Operational beliefs we apply on every engagement.</p>
           </motion.div>
@@ -252,11 +252,11 @@ export default function ManifestoPage() {
             </motion.div>
             
             <h2 className="text-3xl md:text-4xl font-bold font-sans text-white mb-6">
-              Building with these standards?
+              Want to work this way?
             </h2>
             
             <p className="text-lg text-muted-foreground font-mono mb-10">
-              Let&apos;s define the right product and execute it with discipline.
+              Let&apos;s define the scope clearly and build with the right level of care.
             </p>
             
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -267,7 +267,7 @@ export default function ManifestoPage() {
                 <Button size="lg" className="font-mono group relative overflow-hidden">
                   <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
                   <Link href="/contact" className="flex items-center gap-2 relative z-10">
-                    Start a Conversation <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+                    Talk Through a Project <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
                   </Link>
                 </Button>
               </motion.div>

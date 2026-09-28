@@ -112,11 +112,11 @@ export function SkillsTerminal() {
               transition={{ delay: 0.6 }}
               className="mb-8 text-white/50"
             >
-              [System]: Mapping product requirements...
+              [System]: Reading product requirements...
               <br />
-              [System]: Loading delivery capabilities...
+              [System]: Checking design and engineering constraints...
               <br />
-              <span className="text-green-400">[Ready]: Strategy, design, and engineering online.</span>
+              <span className="text-green-400">[Ready]: Scope, design, and engineering aligned.</span>
             </motion.div>
 
             <div className="flex flex-col gap-6">

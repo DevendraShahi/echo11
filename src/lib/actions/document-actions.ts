@@ -5,12 +5,19 @@ import { revalidatePath } from 'next/cache'
 import { createClient as createBrowserClient } from '@/lib/supabase/client'
 import { ClientDocument, DocumentCategory } from '@/types/lab'
 import { randomBytes } from 'crypto'
+import { callApiV1 } from '@/lib/api/v1/internal-client'
+import { isApiFailure } from '@/lib/api/v1/contracts'
+import { requireAdminOrLead } from './role-helpers'
 
 export interface UploadDocumentParams {
   client_id: string
   file: File
   category?: DocumentCategory
   name?: string
+}
+
+function nextIdempotencyKey(prefix: string): string {
+  return `${prefix}-${crypto.randomUUID()}`
 }
 
 export async function uploadDocument(
@@ -21,6 +28,11 @@ export async function uploadDocument(
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) {
     return { success: false, error: 'You must be logged in' }
+  }
+
+  const allowed = await requireAdminOrLead(user.id)
+  if (!allowed) {
+    return { success: false, error: 'Only admins or team leads can upload documents' }
   }
 
   try {
@@ -46,26 +58,32 @@ export async function uploadDocument(
       .from('client-documents')
       .getPublicUrl(storagePath)
 
-    const { data: document, error: dbError } = await supabase
-      .from('client_documents')
-      .insert({
-        client_id: params.client_id,
-        name: params.name || params.file.name,
-        file_url: publicUrl,
-        file_type: params.file.type,
-        file_size: params.file.size,
-        storage_path: storagePath,
-        category: params.category || 'other',
-        uploaded_by: user.id
-      })
-      .select()
-      .single()
+    const createResponse = await callApiV1<{ document_id: string; client_id: string; lock_version: number | null }>(
+      `/clients/${params.client_id}/documents`,
+      {
+        method: 'POST',
+        body: {
+          name: params.name || params.file.name,
+          file_url: publicUrl,
+          file_type: params.file.type,
+          file_size: params.file.size,
+          storage_path: storagePath,
+          category: params.category || 'other',
+        },
+        idempotencyKey: nextIdempotencyKey('document-create'),
+      }
+    )
 
-    if (dbError) {
-      console.error('Error saving document:', dbError)
+    if (isApiFailure(createResponse)) {
       await browserClient.storage.from('client-documents').remove([storagePath])
-      return { success: false, error: dbError.message }
+      return { success: false, error: createResponse.error.message }
     }
+
+    const { data: document } = await supabase
+      .from('client_documents')
+      .select('*')
+      .eq('id', createResponse.data.document_id)
+      .single()
 
     await supabase.from('activities').insert({
       user_id: user.id,
@@ -95,6 +113,11 @@ export async function deleteDocument(
     return { success: false, error: 'You must be logged in' }
   }
 
+  const allowed = await requireAdminOrLead(user.id)
+  if (!allowed) {
+    return { success: false, error: 'Only admins or team leads can delete documents' }
+  }
+
   try {
     const { data: document, error: fetchError } = await supabase
       .from('client_documents')
@@ -106,20 +129,29 @@ export async function deleteDocument(
       return { success: false, error: 'Document not found' }
     }
 
-    const browserClient = createBrowserClient()
-    if (document.storage_path) {
-      await browserClient.storage
-        .from('client-documents')
-        .remove([document.storage_path])
+    const deleteResponse = await callApiV1<{ document_id: string; client_id: string; storage_path: string | null }>(
+      `/clients/${clientId}/documents/${documentId}`,
+      {
+        method: 'DELETE',
+        idempotencyKey: nextIdempotencyKey('document-delete'),
+      }
+    )
+
+    if (isApiFailure(deleteResponse)) {
+      return { success: false, error: deleteResponse.error.message }
     }
 
-    const { error: deleteError } = await supabase
-      .from('client_documents')
-      .delete()
-      .eq('id', documentId)
+    const browserClient = createBrowserClient()
+    const storagePath = deleteResponse.data.storage_path || document.storage_path
 
-    if (deleteError) {
-      return { success: false, error: deleteError.message }
+    if (storagePath) {
+      const { error: storageRemoveError } = await browserClient.storage
+        .from('client-documents')
+        .remove([storagePath])
+
+      if (storageRemoveError) {
+        console.warn('Document row deleted but storage cleanup failed:', storageRemoveError)
+      }
     }
 
     revalidatePath(`/lab/clients/${clientId}`)

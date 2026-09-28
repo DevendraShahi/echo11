@@ -1,8 +1,8 @@
 "use client";
 
-import { forwardRef } from "react";
+import { cloneElement, forwardRef, isValidElement } from "react";
 import { cn } from "@/lib/utils";
-import { motion } from "framer-motion";
+import { motion, type HTMLMotionProps } from "framer-motion";
 
 // Simple custom cva-like logic since class-variance-authority isn't in package.json
 // But actually the user didn't ask for it specifically so we can just use template literals
@@ -35,14 +35,14 @@ const buttonVariants = {
 };
 
 export interface ButtonProps
-  extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+  extends Omit<HTMLMotionProps<"button">, "ref"> {
   variant?: keyof typeof buttonVariants.variants.variant;
   size?: keyof typeof buttonVariants.variants.size;
   asChild?: boolean;
 }
 
 const Button = forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant = "default", size = "default", ...props }, ref) => {
+  ({ className, variant = "default", size = "default", asChild = false, children, ...props }, ref) => {
     // Generate class string based on variants
     const classes = cn(
       buttonVariants.base,
@@ -50,17 +50,23 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       buttonVariants.variants.size[size],
       className
     );
+
+    if (asChild && isValidElement<{ className?: string; tabIndex?: number; "aria-disabled"?: boolean }>(children)) {
+      return cloneElement(children, {
+        className: cn(classes, children.props.className),
+        tabIndex: props.disabled ? -1 : children.props.tabIndex,
+        "aria-disabled": props.disabled || children.props["aria-disabled"],
+      });
+    }
     
     return (
       <motion.button
         ref={ref}
         className={classes}
         whileTap={{ scale: 0.98 }}
-        type={props.type}
-        disabled={props.disabled}
-        onClick={props.onClick}
+        {...props}
       >
-        {props.children}
+        {children}
       </motion.button>
     );
   }

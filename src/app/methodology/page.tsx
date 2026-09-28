@@ -12,25 +12,25 @@ const principles = [
   {
     icon: Code2,
     title: "Engineering Discipline",
-    desc: "We build with clear architecture, typed contracts, and maintainable patterns from day one.",
+    desc: "We use clear architecture, typed contracts, and maintainable patterns so the product is easier to change later.",
     number: "001"
   },
   {
     icon: Layers,
     title: "Systems Thinking",
-    desc: "We model the full product system early so decisions stay coherent as complexity grows.",
+    desc: "We plan the product system early so data, roles, screens, and workflows do not fight each other later.",
     number: "002"
   },
   {
     icon: Zap,
     title: "Focused Iteration",
-    desc: "We ship in tight cycles, validate with data, and prioritize the next highest-leverage improvements.",
+    desc: "We work in focused cycles, review working software, and choose the next improvements based on value.",
     number: "003"
   },
   {
     icon: Shield,
     title: "Risk Awareness",
-    desc: "Security, reliability, and operational risk are built into delivery instead of patched at the end.",
+    desc: "We discuss security, reliability, and operational risk early instead of treating them as launch-week surprises.",
     number: "004"
   }
 ];
@@ -39,46 +39,69 @@ const process = [
   {
     step: "01",
     title: "Discovery",
-    desc: "We align on goals, users, constraints, and outcomes so the project starts with clarity, not assumptions.",
+    desc: "We align on goals, users, constraints, and outcomes so the work starts with shared understanding.",
     details: ["Stakeholder alignment", "Problem definition", "Success metrics", "Scope framing"]
   },
   {
     step: "02",
     title: "Architecture",
-    desc: "We define system structure, data boundaries, and delivery approach before implementation begins.",
+    desc: "We define the system structure, data boundaries, and delivery approach before implementation begins.",
     details: ["System design", "Data modeling", "Integration planning", "Delivery plan"]
   },
   {
     step: "03",
     title: "Prototype",
-    desc: "We prototype key flows and interactions to reduce risk early and lock in confident design direction.",
+    desc: "We prototype key flows and interactions so important decisions are reviewed before full build-out.",
     details: ["Flow validation", "Interaction prototypes", "Feedback loops", "Design refinement"]
   },
   {
     step: "04",
     title: "Build",
-    desc: "We execute in structured engineering cycles with quality gates, continuous integration, and visible progress.",
+    desc: "We build in structured cycles with review checkpoints, working releases, and visible progress.",
     details: ["Implementation sprints", "CI/CD", "Review checkpoints", "Demo cadence"]
   },
   {
     step: "05",
     title: "Launch",
-    desc: "We prepare production rollout, optimize critical paths, and instrument the product for confident operation.",
+    desc: "We prepare the production rollout, check critical paths, and set up the product for confident operation.",
     details: ["Release strategy", "Performance pass", "Monitoring setup", "Operational handoff"]
   },
   {
     step: "06",
     title: "Evolve",
-    desc: "Post-launch, we prioritize improvements using product signals so momentum continues after version one.",
+    desc: "After launch, we prioritize improvements from real feedback so the product can keep moving.",
     details: ["Continuous support", "Backlog refinement", "Feature iteration", "Performance insights"]
   }
 ];
 
 const stats = [
-  { value: "50+", label: "Projects Shipped" },
+  { value: "Live", label: "Public Work" },
   { value: "Weekly", label: "Delivery Visibility" },
-  { value: "Strict", label: "Quality Standards" },
+  { value: "Clear", label: "Quality Standards" },
   { value: "Ongoing", label: "Post-Launch Support" }
+];
+
+const heroParticles = [
+  { left: 8, top: 22, duration: 3.2, delay: 0.1 },
+  { left: 14, top: 76, duration: 4.4, delay: 0.5 },
+  { left: 21, top: 44, duration: 3.8, delay: 1.1 },
+  { left: 29, top: 16, duration: 4.6, delay: 0.8 },
+  { left: 36, top: 68, duration: 3.6, delay: 1.6 },
+  { left: 43, top: 32, duration: 4.9, delay: 0.2 },
+  { left: 51, top: 84, duration: 3.4, delay: 1.4 },
+  { left: 57, top: 12, duration: 4.1, delay: 0.9 },
+  { left: 63, top: 54, duration: 3.7, delay: 1.8 },
+  { left: 69, top: 26, duration: 4.8, delay: 0.4 },
+  { left: 74, top: 72, duration: 3.5, delay: 1.2 },
+  { left: 81, top: 38, duration: 4.3, delay: 0.7 },
+  { left: 88, top: 18, duration: 3.9, delay: 1.5 },
+  { left: 92, top: 62, duration: 4.7, delay: 0.3 },
+  { left: 6, top: 58, duration: 3.3, delay: 1.9 },
+  { left: 18, top: 8, duration: 4.5, delay: 0.6 },
+  { left: 48, top: 48, duration: 3.6, delay: 1.3 },
+  { left: 77, top: 6, duration: 4.2, delay: 1 },
+  { left: 84, top: 88, duration: 3.8, delay: 0.2 },
+  { left: 95, top: 46, duration: 4.6, delay: 1.7 }
 ];
 
 function AnimatedCounter({ value, label }: { value: string; label: string }) {
@@ -121,22 +144,22 @@ export default function MethodologyPage() {
       <div ref={containerRef} className="pt-48 pb-16 relative overflow-hidden">
         
         <div className="absolute inset-0">
-          {[...Array(20)].map((_, i) => (
+          {heroParticles.map((particle, i) => (
             <motion.div
               key={i}
               className="absolute w-px h-px bg-accent/30 rounded-full"
               style={{
-                left: `${Math.random() * 100}%`,
-                top: `${Math.random() * 100}%`,
+                left: `${particle.left}%`,
+                top: `${particle.top}%`,
               }}
               animate={{
                 opacity: [0, 1, 0],
                 scale: [1, 2, 1],
               }}
               transition={{
-                duration: 3 + Math.random() * 2,
+                duration: particle.duration,
                 repeat: Infinity,
-                delay: Math.random() * 2,
+                delay: particle.delay,
               }}
             />
           ))}
@@ -179,7 +202,7 @@ export default function MethodologyPage() {
               transition={{ delay: 0.4 }}
               className="text-xl text-muted-foreground font-mono leading-relaxed mb-12 max-w-2xl"
             >
-              A practical framework for turning product ambition into reliable execution, without losing design quality or engineering integrity.
+              A practical framework for turning a product idea, rebuild, or platform requirement into clear delivery steps.
             </motion.p>
           </motion.div>
           
@@ -271,7 +294,7 @@ export default function MethodologyPage() {
               Six phases of <span className="text-accent text-glow">delivery.</span>
               </h2>
               <p className="text-lg text-muted-foreground font-mono max-w-2xl mx-auto">
-              Each phase removes risk, creates momentum, and keeps product decisions tied to business outcomes.
+              Each phase reduces ambiguity, gives the team something concrete to review, and keeps decisions tied to the business goal.
               </p>
           </motion.div>
 
@@ -357,7 +380,7 @@ export default function MethodologyPage() {
             className="mb-16 text-center"
           >
             <h2 className="text-3xl md:text-4xl font-bold font-sans text-white mb-4">How We Operate</h2>
-            <p className="text-muted-foreground font-mono">The standards behind every engagement</p>
+            <p className="text-muted-foreground font-mono">Simple working standards that make delivery easier to trust.</p>
           </motion.div>
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-12">
@@ -386,14 +409,14 @@ export default function MethodologyPage() {
             
             <div className="relative p-12 md:p-16 flex flex-col md:flex-row items-center justify-between gap-8">
               <div className="text-center md:text-left">
-                <h3 className="text-2xl md:text-3xl font-bold font-sans text-white mb-2">Ready to start?</h3>
-                <p className="text-muted-foreground font-mono">Book a discovery call and we&apos;ll map the right delivery path.</p>
+                <h3 className="text-2xl md:text-3xl font-bold font-sans text-white mb-2">Ready to make the scope clearer?</h3>
+                <p className="text-muted-foreground font-mono">Share what you are trying to build and we&apos;ll help map the delivery path.</p>
               </div>
               
               <Button size="lg" className="font-mono group relative overflow-hidden min-w-[200px]">
                 <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
                 <Link href="/contact" className="flex items-center justify-center gap-2 relative z-10">
-                  Start a Project <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+                  Talk Through a Project <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
                 </Link>
               </Button>
             </div>

@@ -2,6 +2,53 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { Notification } from '@/types/lab'
+import { callApiV1 } from '@/lib/api/v1/internal-client'
+import { isApiFailure } from '@/lib/api/v1/contracts'
+import { isMissingRelationOrColumnError } from '@/lib/api/v1/compat'
+
+function nextIdempotencyKey(prefix: string): string {
+  return `${prefix}-${crypto.randomUUID()}`
+}
+
+async function getProjectedUnreadNotificationCount(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  userId: string
+): Promise<number | null> {
+  const { data: profile, error: profileError } = await supabase
+    .from('profiles')
+    .select('organization_id')
+    .eq('id', userId)
+    .maybeSingle()
+
+  if (profileError && !isMissingRelationOrColumnError(profileError)) {
+    return null
+  }
+
+  let query = supabase
+    .from('unread_counts_projection')
+    .select('unread_notifications, refreshed_at')
+    .eq('user_id', userId)
+    .order('refreshed_at', { ascending: false })
+    .limit(1)
+
+  if (profile?.organization_id) {
+    query = query.eq('organization_id', profile.organization_id)
+  }
+
+  const { data: projection, error: projectionError } = await query.maybeSingle()
+  if (projectionError) {
+    if (!isMissingRelationOrColumnError(projectionError)) {
+      console.error('Failed to load unread notification projection:', projectionError)
+    }
+    return null
+  }
+
+  if (!projection || typeof projection.unread_notifications !== 'number') {
+    return null
+  }
+
+  return projection.unread_notifications
+}
 
 export async function getNotifications(unreadOnly = true): Promise<Notification[]> {
   const supabase = await createClient()
@@ -31,6 +78,11 @@ export async function getUnreadCount(): Promise<number> {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return 0
 
+  const projectedCount = await getProjectedUnreadNotificationCount(supabase, user.id)
+  if (typeof projectedCount === 'number') {
+    return projectedCount
+  }
+
   const { count } = await supabase
     .from('notifications')
     .select('*', { count: 'exact', head: true })
@@ -47,20 +99,22 @@ export async function createNotification(params: {
   message?: string
   link?: string
 }): Promise<{ success: boolean; error?: string }> {
-  const supabase = await createClient()
-
   try {
-    const { error } = await supabase.from('notifications').insert({
-      user_id: params.userId,
-      type: params.type || 'info',
-      title: params.title,
-      message: params.message || null,
-      link: params.link || null
+    const response = await callApiV1<{ notification_id: string; user_id: string; lock_version: number | null }>('/notifications', {
+      method: 'POST',
+      body: {
+        user_id: params.userId,
+        type: params.type || 'info',
+        title: params.title,
+        message: params.message || null,
+        link: params.link || null,
+      },
+      idempotencyKey: nextIdempotencyKey('notification-create'),
     })
 
-    if (error) {
-      console.error('Error creating notification:', error)
-      return { success: false, error: error.message }
+    if (isApiFailure(response)) {
+      console.error('Error creating notification:', response.error)
+      return { success: false, error: response.error.message }
     }
 
     return { success: true }
@@ -79,14 +133,16 @@ export async function markAsRead(notificationId: string): Promise<{ success: boo
   }
 
   try {
-    const { error } = await supabase
-      .from('notifications')
-      .update({ read: true })
-      .eq('id', notificationId)
-      .eq('user_id', user.id)
+    const response = await callApiV1<{ notification_id: string; read: true; lock_version: number | null }>(
+      `/notifications/${notificationId}/read`,
+      {
+        method: 'PUT',
+        idempotencyKey: nextIdempotencyKey('notification-read'),
+      }
+    )
 
-    if (error) {
-      return { success: false, error: error.message }
+    if (isApiFailure(response)) {
+      return { success: false, error: response.error.message }
     }
 
     return { success: true }
@@ -105,14 +161,16 @@ export async function markAllAsRead(): Promise<{ success: boolean; error?: strin
   }
 
   try {
-    const { error } = await supabase
-      .from('notifications')
-      .update({ read: true })
-      .eq('user_id', user.id)
-      .eq('read', false)
+    const response = await callApiV1<{ updated_count: number; lock_version: number | null }>(
+      '/notifications/read-all',
+      {
+        method: 'PUT',
+        idempotencyKey: nextIdempotencyKey('notification-read-all'),
+      }
+    )
 
-    if (error) {
-      return { success: false, error: error.message }
+    if (isApiFailure(response)) {
+      return { success: false, error: response.error.message }
     }
 
     return { success: true }
@@ -131,14 +189,13 @@ export async function deleteNotification(notificationId: string): Promise<{ succ
   }
 
   try {
-    const { error } = await supabase
-      .from('notifications')
-      .delete()
-      .eq('id', notificationId)
-      .eq('user_id', user.id)
+    const response = await callApiV1<{ notification_id: string }>(`/notifications/${notificationId}`, {
+      method: 'DELETE',
+      idempotencyKey: nextIdempotencyKey('notification-delete'),
+    })
 
-    if (error) {
-      return { success: false, error: error.message }
+    if (isApiFailure(response)) {
+      return { success: false, error: response.error.message }
     }
 
     return { success: true }

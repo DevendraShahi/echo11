@@ -1,5 +1,5 @@
 import { redirect } from 'next/navigation'
 
 export default function NewTaskPage() {
-  redirect('/lab/tasks')
+  redirect('/lab/projects')
 }

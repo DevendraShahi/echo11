@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { updateProject, deleteProject } from '@/lib/actions/project-actions'
 import { LabButton } from '@/components/ui/LabButton'
-import { LabCard, LabCardHeader, LabCardTitle, LabCardContent } from '@/components/ui/LabCard'
+import { FormCard } from '@/components/lab/patterns/FormCard'
 import { ClientSelect } from '@/components/lab/ClientSelect'
 import { ExpenseForm } from '@/components/lab/ExpenseForm'
 import { Dropdown, DropdownOption } from '@/components/ui/Dropdown'
@@ -129,199 +129,199 @@ export function EditProjectForm({ project, clients, services, expenses: initialE
 
   return (
     <div className="max-w-3xl mx-auto">
-      <Link href={`/lab/projects/${project.id}`} className="inline-flex mb-6">
-        <LabButton variant="ghost" size="sm" className="font-sans">
-          <ArrowLeft className="w-4 h-4 mr-2" />
-          Back to Project
-        </LabButton>
-      </Link>
+      <div className="flex justify-between items-center mb-4">
+        <Link href={`/lab/projects/${project.id}`}>
+          <LabButton variant="ghost" size="sm" className="font-sans">
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Back to Project
+          </LabButton>
+        </Link>
+        <button
+          onClick={() => setShowDeleteConfirm(true)}
+          className="p-2 hover:bg-red-500/10 text-white/40 hover:text-red-400 transition-colors"
+        >
+          <Trash2 className="w-4 h-4" />
+        </button>
+      </div>
 
-      <LabCard>
-        <LabCardHeader className="flex flex-row items-center justify-between">
-          <LabCardTitle className="font-sans">Edit Project</LabCardTitle>
-          <button
-            onClick={() => setShowDeleteConfirm(true)}
-            className="p-2 hover:bg-red-500/10 rounded-lg text-white/40 hover:text-red-400 transition-colors"
-          >
-            <Trash2 className="w-4 h-4" />
-          </button>
-        </LabCardHeader>
-        <LabCardContent>
-          <form onSubmit={handleSubmit} className="space-y-8">
-            {error && (
-              <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400 text-sm font-sans">
-                {error}
-              </div>
-            )}
-
-            {/* Basic Info Section */}
-            <div className="space-y-4">
-              <h3 className="text-sm font-medium text-white/50 font-sans uppercase tracking-wider">Basic Information</h3>
-              
-              <div>
-                <label className="block text-sm font-medium text-white/70 mb-2 font-sans">
-                  Project Name *
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  className="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-lg text-foreground placeholder:text-white/30 focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent font-sans"
-                  placeholder="Enter project name"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-white/70 mb-2 font-sans">
-                  Description
-                </label>
-                <textarea
-                  rows={3}
-                  value={formData.description}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  className="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-lg text-foreground placeholder:text-white/30 focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent font-sans resize-none"
-                  placeholder="Describe the project..."
-                />
-              </div>
-
-              <div className="grid grid-cols-3 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-white/70 mb-2 font-sans">
-                    Client
-                  </label>
-                  <ClientSelect
-                    clients={clients}
-                    selectedClientId={formData.client_id}
-                    onChange={(clientId) => setFormData({ ...formData, client_id: clientId })}
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-white/70 mb-2 font-sans">
-                    Type
-                  </label>
-                  <Dropdown
-                    options={PROJECT_TYPES.map(t => ({ value: t.value, label: t.label }))}
-                    value={formData.type}
-                    onChange={(val) => setFormData({ ...formData, type: val as ProjectType })}
-                    placeholder="Select type"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-white/70 mb-2 font-sans">
-                    Status
-                  </label>
-                  <Dropdown
-                    options={statusOptions}
-                    value={formData.status}
-                    onChange={(val) => setFormData({ ...formData, status: val as ProjectStatus })}
-                    placeholder="Select status"
-                  />
-                </div>
-              </div>
+      <FormCard
+        title="Edit Project"
+        actions={
+          <div className="flex gap-3">
+            <Link href={`/lab/projects/${project.id}`}>
+              <LabButton type="button" variant="ghost" className="font-sans">
+                Cancel
+              </LabButton>
+            </Link>
+            <LabButton type="submit" disabled={loading} className="font-sans">
+              {loading ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                'Save Changes'
+              )}
+            </LabButton>
+          </div>
+        }
+      >
+        <form onSubmit={handleSubmit} className="space-y-8">
+          {error && (
+            <div className="p-3 bg-red-500/10 border border-red-500/20 text-red-400 text-sm font-sans">
+              {error}
             </div>
+          )}
 
-            {/* Dates Section */}
-            <div className="space-y-4">
-              <h3 className="text-sm font-medium text-white/50 font-sans uppercase tracking-wider">Timeline</h3>
-              
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-white/70 mb-2 font-sans">
-                    Start Date
-                  </label>
-                  <input
-                    type="date"
-                    value={formData.start_date}
-                    onChange={(e) => setFormData({ ...formData, start_date: e.target.value })}
-                    className="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-lg text-foreground focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent font-mono"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-white/70 mb-2 font-sans">
-                    Deadline
-                  </label>
-                  <input
-                    type="date"
-                    value={formData.deadline}
-                    onChange={(e) => setFormData({ ...formData, deadline: e.target.value })}
-                    className="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-lg text-foreground focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent font-mono"
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* Services/Expenses Section */}
-            <div className="space-y-4">
-              <h3 className="text-sm font-medium text-white/50 font-sans uppercase tracking-wider">Services & Budget</h3>
-              
-              <ExpenseForm
-                services={services}
-                expenses={expenses}
-                onChange={setExpenses}
+          {/* Basic Info Section */}
+          <div className="space-y-4">
+            <h3 className="text-sm font-medium text-white/50 font-sans uppercase tracking-wider">Basic Information</h3>
+            
+            <div>
+              <label className="block text-sm font-medium text-white/70 mb-2 font-sans">
+                Project Name *
+              </label>
+              <input
+                type="text"
+                required
+                value={formData.name}
+                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                className="w-full px-4 py-2.5 bg-white/5 border border-white/10 text-foreground placeholder:text-white/30 focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent font-sans"
+                placeholder="Enter project name"
               />
             </div>
 
-            {/* Additional Section */}
-            <div className="space-y-4">
-              <h3 className="text-sm font-medium text-white/50 font-sans uppercase tracking-wider">Additional</h3>
-              
+            <div>
+              <label className="block text-sm font-medium text-white/70 mb-2 font-sans">
+                Description
+              </label>
+              <textarea
+                rows={3}
+                value={formData.description}
+                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                className="w-full px-4 py-2.5 bg-white/5 border border-white/10 text-foreground placeholder:text-white/30 focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent font-sans resize-none"
+                placeholder="Describe the project..."
+              />
+            </div>
+
+            <div className="grid grid-cols-3 gap-4">
               <div>
                 <label className="block text-sm font-medium text-white/70 mb-2 font-sans">
-                  Project Color
+                  Client
                 </label>
-                <div className="flex gap-2">
-                  {PROJECT_COLORS.map((color) => (
-                    <button
-                      key={color}
-                      type="button"
-                      onClick={() => setFormData({ ...formData, color })}
-                      className={`w-8 h-8 rounded-lg transition-all ${
-                        formData.color === color ? 'ring-2 ring-white ring-offset-2 ring-offset-black' : ''
-                      }`}
-                      style={{ backgroundColor: color }}
-                    />
-                  ))}
-                </div>
+                <ClientSelect
+                  clients={clients}
+                  selectedClientId={formData.client_id}
+                  onChange={(clientId) => setFormData({ ...formData, client_id: clientId })}
+                />
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-white/70 mb-2 font-sans">
-                  Project Link
+                  Type
                 </label>
-                <input
-                  type="url"
-                  value={formData.link}
-                  onChange={(e) => setFormData({ ...formData, link: e.target.value })}
-                  className="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-lg text-foreground placeholder:text-white/30 focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent font-mono"
-                  placeholder="https://..."
+                <Dropdown
+                  options={PROJECT_TYPES.map(t => ({ value: t.value, label: t.label }))}
+                  value={formData.type}
+                  onChange={(val) => setFormData({ ...formData, type: val as ProjectType })}
+                  placeholder="Select type"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-white/70 mb-2 font-sans">
+                  Status
+                </label>
+                <Dropdown
+                  options={statusOptions}
+                  value={formData.status}
+                  onChange={(val) => setFormData({ ...formData, status: val as ProjectStatus })}
+                  placeholder="Select status"
                 />
               </div>
             </div>
+          </div>
 
-            <div className="flex justify-end gap-3 pt-4 border-t border-white/10">
-              <Link href={`/lab/projects/${project.id}`}>
-                <LabButton type="button" variant="ghost" className="font-sans">
-                  Cancel
-                </LabButton>
-              </Link>
-              <LabButton type="submit" disabled={loading} className="font-sans">
-                {loading ? (
-                  <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    Saving...
-                  </>
-                ) : (
-                  'Save Changes'
-                )}
-              </LabButton>
+          {/* Dates Section */}
+          <div className="space-y-4">
+            <h3 className="text-sm font-medium text-white/50 font-sans uppercase tracking-wider">Timeline</h3>
+            
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-white/70 mb-2 font-sans">
+                  Start Date
+                </label>
+                <input
+                  type="date"
+                  value={formData.start_date}
+                  onChange={(e) => setFormData({ ...formData, start_date: e.target.value })}
+                  className="w-full px-4 py-2.5 bg-white/5 border border-white/10 text-foreground focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent font-mono"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-white/70 mb-2 font-sans">
+                  Deadline
+                </label>
+                <input
+                  type="date"
+                  value={formData.deadline}
+                  onChange={(e) => setFormData({ ...formData, deadline: e.target.value })}
+                  className="w-full px-4 py-2.5 bg-white/5 border border-white/10 text-foreground focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent font-mono"
+                />
+              </div>
             </div>
-          </form>
-        </LabCardContent>
-      </LabCard>
+          </div>
+
+          {/* Services/Expenses Section */}
+          <div className="space-y-4">
+            <h3 className="text-sm font-medium text-white/50 font-sans uppercase tracking-wider">Services & Budget</h3>
+            
+            <ExpenseForm
+              services={services}
+              expenses={expenses}
+              onChange={setExpenses}
+            />
+          </div>
+
+          {/* Additional Section */}
+          <div className="space-y-4">
+            <h3 className="text-sm font-medium text-white/50 font-sans uppercase tracking-wider">Additional</h3>
+            
+            <div>
+              <label className="block text-sm font-medium text-white/70 mb-2 font-sans">
+                Project Color
+              </label>
+              <div className="flex gap-2">
+                {PROJECT_COLORS.map((color) => (
+                  <button
+                    key={color}
+                    type="button"
+                    onClick={() => setFormData({ ...formData, color })}
+                    className={`w-8 h-8 transition-all ${
+                      formData.color === color ? 'ring-2 ring-white ring-offset-2 ring-offset-black' : ''
+                    }`}
+                    style={{ backgroundColor: color }}
+                  />
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-white/70 mb-2 font-sans">
+                Project Link
+              </label>
+              <input
+                type="url"
+                value={formData.link}
+                onChange={(e) => setFormData({ ...formData, link: e.target.value })}
+                className="w-full px-4 py-2.5 bg-white/5 border border-white/10 text-foreground placeholder:text-white/30 focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent font-mono"
+                placeholder="https://..."
+              />
+            </div>
+          </div>
+        </form>
+      </FormCard>
 
       {/* Delete Confirmation Modal */}
       {showDeleteConfirm && (

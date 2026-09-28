@@ -3,6 +3,8 @@
 import { useState, useEffect, useRef } from 'react'
 import { useParams } from 'next/navigation'
 import { ArrowLeft } from 'lucide-react'
+import { PageHeader } from '@/components/ui/PageHeader'
+import { Section } from '@/components/lab/patterns/Section'
 import Link from 'next/link'
 import { LabButton } from '@/components/ui/LabButton'
 import { getTeamMessages, postTeamMessage, getTeamNotes, addTeamNote } from '@/lib/actions/team-moodboard-actions'
@@ -136,10 +138,10 @@ export default function MoodboardPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-4">
-        <Link href="/lab/teams" className="p-2 border border-white/10 hover:border-white/20 text-white/40 hover:text-white transition-colors">
+        <Link href={`/lab/teams/${teamId}`} className="p-2 border border-white/10 hover:border-white/20 text-white/40 hover:text-white transition-colors">
           <ArrowLeft className="w-5 h-5" />
         </Link>
-        <h1 className="text-xl font-bold text-white">Team Moodboard</h1>
+        <PageHeader title="Team Moodboard" />
       </div>
 
       {loading ? (
@@ -147,70 +149,80 @@ export default function MoodboardPage() {
       ) : (
         <>
           {/* Chat Section */}
-          <section className="bg-[#0a0a0a] p-4 rounded border border-white/10">
-            <h2 className="text-lg font-semibold text-white mb-2">Chat</h2>
-            <div className="max-h-64 overflow-y-auto space-y-2 mb-4">
-              {messages.map((msg) => (
-                <div key={msg.id} className="text-sm text-white/80">
-                  <span className="font-mono text-white/60">{msg.user?.full_name || 'Anonymous'}</span>{' '}
-                  <span className="text-white/40">{new Date(msg.created_at).toLocaleString()}</span>
-                  <div>{msg.content}</div>
-                </div>
-              ))}
-            </div>
-            <form onSubmit={handleSendMessage} className="flex gap-2 relative">
-              <div className="relative flex-1">
-                <input
-                  ref={messageInputRef}
-                  type="text"
-                  placeholder="Write a message… use @ to mention teammates"
-                  value={newMessage}
-                  onChange={handleMessageChange}
-                  className="w-full px-3 py-2 bg-[#0a0a0a] border border-white/10 text-white placeholder:text-white/30 focus:border-accent focus:outline-none"
-                />
-                {showMentions && mentionResults.length > 0 && (
-                  <div className="absolute left-0 right-0 mt-1 bg-[#0f0f0f] border border-white/10 shadow-2xl z-20 max-h-48 overflow-y-auto">
-                    {mentionResults.map((member) => (
-                      <button
-                        type="button"
-                        key={member.id}
-                        onClick={() => handleSelectMention(member)}
-                        className="w-full flex items-center justify-between px-3 py-2 text-left hover:bg-white/5 transition-colors"
-                      >
-                        <div className="text-sm text-white">{member.full_name || member.email || 'Teammate'}</div>
-                        <div className="text-xs text-white/40 font-mono uppercase">{member.role}</div>
-                      </button>
-                    ))}
+          <Section
+            title="Chat"
+            count={messages.length}
+          >
+            <div className="space-y-4">
+              <div className="max-h-64 overflow-y-auto space-y-2">
+                {messages.map((msg) => (
+                  <div key={msg.id} className="text-sm text-white/80 p-3 bg-white/5 border border-white/10">
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="font-mono text-white/60">{msg.user?.full_name || 'Anonymous'}</span>
+                      <span className="text-white/40 text-xs">{new Date(msg.created_at).toLocaleString()}</span>
+                    </div>
+                    <div>{msg.content}</div>
                   </div>
-                )}
+                ))}
               </div>
-              <LabButton type="submit">Send</LabButton>
-            </form>
-          </section>
+              <form onSubmit={handleSendMessage} className="flex gap-2 relative">
+                <div className="relative flex-1">
+                  <input
+                    ref={messageInputRef}
+                    type="text"
+                    placeholder="Write a message… use @ to mention teammates"
+                    value={newMessage}
+                    onChange={handleMessageChange}
+                    className="w-full px-3 py-2 bg-[#0a0a0a] border border-white/10 text-white placeholder:text-white/30 focus:border-accent focus:outline-none"
+                  />
+                  {showMentions && mentionResults.length > 0 && (
+                    <div className="absolute left-0 right-0 mt-1 bg-[#0f0f0f] border border-white/10 shadow-2xl z-20 max-h-48 overflow-y-auto">
+                      {mentionResults.map((member) => (
+                        <button
+                          type="button"
+                          key={member.id}
+                          onClick={() => handleSelectMention(member)}
+                          className="w-full flex items-center justify-between px-3 py-2 text-left hover:bg-white/5 transition-colors"
+                        >
+                          <div className="text-sm text-white">{member.full_name || member.email || 'Teammate'}</div>
+                          <div className="text-xs text-white/40 font-mono uppercase">{member.role}</div>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                <LabButton type="submit">Send</LabButton>
+              </form>
+            </div>
+          </Section>
 
           {/* Notes Section */}
-          <section className="bg-[#0a0a0a] p-4 rounded border border-white/10">
-            <h2 className="text-lg font-semibold text-white mb-2">Notes</h2>
-            <div className="space-y-2 mb-4">
-              {notes.map((note) => (
-                <div key={note.id} className="text-sm text-white/80">
-                  <div className="font-mono text-white/60">{note.user?.full_name || 'Anonymous'}</div>
-                  <div className="text-white/40 text-xs mb-1">{new Date(note.created_at).toLocaleString()}</div>
-                  <div>{note.content}</div>
-                </div>
-              ))}
+          <Section
+            title="Notes"
+            count={notes.length}
+          >
+            <div className="space-y-4">
+              <div className="space-y-2">
+                {notes.map((note) => (
+                  <div key={note.id} className="text-sm text-white/80 p-3 bg-white/5 border border-white/10">
+                    <div className="font-mono text-white/60">{note.user?.full_name || 'Anonymous'}</div>
+                    <div className="text-white/40 text-xs mb-1">{new Date(note.created_at).toLocaleString()}</div>
+                    <div>{note.content}</div>
+                  </div>
+                ))}
+              </div>
+              <form onSubmit={handleAddNote} className="flex gap-2">
+                <textarea
+                  placeholder="Add a note…"
+                  value={newNote}
+                  onChange={(e) => setNewNote(e.target.value)}
+                  className="flex-1 px-3 py-2 bg-[#0a0a0a] border border-white/10 text-white placeholder:text-white/30 focus:border-accent focus:outline-none"
+                  rows={2}
+                />
+                <LabButton type="submit">Add</LabButton>
+              </form>
             </div>
-            <form onSubmit={handleAddNote} className="flex gap-2">
-              <textarea
-                placeholder="Add a note…"
-                value={newNote}
-                onChange={(e) => setNewNote(e.target.value)}
-                className="flex-1 px-3 py-2 bg-[#0a0a0a] border border-white/10 text-white placeholder:text-white/30 focus:border-accent focus:outline-none"
-                rows={2}
-              />
-              <LabButton type="submit">Add</LabButton>
-            </form>
-          </section>
+          </Section>
         </>
       )}
     </div>

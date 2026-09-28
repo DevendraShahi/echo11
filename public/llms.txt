@@ -1,0 +1,44 @@
+# echo11 — Product Engineering Studio
+
+> A product engineering studio based in Nepal. We help businesses plan, design, and build websites, platforms, portals, and digital products with clear process and dependable execution.
+
+## What we do
+
+Echo11 provides integrated product strategy, interface design, and engineering delivery. We work with founders and teams who need reliable digital products — from early-stage planning through launch and ongoing support.
+
+### Services
+
+- **Website Design & Build** — Custom websites built with Next.js, React, TypeScript, and Tailwind CSS. Focused on speed, trust, and conversion.
+- **App Development** — Web and mobile products using React Native, Expo, PWA architecture, and API design.
+- **Performance & SEO** — Core Web Vitals optimization, technical SEO audits, image optimization, caching strategy, and CDN configuration.
+- **Maintenance Retainer** — Ongoing support for security updates, bug fixes, feature additions, monitoring, and priority support.
+
+## How we work
+
+Our delivery process follows five phases: Discovery, Planning, Design, Build, and Launch. We set clear timelines, milestones, and communication standards at the start of every engagement.
+
+## Case studies
+
+- **TrueLuxe Nepal** — Premium e-commerce platform for skincare discovery with local payment integration and mobile-first performance.
+- **The Leaders NP** — Nepal history, political, and social platform with structured editorial workflows and data-backed storytelling.
+- **curriculum.os** — Curriculum planning platform for educators and learning teams to organize programs, modules, and delivery details.
+
+## Key pages
+
+- Home: https://echo11.tech
+- About: https://echo11.tech/about
+- Services: https://echo11.tech/services
+- Work: https://echo11.tech/work
+- Process: https://echo11.tech/process
+- Methodology: https://echo11.tech/methodology
+- Manifesto: https://echo11.tech/manifesto
+- Contact: https://echo11.tech/contact
+
+## Contact
+
+Email: echo11.labs@gmail.com
+Location: Nepal-based, working with remote teams worldwide.
+
+## Tech stack
+
+Next.js, React, TypeScript, Tailwind CSS, Framer Motion, Node.js, PostgreSQL, Prisma, Supabase, Vercel, AWS, Stripe.

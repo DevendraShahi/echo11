@@ -1,0 +1,82 @@
+.cornerButton {
+  --b: 2px;
+  --s: 0.45em;
+  --color: var(--corner-button-color, #00e5ff);
+  --_p: var(--s);
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.7em;
+  border: 0;
+  background:
+    conic-gradient(from 90deg at var(--b) var(--b), #0000 90deg, var(--color) 0)
+    var(--_p) var(--_p) / calc(100% - var(--b) - 2 * var(--_p))
+    calc(100% - var(--b) - 2 * var(--_p));
+  color: var(--color);
+  cursor: pointer;
+  font-family: var(--font-geist-mono), monospace;
+  font-weight: 700;
+  letter-spacing: 0.11em;
+  line-height: 1.1;
+  outline: var(--b) solid #0000;
+  outline-offset: 0.6em;
+  text-align: center;
+  text-decoration: none;
+  text-transform: uppercase;
+  touch-action: manipulation;
+  transition: 0.3s linear, color 0s, background-color 0s;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.cornerButton:hover,
+.cornerButton:focus-visible {
+  --_p: 0;
+  outline-color: var(--color);
+  outline-offset: 0.05em;
+}
+
+.cornerButton:active {
+  background: var(--color);
+  color: #020b12;
+}
+
+.cornerButton:disabled,
+.cornerButton[aria-disabled="true"] {
+  cursor: not-allowed;
+  opacity: 0.45;
+  pointer-events: none;
+}
+
+.sm {
+  --b: 2px;
+  --s: 0.32em;
+  min-height: 40px;
+  padding: calc(0.38em + var(--s)) calc(0.8em + var(--s));
+  font-size: 10px;
+}
+
+.md {
+  --b: 2px;
+  --s: 0.38em;
+  min-height: 48px;
+  padding: calc(0.48em + var(--s)) calc(0.95em + var(--s));
+  font-size: 11px;
+}
+
+.lg {
+  --b: 2px;
+  --s: 0.45em;
+  min-height: 58px;
+  padding: calc(0.58em + var(--s)) calc(1.15em + var(--s));
+  font-size: 11px;
+}
+
+.xl {
+  --b: 3px;
+  --s: 0.45em;
+  min-height: 64px;
+  padding: calc(0.64em + var(--s)) calc(1.25em + var(--s));
+  font-size: 12px;
+}

@@ -30,7 +30,7 @@ export default function AuthLayout({
         }
 
         if (profile?.role === 'admin' || profile?.role === 'member') {
-          router.push('/lab/dashboard')
+          router.push('/lab/command')
           return
         }
       }

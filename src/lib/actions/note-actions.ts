@@ -3,12 +3,18 @@
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { ClientNote } from '@/types/lab'
+import { callApiV1 } from '@/lib/api/v1/internal-client'
+import { isApiFailure } from '@/lib/api/v1/contracts'
 
 export type NoteWithUser = ClientNote & { user?: { full_name: string | null; avatar_url: string | null } | null }
 
 export interface CreateNoteParams {
   client_id: string
   content: string
+}
+
+function nextIdempotencyKey(prefix: string): string {
+  return `${prefix}-${crypto.randomUUID()}`
 }
 
 export async function createNote(
@@ -22,20 +28,24 @@ export async function createNote(
   }
 
   try {
-    const { data: note, error } = await supabase
-      .from('client_notes')
-      .insert({
-        client_id: params.client_id,
-        content: params.content,
-        created_by: user.id
-      })
-      .select('*, user:profiles(full_name, avatar_url)')
-      .single()
+    const createResponse = await callApiV1<{ note_id: string; client_id: string; lock_version: number | null }>(
+      `/clients/${params.client_id}/notes`,
+      {
+        method: 'POST',
+        body: { content: params.content },
+        idempotencyKey: nextIdempotencyKey('note-create'),
+      }
+    )
 
-    if (error) {
-      console.error('Error creating note:', error)
-      return { success: false, error: error.message }
+    if (isApiFailure(createResponse)) {
+      return { success: false, error: createResponse.error.message }
     }
+
+    const { data: note } = await supabase
+      .from('client_notes')
+      .select('*, user:profiles(full_name, avatar_url)')
+      .eq('id', createResponse.data.note_id)
+      .single()
 
     await supabase.from('activities').insert({
       user_id: user.id,
@@ -65,14 +75,13 @@ export async function deleteNote(
   }
 
   try {
-    const { error } = await supabase
-      .from('client_notes')
-      .delete()
-      .eq('id', noteId)
-      .eq('created_by', user.id)
+    const response = await callApiV1<{ note_id: string; client_id: string }>(`/clients/${clientId}/notes/${noteId}`, {
+      method: 'DELETE',
+      idempotencyKey: nextIdempotencyKey('note-delete'),
+    })
 
-    if (error) {
-      return { success: false, error: error.message }
+    if (isApiFailure(response)) {
+      return { success: false, error: response.error.message }
     }
 
     revalidatePath(`/lab/clients/${clientId}`)
@@ -96,14 +105,17 @@ export async function updateNote(
   }
 
   try {
-    const { error } = await supabase
-      .from('client_notes')
-      .update({ content })
-      .eq('id', noteId)
-      .eq('created_by', user.id)
+    const response = await callApiV1<{ note_id: string; client_id: string; lock_version: number | null }>(
+      `/clients/${clientId}/notes/${noteId}`,
+      {
+        method: 'PATCH',
+        body: { content },
+        idempotencyKey: nextIdempotencyKey('note-update'),
+      }
+    )
 
-    if (error) {
-      return { success: false, error: error.message }
+    if (isApiFailure(response)) {
+      return { success: false, error: response.error.message }
     }
 
     revalidatePath(`/lab/clients/${clientId}`)

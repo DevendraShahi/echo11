@@ -207,9 +207,24 @@ export function AppFeedbackProvider({ children }: { children: React.ReactNode })
 
 export function useAppFeedback(): AppFeedbackContextValue {
   const context = useContext(AppFeedbackContext)
-  if (!context) {
-    throw new Error('useAppFeedback must be used within AppFeedbackProvider')
-  }
+  if (context) return context
 
-  return context
+  // Graceful fallback prevents route crashes during transient layout/provider issues.
+  return {
+    notify: (message) => {
+      const text = normalizeMessage(message)
+      if (typeof window !== 'undefined') {
+        window.alert(text)
+      } else {
+        console.warn(text)
+      }
+    },
+    confirmAction: async (message) => {
+      const text = normalizeMessage(message)
+      if (typeof window !== 'undefined') {
+        return window.confirm(text)
+      }
+      return false
+    },
+  }
 }

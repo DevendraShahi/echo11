@@ -180,7 +180,9 @@ export async function createContract(
     }
 
     revalidatePath(`/lab/clients/${params.client_id}`)
-    revalidatePath('/lab/contracts')
+    revalidatePath('/lab/projects')
+    revalidatePath('/lab/clients')
+    revalidatePath('/lab/command')
     revalidateClientSurface()
     revalidateLegacyPortalSurface()
     return { success: true, contract: contract as Contract }
@@ -269,7 +271,9 @@ export async function updateContract(
     }
 
     revalidatePath(`/lab/clients/${clientId}`)
-    revalidatePath('/lab/contracts')
+    revalidatePath('/lab/projects')
+    revalidatePath('/lab/clients')
+    revalidatePath('/lab/command')
     revalidateClientSurface()
     revalidateLegacyPortalSurface()
     return { success: true }
@@ -314,7 +318,9 @@ export async function updateContractStatus(
     }
 
     revalidatePath(`/lab/contracts/${contractId}`)
-    revalidatePath('/lab/contracts')
+    revalidatePath('/lab/projects')
+    revalidatePath('/lab/clients')
+    revalidatePath('/lab/command')
     revalidateClientSurface()
     revalidateLegacyPortalSurface()
     return { success: true }
@@ -370,7 +376,9 @@ export async function deleteContract(
     }
 
     revalidatePath(`/lab/clients/${clientId}`)
-    revalidatePath('/lab/contracts')
+    revalidatePath('/lab/projects')
+    revalidatePath('/lab/clients')
+    revalidatePath('/lab/command')
     revalidateClientSurface()
     revalidateLegacyPortalSurface()
     return { success: true }
@@ -453,7 +461,9 @@ export async function uploadContractFile(
     }
 
     revalidatePath(`/lab/contracts/${contractId}`)
-    revalidatePath('/lab/contracts')
+    revalidatePath('/lab/projects')
+    revalidatePath('/lab/clients')
+    revalidatePath('/lab/command')
     revalidateClientSurface()
     revalidateLegacyPortalSurface()
     return {
@@ -565,7 +575,9 @@ export async function generateContractFromTemplate(
     }
 
     revalidatePath(`/lab/contracts/${contractId}`)
-    revalidatePath('/lab/contracts')
+    revalidatePath('/lab/projects')
+    revalidatePath('/lab/clients')
+    revalidatePath('/lab/command')
     revalidateClientSurface()
     revalidateLegacyPortalSurface()
     return {
@@ -646,7 +658,9 @@ export async function sendContractToClient(
       .eq('id', contractId)
 
     revalidatePath(`/lab/contracts/${contractId}`)
-    revalidatePath('/lab/contracts')
+    revalidatePath('/lab/projects')
+    revalidatePath('/lab/clients')
+    revalidatePath('/lab/command')
     revalidateClientSurface()
     revalidateLegacyPortalSurface()
     return { success: true }
