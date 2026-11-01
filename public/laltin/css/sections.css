@@ -1,0 +1,524 @@
+/* ==========================================================
+   LALTIN — sections.css
+   Chapter layouts (00–14) + responsive behaviour.
+   Components live in components.css.
+   ========================================================== */
+
+/* anchor offset under fixed nav */
+section[id], footer[id] { scroll-margin-top: calc(var(--nav-h) + .75rem); }
+
+.on-dark { background: var(--laltin-ink); color: var(--laltin-linen); }
+
+/* ==========================================================
+   00 · ARRIVAL (§13–14)
+   ========================================================== */
+
+.hero {
+  position: relative;
+  min-height: 100svh;
+  display: flex;
+  align-items: flex-end;
+  overflow: hidden;
+  color: var(--laltin-bone);
+}
+
+.hero__media { position: absolute; inset: 0; }
+.hero__media picture { display: block; width: 100%; height: 100%; }
+.hero__media img { width: 100%; height: 100%; object-fit: cover; }
+
+.hero__overlay {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(to bottom, rgba(23, 24, 20, .38), rgba(23, 24, 20, 0) 22%),
+    linear-gradient(to top, rgba(23, 24, 20, .6), rgba(23, 24, 20, .12) 42%, rgba(23, 24, 20, 0) 62%);
+}
+
+.hero__content {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(1rem, 2.5vh, 1.75rem);
+  width: min(100% - (var(--page-x) * 2), var(--content-max));
+  padding-block: calc(var(--nav-h) + 3rem) clamp(2rem, 5vh, 4rem);
+}
+
+.hero__title {
+  font-size: var(--text-display);
+  line-height: .85;
+  letter-spacing: -.045em;
+}
+
+.hero__descriptor {
+  color: var(--laltin-linen);
+  letter-spacing: .22em;
+}
+
+.hero__cue {
+  align-self: flex-end;
+  width: 46px;
+  height: 46px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(255, 255, 255, .4);
+  border-radius: 50%;
+  color: var(--laltin-bone);
+  transition: border-color var(--dur-ui) var(--ease-standard),
+              background-color var(--dur-ui) var(--ease-standard);
+}
+.hero__cue:hover {
+  background: rgba(255, 255, 255, .12);
+  border-color: var(--laltin-amber);
+}
+
+html.anim .hero__cue span {
+  display: block;
+  animation: cue-bob 2.6s var(--ease-standard) infinite;
+}
+@keyframes cue-bob {
+  0%, 100% { transform: translateY(-3px); }
+  50% { transform: translateY(4px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  html.anim .hero__cue span { animation: none; }
+}
+
+/* ==========================================================
+   01 · INTERRUPTION (§15)
+   ========================================================== */
+
+.interruption { padding-block: var(--section-y-lg); }
+
+.interruption__statement { max-width: 20ch; }
+
+.interruption__alt { font-style: italic; }
+
+.interruption__note {
+  margin-top: clamp(2.5rem, 5vw, 4.5rem);
+  padding-top: clamp(1.5rem, 3vw, 2.25rem);
+  border-top: 1px solid var(--border-light);
+}
+
+/* ==========================================================
+   02 · THE PLACE (§16)
+   ========================================================== */
+
+.place__grid {
+  align-items: start;
+  row-gap: clamp(2rem, 4vw, 4rem);
+}
+
+.place__main {
+  grid-column: 1 / span 7;
+  grid-row: 1;
+  aspect-ratio: 4 / 3;
+  border-radius: var(--radius-media);
+}
+
+.place__text {
+  grid-column: 9 / span 4;
+  grid-row: 1;
+  align-self: center;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1.5rem;
+}
+
+.place__title { max-width: 12ch; }
+
+.place__overlap {
+  grid-column: 6 / span 3;
+  grid-row: 2;
+  margin-top: clamp(-7.5rem, -6vw, -3.5rem);
+  aspect-ratio: 3 / 4;
+  z-index: 1;
+  border-radius: var(--radius-media);
+}
+
+/* ==========================================================
+   03 · STAY (§18–20)
+   ========================================================== */
+
+.stay__intro {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1.5rem 2rem;
+  margin-bottom: clamp(3rem, 7vw, 6rem);
+}
+
+.room--left .room__index  { grid-column: 1 / 8; grid-row: 1; }
+.room--left .room__media  { grid-column: 1 / 8; grid-row: 2; }
+.room--left .room__info   { grid-column: 9 / 13; grid-row: 2; }
+
+.room--right .room__index { grid-column: 6 / 13; grid-row: 1; }
+.room--right .room__media { grid-column: 6 / 13; grid-row: 2; }
+.room--right .room__info  { grid-column: 1 / 5; grid-row: 2; }
+
+.room--bleed .room__index { grid-column: 1 / -1; grid-row: 1; }
+.room--bleed .room__media { grid-column: 1 / -1; grid-row: 2; aspect-ratio: 21 / 9; }
+.room--bleed .room__info {
+  grid-column: 1 / -1;
+  grid-row: 3;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: end;
+  gap: 1rem clamp(1.5rem, 4vw, 3rem);
+}
+.room--bleed .room__facts { justify-self: end; }
+
+.room--center .room__index { grid-column: 4 / 10; grid-row: 1; }
+.room--center .room__media { grid-column: 4 / 10; grid-row: 2; }
+.room--center .room__info  { grid-column: 4 / 10; grid-row: 3; align-items: center; text-align: center; }
+.room--center .room__facts { justify-content: center; }
+
+/* ==========================================================
+   04 · MORNING (§21)
+   ========================================================== */
+
+.morning { position: relative; }
+
+.morning__film {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  max-height: 100svh;
+}
+
+.morning__panel {
+  position: absolute;
+  left: var(--page-x);
+  bottom: clamp(1.5rem, 4vw, 3.5rem);
+  max-width: min(calc(100% - (var(--page-x) * 2)), 440px);
+  padding: clamp(1.5rem, 3vw, 2.5rem);
+  background: var(--laltin-paper);
+  border-radius: var(--radius-sm);
+  display: flex;
+  flex-direction: column;
+  gap: .6rem;
+}
+
+.morning__stamp { color: var(--laltin-muted-text); }
+
+.morning__time {
+  font-family: var(--font-mono);
+  font-size: clamp(1.75rem, 3.4vw, 3rem);
+  letter-spacing: .04em;
+  text-transform: none;
+  line-height: 1;
+}
+
+.morning__line {
+  margin-top: .75rem;
+  font-family: var(--font-display);
+  font-size: var(--text-h3);
+  line-height: .98;
+  letter-spacing: -.02em;
+}
+
+/* ==========================================================
+   05 · EXPERIENCE (§22–23)
+   ========================================================== */
+
+.exp__grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+  gap: clamp(2rem, 5vw, 5rem);
+  align-items: start;
+}
+
+/* ==========================================================
+   06 · EAT (§24–25)
+   ========================================================== */
+
+.eat__intro { align-items: end; row-gap: 2rem; }
+
+.eat__title { grid-column: 1 / span 6; }
+
+.eat__hands {
+  grid-column: 7 / span 6;
+  aspect-ratio: 4 / 3;
+  border-radius: var(--radius-media);
+}
+
+/* ==========================================================
+   07 · PEOPLE (§27)
+   ========================================================== */
+
+.people__title { margin-bottom: clamp(2.5rem, 5vw, 4rem); }
+
+.people__grid { align-items: start; row-gap: clamp(2rem, 4vw, 3.5rem); }
+
+.people__grid .person--lead { grid-column: 1 / span 5; }
+.people__grid .person:nth-child(2) { grid-column: 6 / span 4; }
+.people__grid .person:nth-child(3) { grid-column: 10 / span 3; }
+
+.people__note { margin-top: clamp(2rem, 4vw, 3rem); }
+
+/* ==========================================================
+   08 · FOOTPRINT (§26)
+   ========================================================== */
+
+.footprint__intro {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: clamp(2rem, 5vw, 5rem);
+  align-items: end;
+  margin-bottom: clamp(3rem, 6vw, 5rem);
+}
+
+/* ==========================================================
+   09 · GETTING HERE
+   ========================================================== */
+
+.journey__grid { align-items: start; row-gap: clamp(2rem, 4vw, 3.5rem); }
+
+.journey__coords {
+  grid-column: 1 / span 4;
+  display: flex;
+  flex-direction: column;
+  gap: .6rem;
+}
+.journey__coords p {
+  font-size: clamp(1.75rem, 3.4vw, 3rem);
+  letter-spacing: .02em;
+  line-height: 1.05;
+  text-transform: none;
+}
+.journey__alt { color: var(--laltin-muted-text); }
+
+.journey__text {
+  grid-column: 6 / span 6;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1.4rem;
+}
+
+/* ==========================================================
+   10 · DUSK (§28) — normal scroll; body bg scrubs in motion.js
+   ========================================================== */
+
+.dusk {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(1.25rem, 3vw, 2.5rem);
+  padding-block: var(--section-y);
+}
+
+.dusk__head { margin-bottom: clamp(.75rem, 2vw, 1.5rem); }
+
+.dusk__band {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--radius-media);
+}
+
+.dusk__band--a {
+  width: min(100% - (var(--page-x) * 2), var(--content-max));
+  margin-inline: auto;
+  aspect-ratio: 16 / 6.5;
+}
+
+.dusk__band--b {
+  width: min(74% - var(--page-x), calc(var(--content-max) * .72));
+  margin-left: auto;
+  margin-right: max(var(--page-x), calc((100% - var(--content-max)) / 2));
+  aspect-ratio: 16 / 8;
+}
+
+.dusk__chip {
+  position: absolute;
+  left: clamp(1rem, 2vw, 1.75rem);
+  bottom: clamp(1rem, 2vw, 1.75rem);
+  padding: .5rem .9rem;
+  background: rgba(23, 24, 20, .66);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  color: var(--laltin-bone);
+  border-radius: var(--radius-sm);
+}
+
+/* ==========================================================
+   11 · LALTIN / LANTERN (§29)
+   ========================================================== */
+
+.laltin-night {
+  background: var(--laltin-ink);
+  color: var(--laltin-linen);
+}
+
+.laltin-night__inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: clamp(3rem, 6vw, 5.5rem);
+}
+
+.lantern { border-radius: var(--radius-media); }
+
+.lantern--one {
+  width: min(100%, 760px);
+  aspect-ratio: 16 / 10;
+}
+
+.lantern__statement { max-width: 15ch; }
+
+.lantern__more {
+  display: flex;
+  gap: clamp(1rem, 3vw, 2.5rem);
+  width: min(100%, 920px);
+}
+.lantern--two, .lantern--three { flex: 1; aspect-ratio: 4 / 3; }
+.lantern--three { margin-top: clamp(2rem, 5vw, 4rem); }
+
+.laltin-wordmark {
+  font-size: clamp(4rem, 15vw, 15rem);
+  line-height: .9;
+  color: rgba(237, 185, 104, .1);
+  -webkit-text-stroke: 1px rgba(216, 154, 75, .55);
+}
+
+.laltin-night__tag {
+  max-width: 40ch;
+  letter-spacing: .18em;
+  line-height: 1.9;
+  color: rgba(221, 215, 201, .72);
+}
+
+/* ==========================================================
+   12 · JOURNAL (§56)
+   ========================================================== */
+
+.journal__grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: clamp(1.5rem, 3vw, 3rem);
+}
+
+/* ==========================================================
+   13 · RESERVE (§30–31)
+   ========================================================== */
+
+.reserve__grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
+  gap: clamp(2.5rem, 6vw, 6rem);
+  align-items: center;
+}
+
+.reserve__intro {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1.75rem;
+}
+
+/* ==========================================================
+   RESPONSIVE — ≤1023px (8 cols) / ≤639px (4 cols)
+   ========================================================== */
+
+@media (max-width: 1023px) {
+  .place__main { grid-column: 1 / span 5; }
+  .place__text { grid-column: 6 / span 3; }
+  .place__overlap { grid-column: 5 / span 3; margin-top: -3rem; }
+
+  /* rooms collapse to natural DOM order: index → media → info */
+  .room {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: clamp(1.25rem, 3vw, 2rem);
+  }
+  .room--bleed .room__media { aspect-ratio: 16 / 9; }
+  .room--bleed .room__info {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: .9rem;
+  }
+
+  .exp__grid { grid-template-columns: minmax(0, 1fr); }
+  .exp__stage { display: none; }
+  .exp__mobile { display: block; }
+  .exp__mobile figure {
+    aspect-ratio: 16 / 10;
+    margin-bottom: 1rem;
+    border-radius: var(--radius-media);
+  }
+  .exp__mobile p { color: var(--laltin-muted-text); font-size: var(--text-sm); }
+
+  .eat__title { grid-column: 1 / span 4; }
+  .eat__hands { grid-column: 5 / span 4; }
+
+  .people__grid .person--lead,
+  .people__grid .person:nth-child(2),
+  .people__grid .person:nth-child(3) { grid-column: span 4; }
+  .person--lead .person__media { aspect-ratio: 3 / 4; }
+
+  .footprint__intro { grid-template-columns: minmax(0, 1fr); align-items: start; }
+
+  .journey__coords { grid-column: 1 / span 3; }
+  .journey__text { grid-column: 4 / span 5; }
+
+  .journal__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+
+  .reserve__grid { grid-template-columns: minmax(0, 1fr); }
+}
+
+@media (max-width: 767px) {
+  .journal__grid { grid-template-columns: minmax(0, 1fr); }
+}
+
+@media (max-width: 639px) {
+  .hero__title { font-size: clamp(3.4rem, 17vw, 4.5rem); }
+
+  .place__main,
+  .place__text,
+  .place__overlap { grid-column: 1 / -1; grid-row: auto; }
+  .place__overlap { width: 62%; margin-top: -2.5rem; justify-self: end; }
+
+  .eat__title,
+  .eat__hands { grid-column: 1 / -1; }
+
+  .eat__flow { grid-template-columns: minmax(0, 1fr); gap: 2rem; }
+  .eat__step:not(:last-child)::after { content: none; }
+
+  .eat__tonight { grid-template-columns: minmax(0, 1fr); }
+
+  .morning__film { aspect-ratio: 4 / 5; }
+  .morning__panel {
+    position: static;
+    max-width: none;
+    border-radius: 0;
+    padding-inline: var(--page-x);
+  }
+
+  .people__grid .person--lead,
+  .people__grid .person:nth-child(2),
+  .people__grid .person:nth-child(3) { grid-column: 1 / -1; }
+
+  .fact { grid-template-columns: minmax(0, 1fr); gap: .45rem; }
+  .fact__status { justify-self: start; }
+
+  .journey__coords,
+  .journey__text { grid-column: 1 / -1; }
+
+  .dusk__band--b {
+    width: min(100% - (var(--page-x) * 2), var(--content-max));
+    margin-inline: auto;
+    aspect-ratio: 16 / 8;
+  }
+
+  .lantern__more { flex-direction: column; }
+  .lantern--three { margin-top: 0; }
+
+  .dialog { padding: .75rem; }
+  .dialog__panel { max-height: calc(100svh - 1.5rem); }
+  .dialog__pair { grid-template-columns: minmax(0, 1fr); }
+
+  .booking__fields { grid-template-columns: minmax(0, 1fr); }
+}

@@ -1,0 +1,2803 @@
+/* ============================================================
+   LALTIN — NEW BRAND FOUNDATION
+   Palette: Pine black #131a15, Moss dark #1c2b21, Bone #ede7d9,
+   Light bone #efe9dc, Ink on light #171c18, Stone #b9b09a,
+   Muted on dark #a8a294, Muted on light #5c5a52,
+   Sage #7a8b7a, Ember #c75b2b.
+   Fonts: Fraunces (display), Instrument Sans (body/buttons),
+   IBM Plex Mono (facts).
+   Surfaces: full-bleed (6vw insets), radius 0 large images,
+   sharp 2px buttons, no shadows.
+   ============================================================ */
+
+.laltin-scope {
+  /* ---------- Palette: strictly new tokens only ---------- */
+  --laltin-pine-black: #131a15;
+  --laltin-moss-dark: #1c2b21;
+  --laltin-bone: #ede7d9;
+  --laltin-light-bone: #efe9dc;
+  --laltin-ink-on-light: #171c18;
+  --laltin-stone: #b9b09a;
+  --laltin-muted-on-dark: #a8a294;
+  --laltin-muted-on-light: #5c5a52;
+  --laltin-sage: #7a8b7a;
+  --laltin-ember: #c75b2b;
+
+  --hairline-on-dark: rgba(237, 231, 217, 0.16);
+  --hairline-on-light: rgba(23, 28, 24, 0.14);
+
+  /* Semantic aliases mapped to new brand */
+  --laltin-paper: var(--laltin-light-bone);
+  --laltin-paper-2: var(--laltin-light-bone);
+  --laltin-ink: var(--laltin-pine-black);
+  --laltin-ink-soft: var(--laltin-ink-on-light);
+  --laltin-muted: var(--laltin-muted-on-light);
+  --laltin-forest: var(--laltin-moss-dark);
+  --laltin-charcoal: var(--laltin-moss-dark);
+  --laltin-linen: var(--laltin-stone);
+  --laltin-earth: var(--laltin-sage);
+  --laltin-clay: var(--laltin-stone);
+  --laltin-brass: var(--laltin-ember);
+  --laltin-brass-deep: #a8481d;
+  --laltin-flame: var(--laltin-ember);
+
+  --line: var(--hairline-on-light);
+  --line-strong: rgba(23, 28, 24, 0.28);
+  --line-dark: var(--hairline-on-dark);
+
+  /* ---------- Type Jobs ----------
+     Fraunces is for display and section headlines only.
+     Instrument Sans is for body and buttons.
+     IBM Plex Mono is for facts only, never for headlines. */
+  --font-serif: var(--font-laltin-display), "Fraunces", Georgia, serif;
+  --font-sans: var(--font-laltin-sans), "Instrument Sans", system-ui, -apple-system, sans-serif;
+  --font-mono: var(--font-laltin-mono), "IBM Plex Mono", ui-monospace, "SF Mono", monospace;
+
+  --display: clamp(4rem, 8vw, 8.5rem);
+  --h2: clamp(2.75rem, 5vw, 5.25rem);
+  --h3: clamp(1.85rem, 2.8vw, 3rem);
+  --lead: clamp(1.15rem, 1.6vw, 1.55rem);
+  --body: clamp(0.95rem, 0.9vw, 1.05rem);
+  --eyebrow: 0.72rem;
+  --meta: 0.8rem;
+
+  /* ---------- Space + Shape ----------
+     Large images: radius 0.
+     Buttons: radius 2px, sharp.
+     Shadows: none. Hairlines to separate.
+     Sections: full-bleed with 6vw inset. */
+  --content-max: 100%;
+  --reading-max: 720px;
+  --page-x: 6vw;
+  --section-y: clamp(5rem, 8vw, 8rem);
+  --section-y-lg: clamp(6.5rem, 10vw, 11rem);
+  --nav-h: 76px;
+  --radius-xs: 2px;
+  --radius-sm: 2px;
+  --radius-media: 0px;
+
+  /* Motion */
+  --ease-luxury: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-slow: cubic-bezier(0.16, 1, 0.3, 1);
+  --duration: 0.9s;
+
+  /* Shadows: none */
+  --shadow-dialog: none;
+  --shadow-card: none;
+
+  /* Backward & feature aliases */
+  --font-display: var(--font-serif);
+  --laltin-amber: var(--laltin-ember);
+  --laltin-muted-text: var(--laltin-muted);
+  --border-light: var(--line);
+  --border-dark: var(--line-dark);
+  --text-xs: var(--eyebrow);
+  --text-sm: var(--meta);
+  --text-body: var(--body);
+  --text-lead: var(--lead);
+  --text-h4: clamp(1.35rem, 2vw, 1.75rem);
+  --text-h3: var(--h3);
+  --text-h2: var(--h2);
+  --text-display: var(--display);
+  --gutter: clamp(1rem, 2vw, 1.5rem);
+  --dur-micro: 0.18s;
+  --dur-ui: 0.32s;
+  --dur-reveal: 0.75s;
+  --dur-image: 1.15s;
+  --dur-cinematic: var(--duration);
+  --ease-standard: var(--ease-luxury);
+  --ease-gentle: var(--ease-slow);
+  --ease-cinematic: cubic-bezier(0.76, 0, 0.24, 1);
+  --bg: var(--laltin-paper);
+  --fg: var(--laltin-ink-on-light);
+  --surface: var(--laltin-bone);
+  --accent: var(--laltin-ember);
+
+  background: var(--laltin-paper);
+  color: var(--laltin-ink-on-light);
+  font-family: var(--font-sans);
+  font-size: var(--body);
+  line-height: 1.65;
+  font-weight: 400;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  overflow-x: hidden;
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+}
+
+/* ---------- Scoped base: never leak into Echo11 ---------- */
+.laltin-scope *,
+.laltin-scope *::before,
+.laltin-scope *::after { box-sizing: border-box; margin: 0; }
+
+.laltin-scope img { display: block; max-width: 100%; height: auto; }
+.laltin-scope a { color: inherit; text-decoration: none; }
+.laltin-scope button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; }
+.laltin-scope ul, .laltin-scope ol { list-style: none; padding: 0; }
+
+.laltin-scope ::selection { background: var(--laltin-forest); color: var(--laltin-paper); }
+
+.laltin-scope :focus-visible {
+  outline: 2px solid var(--laltin-brass);
+  outline-offset: 3px;
+}
+
+/* Anchor targets must never hide under the fixed nav.
+   This is the fix for the clipped titles in your screenshots. */
+.laltin-scope section[id],
+.laltin-scope footer[id] { scroll-margin-top: calc(var(--nav-h) + 28px); }
+
+/* ---------- Shared layout: every section uses these ---------- */
+.laltin-scope .shell {
+  width: 100%;
+  max-width: var(--content-max);
+  margin-inline: auto;
+  padding-inline: var(--page-x);
+}
+
+.laltin-scope .section {
+  position: relative;
+  padding-block: var(--section-y);
+  background: transparent;
+}
+.laltin-scope .section--lg { padding-block: var(--section-y-lg); }
+
+/* Use on the last section before the footer so the footer
+   never overlaps content, as it did in your screenshots. */
+.laltin-scope .section--last { padding-bottom: calc(var(--section-y) + 3rem); }
+
+.laltin-scope .g12 {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: var(--gutter);
+}
+@media (max-width: 1023px) {
+  .laltin-scope .g12 { grid-template-columns: repeat(8, minmax(0, 1fr)); }
+}
+@media (max-width: 639px) {
+  .laltin-scope .g12 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
+
+.laltin-scope .section-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem 2rem;
+  margin-bottom: clamp(2.5rem, 6vw, 5rem);
+}
+
+.laltin-scope .skip {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  z-index: 200;
+  background: var(--laltin-ink);
+  color: var(--laltin-bone);
+  padding: .75rem 1.25rem;
+  font-family: var(--font-mono);
+  font-size: var(--eyebrow);
+  letter-spacing: .1em;
+}
+.laltin-scope .skip:focus { left: .5rem; top: .5rem; }
+
+/* ---------- Shared type ---------- */
+.laltin-scope .eyebrow {
+  display: flex; align-items: center; gap: 0.9rem;
+  font-family: var(--font-mono);
+  font-size: var(--eyebrow);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--laltin-muted);
+}
+.laltin-scope .eyebrow::before {
+  content: ""; width: 2rem; height: 1px; background: var(--laltin-brass); flex: none;
+}
+.laltin-scope .eyebrow--no-rule::before { display: none; }
+.laltin-scope .on-dark .eyebrow,
+.laltin-scope .eyebrow--dark {
+  color: var(--laltin-muted-on-dark);
+}
+.laltin-scope .on-dark .eyebrow::before,
+.laltin-scope .eyebrow--dark::before {
+  background: var(--laltin-brass);
+}
+
+.laltin-scope h1, .laltin-scope h2, .laltin-scope h3, .laltin-scope h4 {
+  font-family: var(--font-serif);
+  font-weight: 500;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  font-size: var(--h3);
+}
+
+.laltin-scope .display {
+  font-family: var(--font-serif); font-weight: 500;
+  font-size: var(--display); line-height: 0.92; letter-spacing: -0.04em;
+}
+.laltin-scope .section-title,
+.laltin-scope .h2 {
+  font-family: var(--font-serif); font-weight: 500;
+  font-size: var(--h2); line-height: 0.96; letter-spacing: -0.03em;
+}
+.laltin-scope .card-title,
+.laltin-scope .h3 {
+  font-family: var(--font-serif); font-weight: 500;
+  font-size: var(--h3); line-height: 1.05; letter-spacing: -0.02em;
+}
+.laltin-scope .lead {
+  font-size: var(--lead); line-height: 1.45; max-width: 62ch;
+}
+.laltin-scope .body,
+.laltin-scope p {
+  font-size: var(--body); line-height: 1.65;
+  color: var(--laltin-ink-soft); max-width: 62ch;
+}
+.laltin-scope .on-dark p,
+.laltin-scope .on-dark .body {
+  color: var(--laltin-linen);
+}
+.laltin-scope .meta,
+.laltin-scope .mono {
+  font-family: var(--font-mono); font-size: var(--meta);
+  letter-spacing: 0.08em; text-transform: uppercase; color: var(--laltin-muted);
+}
+.laltin-scope .on-dark .meta,
+.laltin-scope .on-dark .mono {
+  color: var(--laltin-muted-on-dark);
+}
+.laltin-scope .hairline { border: 0; border-top: 1px solid var(--line); }
+.laltin-scope .muted { color: var(--laltin-muted); }
+.laltin-scope .on-dark .muted { color: var(--laltin-muted-on-dark); }
+
+/* Line mask & reveals */
+.laltin-scope .line-mask {
+  display: block;
+  overflow: hidden;
+  padding-block: .04em; 
+}
+.laltin-scope.anim .line-mask > span {
+  display: block;
+  transform: translateY(110%);
+  will-change: transform;
+}
+.laltin-scope.anim .lbl-reveal { opacity: 0; letter-spacing: .12em; }
+.laltin-scope .win {
+  overflow: hidden;
+  position: relative;
+  border-radius: var(--radius-media);
+}
+.laltin-scope .win img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.laltin-scope.anim .win > img, .laltin-scope.anim .win > .win__i {
+  transform: scale(1.08) translateY(5%);
+  will-change: transform;
+}
+.laltin-scope .win__i { display: block; width: 100%; height: 100%; }
+
+/* ---------- Shared media: slow scale, no glow wash ----------
+   DELETE the old 8% flame overlay. A luxury photo needs
+   no tint. It just gets very slightly larger, very slowly. */
+.laltin-scope .media,
+.laltin-scope .media-hover {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--radius-media);
+}
+.laltin-scope .media img,
+.laltin-scope .media-hover img {
+  width: 100%; height: 100%; object-fit: cover;
+  transform: scale(1.001);
+  transition: transform 1.4s var(--ease-slow);
+}
+.laltin-scope .media:hover img,
+.laltin-scope .media-hover:hover img { transform: scale(1.035); }
+.laltin-scope .media::after,
+.laltin-scope .media-hover::after {
+  content: none !important;
+  display: none !important;
+}
+
+/* ---------- Shared buttons + links ----------
+   Sharp 2px radius, no shadows, no pill glow.
+   Fraunces: display. Instrument Sans: body/buttons. IBM Plex Mono: facts. */
+.laltin-scope .btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 0.6rem;
+  padding: 0.85rem 1.6rem; border-radius: var(--radius-xs);
+  font-family: var(--font-sans); font-size: 0.82rem;
+  letter-spacing: 0.08em; text-transform: uppercase;
+  font-weight: 500;
+  white-space: nowrap;
+  box-shadow: none;
+  transition: background var(--dur-ui) var(--ease-luxury),
+              color var(--dur-ui) var(--ease-luxury),
+              border-color var(--dur-ui) var(--ease-luxury);
+}
+.laltin-scope .btn--dark {
+  background: var(--laltin-pine-black); color: var(--laltin-bone);
+  border: 1px solid var(--hairline-on-dark);
+}
+.laltin-scope .btn--dark:hover {
+  background: var(--laltin-moss-dark); color: var(--laltin-bone);
+}
+.laltin-scope .btn--primary,
+.laltin-scope .btn--ember {
+  background: var(--laltin-ember); color: var(--laltin-bone);
+  border: 1px solid transparent;
+}
+.laltin-scope .btn--primary:hover,
+.laltin-scope .btn--ember:hover {
+  background: #b54f22; color: var(--laltin-bone);
+}
+.laltin-scope .btn--light {
+  background: var(--laltin-bone); color: var(--laltin-ink-on-light);
+  border: 1px solid var(--line);
+}
+.laltin-scope .btn--light:hover {
+  background: var(--laltin-stone); color: var(--laltin-pine-black);
+}
+
+/* Text link with an ember underline that draws itself. */
+.laltin-scope .text-link,
+.laltin-scope .link-editorial {
+  display: inline-flex; align-items: center; gap: 0.5rem;
+  font-family: var(--font-mono); font-size: 0.74rem;
+  letter-spacing: 0.14em; text-transform: uppercase;
+  padding-bottom: 0.5rem; border-bottom: 1px solid var(--line-strong);
+  position: relative;
+  transition: color 0.4s var(--ease-luxury);
+}
+.laltin-scope .text-link::after,
+.laltin-scope .link-editorial::after {
+  content: ""; position: absolute; left: 0; bottom: -1px;
+  width: 100%; height: 1px; background: var(--laltin-ember);
+  transform: scaleX(0); transform-origin: right;
+  transition: transform 0.7s var(--ease-luxury);
+}
+.laltin-scope .text-link:hover::after,
+.laltin-scope .link-editorial:hover::after { transform: scaleX(1); transform-origin: left; }
+.laltin-scope .text-link:hover,
+.laltin-scope .link-editorial:hover { color: var(--laltin-ember); }
+
+/* ============================================================
+   NAVIGATION — fixed TOP only, never bottom.
+   Structure in LaltinApp.tsx:
+     <header className="nav">
+       <div className="nav__inner shell">
+         <a className="nav__logo">LALTIN</a>
+         <nav className="nav__links">…</nav>
+         <div className="nav__actions"> Reserve + Menu button </div>
+       </div>
+       <div className="nav__progress" />
+     </header>
+   ============================================================ */
+.laltin-scope .nav {
+  position: fixed; inset: 0 0 auto 0; height: var(--nav-h); z-index: 80;
+  display: flex; flex-direction: column; justify-content: center;
+  background: transparent;
+  color: var(--laltin-bone);
+  border-bottom: 1px solid transparent;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  transition: background 0.4s var(--ease-luxury), border-color 0.4s var(--ease-luxury);
+}
+/* Over the hero photo: transparent, bone text, no blur, no frosted glass */
+.laltin-scope .nav__inner {
+  display: flex; align-items: center; justify-content: space-between; gap: 2rem;
+  width: 100%;
+  padding-inline: var(--page-x);
+}
+.laltin-scope .nav__logo {
+  font-family: var(--font-serif); font-size: 1.25rem; font-weight: 500;
+  letter-spacing: 0.08em; line-height: 1; text-transform: uppercase;
+  color: var(--laltin-bone);
+}
+.laltin-scope .nav__links {
+  display: flex; align-items: center; gap: clamp(1.2rem, 2.5vw, 2.4rem);
+  font-family: var(--font-mono); font-size: 0.72rem;
+  letter-spacing: 0.14em; text-transform: uppercase;
+}
+.laltin-scope .nav__links a {
+  padding-block: 0.4rem;
+  position: relative;
+  color: var(--laltin-bone);
+  transition: color 0.3s var(--ease-luxury);
+}
+.laltin-scope .nav__links a::after {
+  content: ""; position: absolute; left: 0; bottom: 0;
+  width: 100%; height: 1px; background: var(--laltin-ember);
+  transform: scaleX(0); transform-origin: right;
+  transition: transform 0.4s var(--ease-luxury);
+}
+.laltin-scope .nav__links a:hover {
+  color: var(--laltin-bone);
+}
+.laltin-scope .nav__links a:hover::after {
+  transform: scaleX(1);
+  transform-origin: left;
+}
+
+.laltin-scope .nav__actions {
+  display: flex; align-items: center; gap: clamp(1rem, 2vw, 1.5rem);
+}
+.laltin-scope .nav__reserve {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 38px;
+  padding: 0.5rem 1.25rem;
+  background: var(--laltin-ember);
+  color: var(--laltin-bone);
+  border-radius: var(--radius-xs); /* 2px */
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  font-weight: 500;
+  transition: background var(--dur-ui) var(--ease-standard);
+}
+.laltin-scope .nav__reserve:hover {
+  background: #b54f22;
+  color: var(--laltin-bone);
+}
+
+.laltin-scope .nav__menu-btn {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--laltin-bone);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  min-height: 38px;
+  padding-inline: 0.35rem;
+  cursor: pointer;
+}
+.laltin-scope .nav__menu-btn .bars {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 4px;
+  width: 18px;
+}
+.laltin-scope .nav__menu-btn .bars i {
+  display: block;
+  height: 1.5px;
+  background: var(--laltin-bone);
+}
+
+/* Scrolled: solid pine black #131a15, bone text, 1px hairline on dark at the bottom. No blur! */
+.laltin-scope .nav.is-scrolled,
+.laltin-scope .nav.is-scrolled.is-night {
+  background: var(--laltin-pine-black);
+  color: var(--laltin-bone);
+  border-bottom: 1px solid var(--hairline-on-dark);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+.laltin-scope .nav.is-scrolled .nav__logo {
+  color: var(--laltin-bone);
+}
+.laltin-scope .nav.is-scrolled .nav__links a {
+  color: var(--laltin-bone);
+}
+.laltin-scope .nav.is-scrolled .nav__links a:hover {
+  color: var(--laltin-bone);
+}
+.laltin-scope .nav.is-scrolled .nav__menu-btn {
+  color: var(--laltin-bone);
+}
+.laltin-scope .nav.is-scrolled .nav__menu-btn .bars i {
+  background: var(--laltin-bone);
+}
+
+/* 1px ember progress line */
+.laltin-scope .nav__progress {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  height: 1px;
+  width: 100%;
+  background: var(--laltin-ember);
+  transform: scaleX(0);
+  transform-origin: left;
+}
+
+@media (max-width: 899px) {
+  .laltin-scope .nav__links { display: none; }
+}
+
+/* Fullscreen menu: solid pine black, bone text, Fraunces titles, no blur-heavy glass. */
+.laltin-scope .menu {
+  position: fixed; inset: 0; z-index: 90;
+  visibility: hidden;
+  pointer-events: none;
+  background: var(--laltin-pine-black);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  color: var(--laltin-bone);
+}
+.laltin-scope .menu.is-open {
+  visibility: visible;
+  pointer-events: auto;
+}
+.laltin-scope .menu__bg {
+  position: absolute;
+  inset: 0;
+  background: var(--laltin-ink);
+}
+.laltin-scope .menu__bg-img {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity 0.75s var(--ease-slow);
+}
+.laltin-scope .menu__bg-img img { width: 100%; height: 100%; object-fit: cover; }
+.laltin-scope .menu__bg-img::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgba(23, 24, 20, 0.55);
+}
+.laltin-scope .menu__bg-img.is-active { opacity: 1; }
+.laltin-scope .menu__sheet {
+  position: absolute;
+  inset: 0;
+  background: rgba(23, 24, 20, 0.94);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  transform: translateY(100%);
+  transition: transform var(--duration) var(--ease-luxury);
+  display: flex;
+  flex-direction: column;
+}
+.laltin-scope .menu.is-open .menu__sheet { transform: translateY(0); }
+.laltin-scope .menu__top {
+  height: var(--nav-h);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: min(100% - (var(--page-x) * 2), var(--content-max));
+  margin-inline: auto;
+}
+.laltin-scope .menu__close {
+  font-family: var(--font-mono);
+  font-size: var(--eyebrow);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--laltin-bone);
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+.laltin-scope .menu__body {
+  flex: 1;
+  width: min(100% - (var(--page-x) * 2), var(--content-max));
+  margin-inline: auto;
+  display: grid;
+  grid-template-columns: 1.4fr 1fr;
+  align-content: center;
+  gap: clamp(2rem, 6vw, 6rem);
+  padding-block: 2rem;
+}
+.laltin-scope .menu__list { display: flex; flex-direction: column; }
+.laltin-scope .menu__link {
+  display: flex;
+  align-items: baseline;
+  gap: clamp(1rem, 2.5vw, 2rem);
+  padding: clamp(0.6rem, 1.4vh, 1rem) 0;
+  color: var(--laltin-linen);
+  border-bottom: 1px solid var(--line-dark);
+  transition: color 0.4s var(--ease-luxury),
+              padding-left 0.4s var(--ease-luxury);
+}
+.laltin-scope .menu__link:first-child { border-top: 1px solid var(--line-dark); }
+.laltin-scope .menu__link .idx {
+  font-family: var(--font-mono);
+  font-size: var(--eyebrow);
+  letter-spacing: 0.1em;
+  color: var(--laltin-muted-on-dark);
+}
+.laltin-scope .menu__link .label {
+  font-family: var(--font-serif);
+  font-size: clamp(2rem, 4.5vw, 3.75rem);
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+.laltin-scope .menu__link .arrow {
+  margin-left: auto;
+  opacity: 0;
+  transform: translateX(-8px);
+  transition: opacity 0.4s var(--ease-luxury),
+              transform 0.4s var(--ease-luxury);
+}
+.laltin-scope .menu__link:hover, .laltin-scope .menu__link:focus-visible {
+  color: var(--laltin-brass);
+  padding-left: 0.75rem;
+}
+.laltin-scope .menu__link:hover .arrow, .laltin-scope .menu__link:focus-visible .arrow { opacity: 1; transform: translateX(0); }
+.laltin-scope .menu__aside {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  justify-content: center;
+  color: var(--laltin-linen);
+}
+.laltin-scope .menu__aside .mono { color: var(--laltin-muted-on-dark); }
+.laltin-scope .menu__aside-links { display: flex; flex-direction: column; gap: 0.9rem; }
+.laltin-scope .menu__aside-links a {
+  font-family: var(--font-mono);
+  font-size: var(--meta);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.laltin-scope .menu__aside-links a:hover { color: var(--laltin-brass); }
+@media (max-width: 767px) {
+  .laltin-scope .menu__body { grid-template-columns: 1fr; align-content: start; padding-top: 3rem; overflow-y: auto; }
+  .laltin-scope .menu__aside { flex-direction: row; flex-wrap: wrap; gap: 1.5rem; }
+  .laltin-scope .menu__link .label { font-size: clamp(1.9rem, 9vw, 2.6rem); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .laltin-scope { scroll-behavior: auto; }
+  .laltin-scope.anim .line-mask > span { transform: none; }
+  .laltin-scope.anim .lbl-reveal { opacity: 1; letter-spacing: .08em; }
+  .laltin-scope.anim .win > img, .laltin-scope.anim .win > .win__i { transform: none; }
+  .laltin-scope.anim [data-reveal] { opacity: 1; transform: none; }
+  .laltin-scope .media img,
+  .laltin-scope .media-hover img,
+  .laltin-scope .text-link::after,
+  .laltin-scope .link-editorial::after,
+  .laltin-scope .btn { transition: none; }
+}
+
+.laltin-scope .footer {
+  background: var(--laltin-ink);
+  color: var(--laltin-linen);
+  padding-block: clamp(4rem, 8vw, 7rem) 2.5rem;
+  border-top: 1px solid var(--border-dark);
+}
+.laltin-scope .footer__grid {
+  display: grid;
+  grid-template-columns: 1.6fr 1fr 1fr 1fr;
+  gap: clamp(2rem, 4vw, 4rem);
+  margin-bottom: clamp(3rem, 6vw, 5rem);
+}
+.laltin-scope .footer__brand .nav__logo { font-size: 2rem; margin-bottom: .75rem; display: inline-block; }
+.laltin-scope .footer__brand p { color: var(--laltin-muted-on-dark); font-size: var(--meta); max-width: 30ch; }
+.laltin-scope .footer__col h4 {
+  font-family: var(--font-mono);
+  font-size: var(--eyebrow);
+  font-weight: 400;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--laltin-muted-on-dark);
+  margin-bottom: 1.1rem;
+}
+.laltin-scope .footer__col ul { display: flex; flex-direction: column; gap: .35rem; }
+.laltin-scope .footer__col a {
+  font-size: var(--meta);
+  min-height: 32px;
+  display: inline-flex;
+  align-items: center;
+  transition: color var(--dur-micro) var(--ease-luxury);
+}
+.laltin-scope .footer__col a:hover { color: var(--laltin-brass); }
+.laltin-scope .footer__base {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-top: 1.75rem;
+  border-top: 1px solid var(--border-dark);
+  color: var(--laltin-muted-on-dark);
+}
+@media (max-width: 1023px) {.laltin-scope .footer__grid { grid-template-columns: 1fr 1fr; }}
+@media (max-width: 639px) {.laltin-scope .footer__grid { grid-template-columns: 1fr; gap: 2rem; }}
+
+.laltin-scope [hidden] { display: none !important; }
+.laltin-scope .visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+.laltin-scope.anim [data-reveal] {
+  opacity: 0;
+  transform: translateY(18px);
+  will-change: opacity, transform;
+}
+
+
+/* ==================== 05 · EXPERIENCE (Ritual Journey) ==================== */
+.laltin-scope .experience {
+  position: relative;
+  background-color: var(--laltin-light-bone);
+  color: var(--laltin-ink-on-light);
+  padding-top: clamp(4.5rem, 8vw, 7.5rem);
+  padding-bottom: clamp(5.5rem, 10vw, 9rem);
+  scroll-margin-top: calc(var(--nav-h, 72px) + 28px);
+}
+
+.laltin-scope .experience__inner {
+  width: 100%;
+  padding-inline: 6vw;
+}
+
+.laltin-scope .experience__header {
+  margin-bottom: clamp(3rem, 6vw, 5rem);
+  text-align: left;
+}
+
+.laltin-scope .experience__eyebrow {
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: rgba(23, 28, 24, 0.70);
+  line-height: 1;
+  text-align: left;
+  margin: 0 0 0.85rem 0;
+}
+
+.laltin-scope .experience__rule {
+  width: 64px;
+  height: 1px;
+  background: var(--laltin-ember);
+  margin-bottom: 1.25rem;
+}
+
+.laltin-scope .experience__title {
+  font-family: var(--font-serif);
+  font-style: normal;
+  font-weight: 400;
+  font-optical-sizing: auto;
+  font-size: clamp(2.5rem, 5vw, 4.25rem);
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+  color: var(--laltin-ink-on-light);
+  text-align: left;
+  margin: 0;
+}
+
+.laltin-scope .experience__intro {
+  font-family: var(--font-sans);
+  font-size: 19px;
+  line-height: 1.65;
+  color: var(--laltin-ink-on-light);
+  max-width: 64ch;
+  text-align: left;
+  margin: 1.15rem 0 0 0;
+}
+
+/* Two-column Reading Journey Layout on Desktop (1024px and up) */
+.laltin-scope .experience__layout {
+  display: flex;
+  align-items: flex-start;
+  gap: clamp(3rem, 6vw, 6rem);
+  width: 100%;
+}
+
+/* Left Column: Sticky Reading Rail Index */
+.laltin-scope .experience__rail {
+  width: 32%;
+  max-width: 340px;
+  flex-shrink: 0;
+  position: sticky;
+  top: calc(var(--nav-h, 72px) + 2rem);
+  text-align: left;
+}
+
+.laltin-scope .experience__index {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  border-top: 1px solid var(--laltin-stone);
+}
+
+.laltin-scope .experience__index-row {
+  display: flex;
+  align-items: baseline;
+  gap: 1rem;
+  width: 100%;
+  padding: 1.15rem 0.75rem 1.15rem 0.85rem;
+  text-align: left;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--laltin-stone);
+  border-left: 2px solid transparent;
+  cursor: pointer;
+  transition: color 0.25s ease, border-color 0.25s ease, padding-left 0.25s ease;
+}
+
+.laltin-scope .experience__index-row:hover,
+.laltin-scope .experience__index-row:focus-visible {
+  padding-left: 1.15rem;
+}
+
+.laltin-scope .experience__index-num {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.1em;
+  color: rgba(23, 28, 24, 0.45);
+  transition: color 0.25s ease;
+}
+
+.laltin-scope .experience__index-label {
+  font-family: var(--font-serif);
+  font-style: normal;
+  font-weight: 400;
+  font-optical-sizing: auto;
+  font-size: clamp(1.1rem, 1.4vw, 1.25rem);
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+  color: rgba(23, 28, 24, 0.65);
+  transition: color 0.25s ease;
+}
+
+/* Active Index State (currently in view) */
+.laltin-scope .experience__index-row.is-active {
+  border-left-color: var(--laltin-ember);
+  padding-left: 1.15rem;
+}
+
+.laltin-scope .experience__index-row.is-active .experience__index-num {
+  color: var(--laltin-ember);
+  font-weight: 500;
+}
+
+.laltin-scope .experience__index-row.is-active .experience__index-label {
+  color: var(--laltin-ink-on-light);
+  font-weight: 400;
+}
+
+.laltin-scope .experience__index-row:focus-visible {
+  outline: 2px solid var(--laltin-ember);
+  outline-offset: 2px;
+}
+
+/* Right Column: 5 Ritual Chapters */
+.laltin-scope .experience__chapters {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(4.5rem, 8vw, 7.5rem);
+}
+
+.laltin-scope .experience__chapter {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  width: 100%;
+  scroll-margin-top: calc(var(--nav-h, 72px) + 32px);
+}
+
+.laltin-scope .experience__chapter-header {
+  display: flex;
+  align-items: baseline;
+  gap: clamp(0.75rem, 1.5vw, 1.25rem);
+  margin-bottom: 0.9rem;
+}
+
+.laltin-scope .experience__chapter-num {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--laltin-ember);
+  letter-spacing: 0.1em;
+  line-height: 1;
+}
+
+.laltin-scope .experience__chapter-title {
+  font-family: var(--font-serif);
+  font-style: normal;
+  font-weight: 400;
+  font-optical-sizing: auto;
+  font-size: clamp(1.75rem, 3.2vw, 2.5rem);
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+  color: var(--laltin-ink-on-light);
+  margin: 0;
+  text-align: left;
+}
+
+.laltin-scope .experience__chapter-copy {
+  font-family: var(--font-sans);
+  font-size: 17px;
+  line-height: 1.70;
+  max-width: 64ch;
+  color: var(--laltin-ink-on-light);
+  margin: 0 0 1.75rem 0;
+  text-align: left;
+}
+
+.laltin-scope .experience__chapter-media {
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  overflow: hidden;
+  border-radius: 0;
+  margin: 0;
+  background: #ded7c6;
+}
+
+.laltin-scope .experience__chapter-media picture,
+.laltin-scope .experience__chapter-photo {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+  object-position: center;
+  border-radius: 0;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .laltin-scope .experience__chapter-photo {
+    transition: transform 1.2s cubic-bezier(0.25, 1, 0.5, 1);
+  }
+  .laltin-scope .experience__chapter-media:hover .experience__chapter-photo {
+    transform: scale(1.035);
+  }
+}
+
+/* Tablet layout (640px to 1023px) */
+@media (min-width: 640px) and (max-width: 1023px) {
+  .laltin-scope .experience__layout {
+    flex-direction: column;
+    gap: 3rem;
+  }
+
+  .laltin-scope .experience__rail {
+    width: 100%;
+    max-width: 100%;
+    position: static;
+  }
+
+  .laltin-scope .experience__index {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+    border-top: none;
+  }
+
+  .laltin-scope .experience__index-row {
+    width: auto;
+    padding: 0.55rem 0.95rem;
+    border: 1px solid var(--laltin-stone);
+    border-radius: 2px;
+    border-left: 1px solid var(--laltin-stone);
+  }
+
+  .laltin-scope .experience__index-row.is-active {
+    border-color: var(--laltin-ember);
+    border-left-color: var(--laltin-ember);
+    background: rgba(199, 91, 43, 0.08);
+    padding-left: 0.95rem;
+  }
+}
+
+/* Mobile layout (below 640px) */
+@media (max-width: 639px) {
+  .laltin-scope .experience {
+    padding-top: clamp(3.5rem, 8vw, 4.5rem);
+    padding-bottom: clamp(4.5rem, 9vw, 6rem);
+  }
+
+  .laltin-scope .experience__header {
+    margin-bottom: 2.5rem;
+  }
+
+  .laltin-scope .experience__intro {
+    font-size: 17px;
+  }
+
+  .laltin-scope .experience__layout {
+    flex-direction: column;
+    gap: 2.5rem;
+  }
+
+  .laltin-scope .experience__rail {
+    display: none;
+  }
+
+  .laltin-scope .experience__chapters {
+    gap: clamp(3.5rem, 8vw, 5rem);
+  }
+
+  .laltin-scope .experience__chapter-title {
+    font-size: clamp(1.6rem, 6.5vw, 2.2rem);
+  }
+
+  .laltin-scope .experience__chapter-copy {
+    font-size: 16px;
+    line-height: 1.65;
+  }
+
+  .laltin-scope .experience__chapter-media {
+    aspect-ratio: 16 / 10;
+  }
+}
+
+/* Reduced motion: no hover scale, static state, all chapters visible */
+@media (prefers-reduced-motion: reduce) {
+  .laltin-scope .experience__chapter-photo {
+    transform: none !important;
+    transition: none !important;
+  }
+
+  .laltin-scope .experience__index-row {
+    transition: none !important;
+  }
+}
+.laltin-scope .eat__flow {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--gutter);
+  margin-block: clamp(3rem, 6vw, 5rem);
+}
+.laltin-scope .eat__step { position: relative; }
+.laltin-scope .eat__step figure { aspect-ratio: 4 / 3; }
+.laltin-scope .eat__step p { margin-top: .85rem; color: var(--laltin-muted-text); }
+.laltin-scope .eat__step:not(:last-child)::after {
+  content: "→";
+  position: absolute;
+  top: 45%;
+  right: calc(var(--gutter) * -0.5);
+  transform: translate(50%, -50%);
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  color: var(--laltin-earth);
+}
+.laltin-scope .eat__tonight {
+  display: grid;
+  grid-template-columns: minmax(120px, 200px) minmax(0, 1fr);
+  gap: 1rem clamp(1.5rem, 4vw, 3rem);
+  max-width: 860px;
+  padding-top: clamp(1.5rem, 3vw, 2.25rem);
+  border-top: 1px solid var(--border-light);
+}
+.laltin-scope .eat__tonight-label { color: var(--laltin-muted-text); }
+.laltin-scope .eat__sample { grid-column: 1 / -1; margin-top: 1rem; }
+.laltin-scope .menu-list { display: flex; flex-direction: column; }
+.laltin-scope .menu-list__item {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 1.25rem;
+  padding: 1rem 0;
+  border-bottom: 1px solid var(--border-light);
+}
+.laltin-scope .menu-list__item:first-child { border-top: 1px solid var(--border-light); }
+.laltin-scope .menu-list__idx { color: var(--laltin-muted-text); padding-top: .45rem; }
+.laltin-scope .menu-list__name {
+  font-family: var(--font-display);
+  font-size: var(--text-h4);
+  line-height: 1.05;
+  margin-bottom: .3rem;
+}
+.laltin-scope .menu-list__desc { font-size: var(--text-sm); color: var(--laltin-muted-text); }
+.laltin-scope .person { display: flex; flex-direction: column; }
+.laltin-scope .person__media { aspect-ratio: 3 / 4; border-radius: var(--radius-media); }
+.laltin-scope .person--lead .person__media { aspect-ratio: 4 / 5; }
+.laltin-scope .person__cap {
+  display: flex;
+  flex-direction: column;
+  gap: .35rem;
+  margin-top: 1rem;
+  align-items: flex-start;
+}
+.laltin-scope .person__name {
+  font-family: var(--font-display);
+  font-size: clamp(1.5rem, 2.2vw, 2rem);
+  line-height: 1.1;
+}
+.laltin-scope .person--lead .person__name { font-size: clamp(1.75rem, 2.8vw, 2.5rem); }
+.laltin-scope .person__role { color: var(--laltin-muted-text); }
+.laltin-scope .person__quote {
+  margin-top: .75rem;
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: var(--text-lead);
+  line-height: 1.3;
+  color: var(--laltin-muted-text);
+}
+.laltin-scope .footprint__list { border-top: 1px solid var(--border-light); }
+.laltin-scope .fact {
+  display: grid;
+  grid-template-columns: minmax(110px, 160px) minmax(0, 1fr) auto;
+  gap: .75rem 2rem;
+  align-items: baseline;
+  padding: clamp(1.1rem, 2vw, 1.5rem) 0;
+  border-bottom: 1px solid var(--border-light);
+}
+.laltin-scope .fact__cat { color: var(--laltin-ink); }
+.laltin-scope .fact__body { font-size: var(--text-body); }
+.laltin-scope .fact__status {
+  color: var(--laltin-muted-text);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-sm);
+  padding: .3rem .65rem;
+  white-space: nowrap;
+}
+.laltin-scope .story__media {
+  display: block;
+  width: 100%;
+  padding: 0;
+  aspect-ratio: 4 / 3;
+  border-radius: var(--radius-media);
+}
+.laltin-scope .story__meta {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  margin: 1rem 0 .6rem;
+  color: rgba(221, 215, 201, .72);
+}
+.laltin-scope .story__title { font-weight: 500; }
+.laltin-scope .story__title button {
+  text-align: left;
+  padding: 0;
+  color: var(--laltin-linen);
+  transition: color var(--dur-ui) var(--ease-standard);
+}
+.laltin-scope .story__title button:hover { color: var(--laltin-flame); }
+.laltin-scope .booking {
+  background: var(--laltin-charcoal);
+  border: 1px solid var(--border-dark);
+  border-radius: var(--radius-media);
+  padding: clamp(1.5rem, 3vw, 2.5rem);
+}
+.laltin-scope .booking__fields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.35rem 1.5rem;
+}
+.laltin-scope .booking__field { display: flex; flex-direction: column; gap: .5rem; }
+.laltin-scope .booking__field > .mono { color: rgba(221, 215, 201, .72); }
+.laltin-scope .booking__field input {
+  width: 100%;
+  min-height: 44px;
+  padding: .55rem 0;
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid var(--border-dark);
+  border-radius: 0;
+  color: var(--laltin-bone);
+  font-family: var(--font-sans);
+  font-size: var(--text-body);
+  color-scheme: dark;
+  transition: border-color var(--dur-ui) var(--ease-standard);
+}
+.laltin-scope .booking__field input:hover { border-bottom-color: rgba(255, 255, 255, .4); }
+.laltin-scope .booking__field input:focus-visible {
+  outline: none;
+  border-bottom-color: var(--laltin-amber);
+}
+.laltin-scope .booking__guests { grid-column: 1 / -1; }
+.laltin-scope .stepper {
+  display: flex;
+  align-items: center;
+  gap: 1.1rem;
+}
+.laltin-scope .stepper button {
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--border-dark);
+  border-radius: var(--radius-sm);
+  color: var(--laltin-bone);
+  font-size: 1.1rem;
+  transition: border-color var(--dur-micro) var(--ease-standard),
+              color var(--dur-micro) var(--ease-standard);
+}
+.laltin-scope .stepper button:hover { border-color: var(--laltin-amber); color: var(--laltin-flame); }
+.laltin-scope .stepper output {
+  min-width: 2ch;
+  text-align: center;
+  font-family: var(--font-mono);
+  font-size: var(--text-body);
+  color: var(--laltin-bone);
+}
+.laltin-scope .booking__submit { grid-column: 1 / -1; justify-self: start; }
+.laltin-scope .booking__error { margin-top: 1rem; color: var(--laltin-flame); }
+.laltin-scope .booking__result {
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--border-dark);
+}
+.laltin-scope .booking__result-head { color: rgba(221, 215, 201, .72); }
+.laltin-scope .booking__result-dates {
+  margin: .75rem 0;
+  font-family: var(--font-display);
+  font-size: clamp(1.6rem, 3vw, 2.5rem);
+  line-height: 1.1;
+  letter-spacing: -.02em;
+  color: var(--laltin-bone);
+  max-width: none;
+}
+.laltin-scope .booking__result-note { color: rgba(221, 215, 201, .62); max-width: 52ch; }
+.laltin-scope .dialog {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: grid;
+  place-items: center;
+  padding: clamp(1rem, 3vw, 2rem);
+}
+.laltin-scope .dialog__backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(23, 24, 20, .74);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+.laltin-scope .dialog__panel {
+  position: relative;
+  z-index: 1;
+  width: min(100%, 940px);
+  max-height: calc(100svh - 3rem);
+  overflow-y: auto;
+  background: var(--laltin-paper);
+  color: var(--laltin-ink);
+  border-radius: var(--radius-media);
+  box-shadow: 0 30px 80px rgba(23, 24, 20, .35);
+}
+.laltin-scope .dialog--story .dialog__panel { width: min(100%, 700px); }
+.laltin-scope .dialog__close {
+  position: absolute;
+  top: .85rem;
+  right: .85rem;
+  z-index: 2;
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--laltin-bone);
+  color: var(--laltin-ink);
+  transition: background-color var(--dur-ui) var(--ease-standard),
+              color var(--dur-ui) var(--ease-standard);
+}
+.laltin-scope .dialog__close:hover { background: var(--laltin-ink); color: var(--laltin-bone); }
+.laltin-scope .dialog__hero { aspect-ratio: 16 / 9; }
+.laltin-scope.anim .dialog .win > img { transform: none; }
+.laltin-scope .dialog__body {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1.15rem;
+  padding: clamp(1.5rem, 4vw, 3rem);
+}
+.laltin-scope .dialog__body p { max-width: none; }
+.laltin-scope .dialog__index { color: var(--laltin-muted-text); }
+.laltin-scope .dialog__pair {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: .75rem;
+  width: 100%;
+  margin-block: .5rem;
+}
+.laltin-scope .dialog__pair img {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+  border-radius: var(--radius-sm);
+  background: var(--laltin-linen);
+}
+.laltin-scope .dialog__pair img[data-room-dialog-pair-b] {
+  object-fit: none;
+  object-position: 64% 30%;
+}
+.laltin-scope .dialog__amenities { display: flex; flex-wrap: wrap; gap: .5rem; }
+.laltin-scope .dialog__amenities li {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--laltin-muted-text);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-sm);
+  padding: .4rem .75rem;
+}
+.laltin-scope .dialog__provisional { margin-top: .25rem; }
+.laltin-scope .story-body__cat { color: var(--laltin-muted-text); }
+.laltin-scope .pointer-chip {
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 70;
+  padding: .5rem .85rem;
+  background: var(--laltin-ink);
+  color: var(--laltin-flame);
+  border-radius: var(--radius-sm);
+  transform: translate(-50%, -150%);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--dur-micro) var(--ease-standard);
+}
+.laltin-scope .pointer-chip.is-on { opacity: 1; }
+@media (hover: none), (pointer: coarse) {.laltin-scope .pointer-chip { display: none !important; }}
+.laltin-scope section[id], .laltin-scope footer[id] { scroll-margin-top: calc(var(--nav-h) + 28px); }
+.laltin-scope .on-dark { background: var(--laltin-ink); color: var(--laltin-linen); }
+/* ==================== 00 · HERO — COVER NOT OVERLAY ==================== */
+.laltin-scope .hero {
+  position: relative;
+  height: 100vh;
+  height: 100svh;
+  min-height: 100vh;
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--laltin-pine-black);
+  color: var(--laltin-bone);
+  border-radius: 0;
+}
+
+/* Top part, photo: 64vh desktop (62-68vh range), 55vh mobile, full width, radius 0 */
+.laltin-scope .hero__photo-stage {
+  position: relative;
+  width: 100%;
+  height: 64vh;
+  height: 64svh;
+  flex-shrink: 0;
+  overflow: hidden;
+  border-radius: 0;
+}
+.laltin-scope .hero__photo-stage picture {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+.laltin-scope .hero__photo-stage img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  border-radius: 0;
+  display: block;
+}
+/* Short subtle bottom fade behind location tag for legibility only */
+.laltin-scope .hero__photo-fade {
+  position: absolute;
+  inset: auto 0 0 0;
+  height: 60px;
+  background: linear-gradient(to top, rgba(19, 26, 21, 0.5) 0%, transparent 100%);
+  pointer-events: none;
+}
+/* Location tag on photo: IBM Plex Mono, uppercase, small, bone text at bottom-left */
+.laltin-scope .hero__location {
+  position: absolute;
+  left: var(--page-x);
+  bottom: 1.25rem;
+  z-index: 2;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--laltin-bone);
+  pointer-events: none;
+}
+
+/* Bottom part, type panel: height remaining viewport height, background pine black, bone text */
+.laltin-scope .hero__type-panel {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  background: var(--laltin-pine-black);
+  color: var(--laltin-bone);
+  display: flex;
+  align-items: center;
+  border-radius: 0;
+  border-top: 1px solid var(--hairline-on-dark);
+}
+.laltin-scope .hero__panel-inner {
+  width: 100%;
+  padding-inline: var(--page-x);
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 2rem;
+}
+
+/* Left, about 60%: LALTIN in Fraunces, uppercase, clamp(4rem, 8vw, 8.5rem), line-height ~0.9, tracking 0.01em */
+.laltin-scope .hero__brand {
+  flex: 0 1 60%;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+}
+.laltin-scope .hero__title {
+  font-family: var(--font-serif);
+  font-size: clamp(4rem, 8vw, 8.5rem);
+  font-weight: 500;
+  line-height: 0.9;
+  letter-spacing: 0.01em;
+  text-transform: uppercase;
+  color: var(--laltin-bone);
+  margin: 0;
+  padding: 0;
+}
+
+/* Right, about 40%, aligned to the bottom of the panel */
+.laltin-scope .hero__meta {
+  flex: 0 1 40%;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.85rem;
+  margin-bottom: 0.35rem;
+}
+.laltin-scope .hero__descriptor {
+  font-family: var(--font-mono);
+  font-size: 0.74rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--laltin-stone);
+  margin: 0;
+  white-space: nowrap;
+}
+.laltin-scope .hero__actions {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+}
+.laltin-scope .hero__reserve {
+  padding: 0.65rem 1.35rem;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  font-weight: 500;
+  border-radius: var(--radius-xs);
+}
+.laltin-scope .hero__scroll {
+  font-family: var(--font-mono);
+  font-size: 0.74rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--laltin-stone);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  text-decoration: none;
+  cursor: pointer;
+  transition: color var(--dur-ui) var(--ease-standard);
+}
+.laltin-scope .hero__scroll:hover {
+  color: var(--laltin-bone);
+}
+
+/* Mobile layout: below 640px */
+@media (max-width: 639px) {
+  .laltin-scope .hero__photo-stage {
+    height: 55vh;
+    height: 55svh;
+  }
+  .laltin-scope .hero__type-panel {
+    align-items: center;
+    padding-block: 1.5rem;
+  }
+  .laltin-scope .hero__panel-inner {
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+    gap: 1.25rem;
+  }
+  .laltin-scope .hero__brand {
+    flex: none;
+    max-width: 100%;
+  }
+  .laltin-scope .hero__title {
+    font-size: clamp(3rem, 16vw, 4rem);
+    line-height: 0.92;
+  }
+  .laltin-scope .hero__meta {
+    flex: none;
+    width: 100%;
+    margin-bottom: 0;
+    gap: 1rem;
+  }
+  .laltin-scope .hero__descriptor {
+    white-space: normal;
+  }
+  .laltin-scope .hero__actions {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 1.25rem;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .laltin-scope .hero__photo-stage img,
+  .laltin-scope .hero__title,
+  .laltin-scope .hero__meta {
+    animation: none;
+    transform: none;
+  }
+}
+/* ==================== 01 · INTERRUPTION ==================== */
+.laltin-scope .interruption {
+  position: relative;
+  background: var(--laltin-light-bone);
+  color: var(--laltin-ink-on-light);
+  padding-top: clamp(4.5rem, 12vw, 11rem);
+  padding-bottom: clamp(4rem, 10vw, 9rem);
+  border-radius: 0;
+}
+
+.laltin-scope .interruption__inner {
+  width: 100%;
+  padding-inline: var(--page-x);
+  display: flex;
+  flex-direction: column;
+}
+
+/* Desktop 3-part layout: Left rail, main statement, right breathing paper */
+.laltin-scope .interruption__top {
+  display: grid;
+  grid-template-columns: minmax(110px, 13vw) minmax(0, 1fr);
+  column-gap: clamp(2rem, 4vw, 4.5rem);
+  align-items: start;
+  width: 100%;
+}
+
+/* Left rail, narrow: chapter marker in IBM Plex Mono, uppercase, ink muted, small */
+.laltin-scope .interruption__rail {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.35rem;
+  padding-top: 0.45rem;
+}
+.laltin-scope .interruption__rail-num {
+  font-family: var(--font-mono);
+  font-size: 0.74rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--laltin-muted-on-light);
+}
+.laltin-scope .interruption__rail-dash {
+  display: none;
+}
+.laltin-scope .interruption__rail-label {
+  font-family: var(--font-mono);
+  font-size: 0.74rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--laltin-muted-on-light);
+}
+
+/* Main statement block, wide: extends to about 78% of viewport width */
+.laltin-scope .interruption__main {
+  max-width: clamp(38rem, 65vw, 74rem);
+  text-align: left;
+}
+
+.laltin-scope .interruption__statement {
+  font-family: var(--font-serif);
+  font-size: clamp(2.5rem, 5vw, 4.25rem);
+  font-weight: 400;
+  font-style: normal;
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+  color: var(--laltin-ink-on-light);
+  text-align: left;
+  margin: 0;
+  padding: 0;
+  padding-bottom: 0.15em;
+}
+
+.laltin-scope .interruption__line {
+  display: block;
+}
+
+/* Footnote placement: separate editorial note block offset to the right, pulled up close to statement */
+.laltin-scope .interruption__footnote-wrap {
+  margin-top: clamp(3rem, 4vw, 4rem);
+  margin-left: 40%;
+  max-width: 52%;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+/* Short ember rule, 64px wide, 1px thick, ember #c75b2b */
+.laltin-scope .interruption__rule {
+  width: 64px;
+  height: 1px;
+  background: var(--laltin-ember);
+  margin-bottom: 1.25rem;
+}
+
+.laltin-scope .interruption__footnote {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  text-align: left;
+}
+
+/* Small mono label in ink muted, uppercase: MORNING */
+.laltin-scope .interruption__footnote-label {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--laltin-muted-on-light);
+  margin: 0;
+  margin-bottom: 0.75rem;
+}
+
+/* Footnote paragraph in Instrument Sans, 1.15 to 1.3rem, line-height 1.6, ink on light */
+.laltin-scope .interruption__note {
+  font-family: var(--font-sans);
+  font-size: clamp(1.15rem, 1.4vw, 1.3rem);
+  line-height: 1.6;
+  font-weight: 400;
+  color: var(--laltin-ink-on-light);
+  text-align: left;
+  text-transform: none;
+  margin: 0;
+  max-width: 46ch;
+}
+
+/* Tablet layout: 640px to 1023px */
+@media (min-width: 640px) and (max-width: 1023px) {
+  .laltin-scope .interruption__top {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1.5rem;
+  }
+  .laltin-scope .interruption__rail {
+    flex-direction: row;
+    align-items: center;
+    gap: 0.5rem;
+    padding-top: 0;
+  }
+  .laltin-scope .interruption__rail-dash {
+    display: inline;
+  }
+  .laltin-scope .interruption__main {
+    max-width: 100%;
+  }
+  .laltin-scope .interruption__footnote-wrap {
+    margin-left: 20%;
+    max-width: 80%;
+  }
+}
+
+/* Mobile layout: below 640px */
+@media (max-width: 639px) {
+  .laltin-scope .interruption {
+    padding-top: clamp(3.5rem, 8vw, 4.5rem);
+    padding-bottom: clamp(3rem, 7vw, 4rem);
+  }
+  .laltin-scope .interruption__top {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1.25rem;
+  }
+  .laltin-scope .interruption__rail {
+    flex-direction: row;
+    align-items: center;
+    gap: 0.5rem;
+    padding-top: 0;
+  }
+  .laltin-scope .interruption__rail-dash {
+    display: inline;
+  }
+  .laltin-scope .interruption__main {
+    max-width: 100%;
+  }
+  .laltin-scope .interruption__line {
+    display: inline;
+  }
+  .laltin-scope .interruption__footnote-wrap {
+    margin-left: 0;
+    max-width: 100%;
+    margin-top: 3.5rem;
+  }
+  .laltin-scope .interruption__rule {
+    width: 64px;
+    margin-bottom: 1.25rem;
+  }
+  .laltin-scope .interruption__note {
+    font-size: 1.15rem;
+    line-height: 1.55;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .laltin-scope .interruption__rail,
+  .laltin-scope .interruption__statement,
+  .laltin-scope .interruption__footnote-wrap {
+    animation: none;
+    transform: none;
+  }
+}
+/* ==================== 02 · THE PLACE ==================== */
+.laltin-scope .place {
+  position: relative;
+  background: var(--laltin-light-bone);
+  color: var(--laltin-ink-on-light);
+  padding-top: clamp(4rem, 8vw, 7.5rem);
+  padding-bottom: clamp(5rem, 10vw, 9rem);
+  border-radius: 0;
+}
+
+.laltin-scope .place__inner {
+  width: 100%;
+  padding-inline: var(--page-x);
+  display: flex;
+  flex-direction: column;
+}
+
+/* 1. Header row, full content width: left label 02 / THE PLACE in IBM Plex Mono, uppercase, sage, 11-12px, tracking +0.12 to +0.15em. Right coordinates in IBM Plex Mono, muted on light, 12-13px, tracking 0 to +0.02em. Same baseline, separated by space. */
+.laltin-scope .place__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  width: 100%;
+  margin-bottom: clamp(1.75rem, 3.5vw, 2.75rem);
+}
+
+.laltin-scope .place__eyebrow {
+  font-family: var(--font-mono);
+  font-size: 0.75rem; /* 12px */
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--laltin-muted-on-light);
+  margin: 0;
+}
+
+.laltin-scope .place__coords {
+  font-family: var(--font-mono);
+  font-size: 0.8125rem; /* 13px */
+  letter-spacing: 0.02em;
+  color: var(--laltin-muted-on-light);
+  margin: 0;
+}
+
+/* 2. Main photo, full-bleed edge to edge, not contained to columns, aspect ratio 16 / 9, radius 0, object-fit cover. */
+.laltin-scope .place__main-photo {
+  width: calc(100% + 2 * var(--page-x));
+  margin-left: calc(-1 * var(--page-x));
+  aspect-ratio: 16 / 9;
+  position: relative;
+  overflow: hidden;
+  border-radius: 0;
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
+.laltin-scope .place__main-photo img,
+.laltin-scope .place__main-photo picture {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.laltin-scope .place__main-photo img {
+  object-fit: cover;
+  border-radius: 0;
+  transition: transform 1.2s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .laltin-scope .place__main-photo:hover img {
+    transform: scale(1.03);
+  }
+}
+
+/* 3. Editorial block below the main photo, in two columns on desktop */
+.laltin-scope .place__editorial {
+  display: grid;
+  grid-template-columns: minmax(0, 1.22fr) minmax(0, 1fr);
+  column-gap: clamp(2.5rem, 5vw, 5.5rem);
+  align-items: start;
+  width: 100%;
+  margin-top: clamp(3.5rem, 7vw, 6rem);
+}
+
+.laltin-scope .place__headline-col {
+  text-align: left;
+}
+
+/* Headline in Fraunces, all regular, weight 400, sentence case, clamp(2rem, 4vw, 3.25rem), line height 1.05 to 1.15, tracking -0.01em, left-aligned. */
+.laltin-scope .place__title {
+  font-family: var(--font-serif);
+  font-size: clamp(2rem, 4vw, 3.25rem);
+  font-weight: 400;
+  font-style: normal;
+  line-height: 1.1;
+  letter-spacing: -0.01em;
+  color: var(--laltin-ink-on-light);
+  text-align: left;
+  margin: 0;
+}
+
+.laltin-scope .place__title-line {
+  display: block;
+}
+
+.laltin-scope .place__copy-col {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  text-align: left;
+}
+
+/* Supporting paragraph in Instrument Sans, 19px, line height 1.65, ink on light */
+.laltin-scope .place__lead {
+  font-family: var(--font-sans);
+  font-size: 1.1875rem; /* 19px */
+  line-height: 1.65;
+  font-weight: 400;
+  color: var(--laltin-ink-on-light);
+  text-align: left;
+  text-transform: none;
+  max-width: 44ch;
+  margin: 0;
+}
+
+/* Explore link as a text link, not a pill button, in Instrument Sans 500, 15px, sentence case, underlined, with arrow character. */
+.laltin-scope .place__link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-top: 2rem; /* ~32px */
+  font-family: var(--font-sans);
+  font-size: 0.9375rem; /* 15px */
+  font-weight: 500;
+  color: var(--laltin-ink-on-light);
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  text-decoration-thickness: 1px;
+  transition: color 0.2s ease, text-decoration-color 0.2s ease;
+}
+
+.laltin-scope .place__link:hover {
+  color: var(--laltin-ember);
+  text-decoration-color: var(--laltin-ember);
+}
+
+.laltin-scope .place__link:focus-visible {
+  outline: 2px solid var(--laltin-ember);
+  outline-offset: 4px;
+}
+
+.laltin-scope .place__link-arrow {
+  display: inline-block;
+  transition: transform 0.25s ease;
+}
+
+.laltin-scope .place__link:hover .place__link-arrow {
+  transform: translate(2px, -2px);
+}
+
+/* 4. Second photo, editorial photo below editorial block: full content width from 6vw to 6vw inset, aspect ratio 16 / 10, radius 0, object-fit cover. */
+.laltin-scope .place__secondary {
+  width: 100%;
+  margin-left: 0;
+  margin-right: 0;
+  aspect-ratio: 16 / 10;
+  margin-top: clamp(3.5rem, 6vw, 5rem);
+  position: relative;
+  overflow: hidden;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.laltin-scope .place__secondary img,
+.laltin-scope .place__secondary picture {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.laltin-scope .place__secondary img {
+  object-fit: cover;
+  border-radius: 0;
+  transition: transform 1.2s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .laltin-scope .place__secondary:hover img {
+    transform: scale(1.03);
+  }
+}
+
+/* Tablet layout, 640px to 1023px */
+@media (min-width: 640px) and (max-width: 1023px) {
+  .laltin-scope .place__editorial {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2rem;
+    margin-top: clamp(2.75rem, 6vw, 4rem);
+  }
+  .laltin-scope .place__copy-col {
+    max-width: 100%;
+  }
+  .laltin-scope .place__secondary {
+    width: 100%;
+    margin-left: 0;
+    margin-top: clamp(3rem, 6vw, 4.5rem);
+  }
+}
+
+/* Mobile layout, below 640px */
+@media (max-width: 639px) {
+  .laltin-scope .place {
+    padding-top: clamp(3rem, 7vw, 4rem);
+    padding-bottom: clamp(3.5rem, 8vw, 5rem);
+  }
+  .laltin-scope .place__header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.35rem;
+    margin-bottom: 1.5rem;
+  }
+  .laltin-scope .place__title-line {
+    display: inline;
+  }
+  .laltin-scope .place__editorial {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1.5rem;
+    margin-top: 2rem;
+  }
+  .laltin-scope .place__copy-col {
+    max-width: 100%;
+  }
+  .laltin-scope .place__link {
+    margin-top: 1.5rem;
+  }
+  .laltin-scope .place__secondary {
+    width: 100%;
+    margin-left: 0;
+    margin-top: 2.75rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .laltin-scope .place [data-place-main] img,
+  .laltin-scope .place [data-place-editorial],
+  .laltin-scope .place [data-place-secondary] {
+    animation: none !important;
+    transform: none !important;
+    opacity: 1 !important;
+  }
+}
+/* ==================== 03 · STAY (Full-Screen Room Journey) ==================== */
+.laltin-scope .stay {
+  position: relative;
+  background: var(--laltin-pine-black);
+  color: var(--laltin-bone);
+  padding-top: clamp(4.5rem, 8vw, 7.5rem);
+  padding-bottom: 0;
+  scroll-margin-top: calc(var(--nav-h, 72px) + 28px);
+}
+
+.laltin-scope .stay__header-wrap {
+  width: 100%;
+  padding-inline: 6vw;
+  padding-bottom: clamp(3rem, 5vw, 4.5rem);
+}
+
+.laltin-scope .stay__header {
+  text-align: left;
+}
+
+.laltin-scope .stay__eyebrow {
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--laltin-bone);
+  line-height: 1;
+  text-align: left;
+  margin: 0 0 clamp(1rem, 2vw, 1.5rem) 0;
+}
+
+.laltin-scope .stay__title {
+  font-family: var(--font-serif);
+  font-style: normal;
+  font-weight: 400;
+  font-optical-sizing: auto;
+  font-size: clamp(2.5rem, 5vw, 4.25rem);
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+  color: var(--laltin-bone);
+  text-align: left;
+  margin: 0;
+}
+
+.laltin-scope .stay__disclaimer-wrap {
+  margin-top: 24px;
+  text-align: left;
+}
+
+.laltin-scope .stay__disclaimer-rule {
+  width: 64px;
+  height: 1px;
+  background: var(--laltin-ember);
+  margin-bottom: 0.85rem;
+}
+
+.laltin-scope .stay__disclaimer {
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  font-weight: 400;
+  text-transform: uppercase;
+  letter-spacing: 0.10em;
+  color: var(--laltin-bone);
+  line-height: 1.50;
+  text-align: left;
+  margin: 0;
+}
+
+/* Base room stage elements */
+.laltin-scope .stay__journey {
+  position: relative;
+  width: 100%;
+}
+
+.laltin-scope .stay__stage-pin {
+  position: relative;
+  width: 100%;
+}
+
+.laltin-scope .stay__slide {
+  position: relative;
+  width: 100%;
+}
+
+.laltin-scope .stay__slide-photo-wrap {
+  margin: 0;
+  position: relative;
+  overflow: hidden;
+  background: var(--laltin-pine-black);
+}
+
+.laltin-scope .stay__slide-photo {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  border-radius: 0;
+}
+
+.laltin-scope .stay__slide-vignette {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(
+    to top,
+    rgba(19, 26, 21, 0.78) 0%,
+    rgba(19, 26, 21, 0.42) 28%,
+    rgba(19, 26, 21, 0.08) 50%,
+    transparent 65%
+  );
+  z-index: 1;
+}
+
+.laltin-scope .stay__slide-content {
+  color: var(--laltin-bone);
+  text-align: left;
+}
+
+.laltin-scope .stay__slide-header {
+  display: flex;
+  align-items: baseline;
+  gap: clamp(0.75rem, 1.5vw, 1.25rem);
+  flex-wrap: wrap;
+}
+
+.laltin-scope .stay__slide-num {
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--laltin-bone);
+  letter-spacing: 0.12em;
+  line-height: 1;
+}
+
+.laltin-scope .stay__slide-name {
+  font-family: var(--font-serif);
+  font-style: normal;
+  font-weight: 400;
+  font-optical-sizing: auto;
+  font-size: clamp(2.5rem, 6vw, 5rem);
+  line-height: 1.08;
+  letter-spacing: -0.015em;
+  color: var(--laltin-bone);
+  text-align: left;
+  margin: 0;
+}
+
+.laltin-scope .stay__slide-spec {
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  font-weight: 400;
+  line-height: 1.5;
+  letter-spacing: 0.08em;
+  color: var(--laltin-bone);
+  text-align: left;
+  text-transform: uppercase;
+  margin: 0.85rem 0 1.5rem 0;
+}
+
+.laltin-scope .stay__slide-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 42px;
+  padding-inline: 1.5rem;
+  border-radius: 2px;
+  background: var(--laltin-ember);
+  border: 1px solid var(--laltin-ember);
+  color: var(--laltin-bone);
+  font-family: var(--font-sans);
+  font-size: 13.5px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  box-shadow: none;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+
+.laltin-scope .stay__slide-btn:hover {
+  background: #b24e23;
+  border-color: #b24e23;
+  color: var(--laltin-bone);
+}
+
+.laltin-scope .stay__slide-btn:focus-visible {
+  outline: 2px solid var(--laltin-bone);
+  outline-offset: 3px;
+}
+
+.laltin-scope .stay__bottom-spacer {
+  height: clamp(5.5rem, 10vw, 9rem);
+  background: var(--laltin-pine-black);
+  width: 100%;
+}
+
+/* Desktop layout (>= 640px): pinned full-screen room journey */
+@media (min-width: 640px) {
+  .laltin-scope .stay__journey {
+    height: 400vh;
+  }
+
+  .laltin-scope .stay__stage-pin {
+    height: 100svh;
+    overflow: hidden;
+  }
+
+  .laltin-scope .stay__slide {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    pointer-events: none;
+  }
+
+  .laltin-scope .stay__slide.is-first {
+    pointer-events: auto;
+  }
+
+  .laltin-scope .stay__slide-photo-wrap {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+  }
+
+  .laltin-scope .stay__slide-photo {
+    will-change: transform;
+  }
+
+  .laltin-scope .stay__slide-content {
+    position: absolute;
+    left: 6vw;
+    bottom: clamp(3.5rem, 7vh, 6rem);
+    max-width: min(88vw, 780px);
+    z-index: 2;
+    pointer-events: auto;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+/* Mobile layout (< 640px): no pin, stacked full-screen photo + text below */
+@media (max-width: 639px) {
+  .laltin-scope .stay {
+    padding-top: clamp(3.5rem, 8vw, 4.5rem);
+    padding-bottom: 0;
+  }
+
+  .laltin-scope .stay__header-wrap {
+    padding-inline: 6vw;
+    padding-bottom: 2.5rem;
+  }
+
+  .laltin-scope .stay__journey {
+    position: static;
+    width: 100%;
+    height: auto;
+  }
+
+  .laltin-scope .stay__stage-pin {
+    position: static;
+    width: 100%;
+    height: auto;
+    overflow: visible;
+  }
+
+  .laltin-scope .stay__slide {
+    position: relative;
+    width: 100%;
+    height: auto;
+    margin-bottom: clamp(3.5rem, 8vw, 5rem);
+    opacity: 1 !important;
+    visibility: visible !important;
+    transform: none !important;
+    pointer-events: auto;
+  }
+
+  .laltin-scope .stay__slide:last-child {
+    margin-bottom: 0;
+  }
+
+  .laltin-scope .stay__slide-photo-wrap {
+    position: relative;
+    width: 100vw;
+    height: 70svh;
+    left: 50%;
+    right: 50%;
+    margin-left: -50vw;
+    margin-right: -50vw;
+    overflow: hidden;
+  }
+
+  .laltin-scope .stay__slide-photo {
+    width: 100%;
+    height: 100%;
+    transform: none !important;
+  }
+
+  .laltin-scope .stay__slide-vignette {
+    display: none;
+  }
+
+  .laltin-scope .stay__slide-content {
+    position: static;
+    padding-inline: 6vw;
+    padding-top: 1.5rem;
+    background: var(--laltin-pine-black);
+    width: 100%;
+    max-width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    opacity: 1 !important;
+    visibility: visible !important;
+    transform: none !important;
+  }
+
+  .laltin-scope .stay__slide-header {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.35rem;
+    margin-bottom: 0.65rem;
+  }
+
+  .laltin-scope .stay__slide-num {
+    font-size: 12px;
+  }
+
+  .laltin-scope .stay__slide-name {
+    font-size: clamp(2rem, 7vw, 2.75rem);
+  }
+
+  .laltin-scope .stay__slide-spec {
+    font-size: 11.5px;
+    margin: 0.5rem 0 1.25rem 0;
+  }
+
+  .laltin-scope .stay__bottom-spacer {
+    height: clamp(3.5rem, 8vw, 5rem);
+  }
+}
+
+/* Reduced motion: skip Lenis, no pin, full-screen stacked photos with text below */
+@media (prefers-reduced-motion: reduce) {
+  .laltin-scope .stay__journey {
+    position: static !important;
+    height: auto !important;
+  }
+
+  .laltin-scope .stay__stage-pin {
+    position: static !important;
+    height: auto !important;
+    overflow: visible !important;
+  }
+
+  .laltin-scope .stay__slide {
+    position: relative !important;
+    inset: auto !important;
+    width: 100% !important;
+    height: auto !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    transform: none !important;
+    pointer-events: auto !important;
+    margin-bottom: 4.5rem !important;
+  }
+
+  .laltin-scope .stay__slide:last-child {
+    margin-bottom: 0 !important;
+  }
+
+  .laltin-scope .stay__slide-photo-wrap {
+    position: relative !important;
+    width: 100% !important;
+    height: 75svh !important;
+    margin: 0 !important;
+  }
+
+  .laltin-scope .stay__slide-photo {
+    width: 100% !important;
+    height: 100% !important;
+    transform: none !important;
+    object-fit: cover !important;
+  }
+
+  .laltin-scope .stay__slide-vignette {
+    display: none !important;
+  }
+
+  .laltin-scope .stay__slide-content {
+    position: static !important;
+    padding-inline: 6vw !important;
+    padding-top: 1.5rem !important;
+    background: var(--laltin-pine-black) !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    transform: none !important;
+  }
+}
+/* ==================== 04 · MORNING (Dawn Sequence) ==================== */
+.laltin-scope .morning {
+  position: relative;
+  background-color: var(--laltin-pine-black);
+  color: var(--laltin-bone);
+  padding-top: clamp(4.5rem, 8vw, 7.5rem);
+  padding-bottom: clamp(5.5rem, 10vw, 9rem);
+  scroll-margin-top: calc(var(--nav-h, 72px) + 28px);
+  transition: background-color 0.15s ease-out;
+  overflow: hidden;
+}
+
+.laltin-scope .morning__header-wrap {
+  width: 100%;
+  padding-inline: 6vw;
+  margin-bottom: clamp(2.5rem, 5vw, 4.25rem);
+  text-align: left;
+}
+
+.laltin-scope .morning__eyebrow {
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--laltin-bone);
+  line-height: 1;
+  text-align: left;
+  margin: 0 0 clamp(1rem, 2vw, 1.5rem) 0;
+  transition: color 0.15s ease-out;
+}
+
+.laltin-scope .morning__title {
+  font-family: var(--font-serif);
+  font-style: normal;
+  font-weight: 400;
+  font-optical-sizing: auto;
+  font-size: clamp(2.5rem, 5vw, 4.25rem);
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+  color: var(--laltin-bone);
+  text-align: left;
+  margin: 0;
+  transition: color 0.15s ease-out;
+}
+
+/* Main morning photo: full-bleed edge-to-edge, radius 0 */
+.laltin-scope .morning__photo-wrap {
+  position: relative;
+  width: 100vw;
+  left: 50%;
+  right: 50%;
+  margin-left: -50vw;
+  margin-right: -50vw;
+  aspect-ratio: 16 / 9;
+  border-radius: 0;
+  margin-top: 0;
+  margin-bottom: 0;
+  overflow: hidden;
+  background: var(--laltin-pine-black);
+}
+
+.laltin-scope .morning__photo-wrap picture,
+.laltin-scope .morning__photo {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+  object-position: center;
+  border-radius: 0;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .laltin-scope .morning__photo {
+    transition: transform 1.2s cubic-bezier(0.25, 1, 0.5, 1);
+  }
+  .laltin-scope .morning__photo-wrap:hover .morning__photo {
+    transform: scale(1.035);
+  }
+}
+
+/* Atmospheric pre-dawn mist overlay that clears as user scrolls */
+.laltin-scope .morning__mist {
+  position: absolute;
+  inset: 0;
+  background: rgba(19, 26, 21, 0.35);
+  pointer-events: none;
+  border-radius: 0;
+  will-change: opacity;
+}
+
+/* Editorial / fact block below main photo */
+.laltin-scope .morning__editorial {
+  width: 100%;
+  padding-inline: 6vw;
+  margin-top: clamp(2.5rem, 5vw, 4rem);
+  text-align: left;
+}
+
+.laltin-scope .morning__rule {
+  width: 64px;
+  height: 1px;
+  background: var(--laltin-ember);
+  margin-bottom: 1.5rem;
+}
+
+.laltin-scope .morning__facts {
+  display: flex;
+  align-items: baseline;
+  gap: clamp(1rem, 2.5vw, 2.5rem);
+  flex-wrap: wrap;
+}
+
+.laltin-scope .morning__time {
+  font-family: var(--font-mono);
+  font-size: clamp(2rem, 4vw, 3.25rem);
+  font-weight: 400;
+  line-height: 1;
+  letter-spacing: 0.02em;
+  color: var(--laltin-bone);
+  text-align: left;
+  margin: 0;
+  transition: color 0.15s ease-out;
+}
+
+.laltin-scope .morning__stamp {
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--laltin-bone);
+  line-height: 1.4;
+  text-align: left;
+  margin: 0;
+  transition: color 0.15s ease-out;
+}
+
+/* Tablet layout, 640px to 1023px */
+@media (min-width: 640px) and (max-width: 1023px) {
+  .laltin-scope .morning {
+    padding-top: clamp(4rem, 6vw, 6rem);
+    padding-bottom: clamp(4.5rem, 7vw, 7rem);
+  }
+}
+
+/* Mobile layout, below 640px */
+@media (max-width: 639px) {
+  .laltin-scope .morning {
+    padding-top: clamp(3.5rem, 8vw, 4.5rem);
+    padding-bottom: clamp(4rem, 8vw, 5.5rem);
+  }
+
+  .laltin-scope .morning__header-wrap {
+    padding-inline: 6vw;
+    margin-bottom: 2rem;
+  }
+
+  .laltin-scope .morning__photo-wrap {
+    aspect-ratio: 4 / 3;
+  }
+
+  .laltin-scope .morning__editorial {
+    padding-inline: 6vw;
+    margin-top: 2rem;
+  }
+
+  .laltin-scope .morning__facts {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  .laltin-scope .morning__time {
+    font-size: 2rem;
+  }
+
+  .laltin-scope .morning__stamp {
+    font-size: 11.5px;
+  }
+}
+
+/* Reduced motion: no scrub, section on light bone with high contrast ink text */
+@media (prefers-reduced-motion: reduce) {
+  .laltin-scope .morning {
+    background-color: var(--laltin-light-bone) !important;
+    color: var(--laltin-ink-on-light) !important;
+    transition: none !important;
+  }
+
+  .laltin-scope .morning__eyebrow {
+    color: rgba(23, 28, 24, 0.70) !important;
+    transition: none !important;
+  }
+
+  .laltin-scope .morning__title {
+    color: var(--laltin-ink-on-light) !important;
+    transition: none !important;
+  }
+
+  .laltin-scope .morning__photo {
+    transform: none !important;
+    filter: none !important;
+    transition: none !important;
+  }
+
+  .laltin-scope .morning__mist {
+    display: none !important;
+  }
+
+  .laltin-scope .morning__time {
+    color: var(--laltin-ink-on-light) !important;
+    transition: none !important;
+  }
+
+  .laltin-scope .morning__stamp {
+    color: rgba(23, 28, 24, 0.70) !important;
+    transition: none !important;
+  }
+}
+
+.laltin-scope .eat__intro { align-items: end; row-gap: 2rem; }
+.laltin-scope .eat__title { grid-column: 1 / span 6; }
+.laltin-scope .eat__hands {
+  grid-column: 7 / span 6;
+  aspect-ratio: 4 / 3;
+  border-radius: var(--radius-media);
+}
+.laltin-scope .people__title { margin-bottom: clamp(2.5rem, 5vw, 4rem); }
+.laltin-scope .people__grid { align-items: start; row-gap: clamp(2rem, 4vw, 3.5rem); }
+.laltin-scope .people__grid .person--lead { grid-column: 1 / span 5; }
+.laltin-scope .people__grid .person:nth-child(2) { grid-column: 6 / span 4; }
+.laltin-scope .people__grid .person:nth-child(3) { grid-column: 10 / span 3; }
+.laltin-scope .people__note { margin-top: clamp(2rem, 4vw, 3rem); }
+.laltin-scope .footprint__intro {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: clamp(2rem, 5vw, 5rem);
+  align-items: end;
+  margin-bottom: clamp(3rem, 6vw, 5rem);
+}
+.laltin-scope .journey__grid { align-items: start; row-gap: clamp(2rem, 4vw, 3.5rem); }
+.laltin-scope .journey__coords {
+  grid-column: 1 / span 4;
+  display: flex;
+  flex-direction: column;
+  gap: .6rem;
+}
+.laltin-scope .journey__coords p {
+  font-size: clamp(1.75rem, 3.4vw, 3rem);
+  letter-spacing: .02em;
+  line-height: 1.05;
+  text-transform: none;
+}
+.laltin-scope .journey__alt { color: var(--laltin-muted-text); }
+.laltin-scope .journey__text {
+  grid-column: 6 / span 6;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1.4rem;
+}
+.laltin-scope .dusk {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(1.25rem, 3vw, 2.5rem);
+  padding-block: var(--section-y);
+}
+.laltin-scope .dusk__head { margin-bottom: clamp(.75rem, 2vw, 1.5rem); }
+.laltin-scope .dusk__band {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--radius-media);
+}
+.laltin-scope .dusk__band--a {
+  width: min(100% - (var(--page-x) * 2), var(--content-max));
+  margin-inline: auto;
+  aspect-ratio: 16 / 6.5;
+}
+.laltin-scope .dusk__band--b {
+  width: min(74% - var(--page-x), calc(var(--content-max) * .72));
+  margin-left: auto;
+  margin-right: max(var(--page-x), calc((100% - var(--content-max)) / 2));
+  aspect-ratio: 16 / 8;
+}
+.laltin-scope .dusk__chip {
+  position: absolute;
+  left: clamp(1rem, 2vw, 1.75rem);
+  bottom: clamp(1rem, 2vw, 1.75rem);
+  padding: .5rem .9rem;
+  background: rgba(23, 24, 20, .66);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  color: var(--laltin-bone);
+  border-radius: var(--radius-sm);
+}
+.laltin-scope .laltin-night {
+  background: var(--laltin-ink);
+  color: var(--laltin-linen);
+}
+.laltin-scope .laltin-night__inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: clamp(3rem, 6vw, 5.5rem);
+}
+.laltin-scope .lantern { border-radius: var(--radius-media); }
+.laltin-scope .lantern--one {
+  width: min(100%, 760px);
+  aspect-ratio: 16 / 10;
+}
+.laltin-scope .lantern__statement { max-width: 15ch; }
+.laltin-scope .lantern__more {
+  display: flex;
+  gap: clamp(1rem, 3vw, 2.5rem);
+  width: min(100%, 920px);
+}
+.laltin-scope .lantern--two, .laltin-scope .lantern--three { flex: 1; aspect-ratio: 4 / 3; }
+.laltin-scope .lantern--three { margin-top: clamp(2rem, 5vw, 4rem); }
+.laltin-scope .laltin-wordmark {
+  font-size: clamp(4rem, 15vw, 15rem);
+  line-height: .9;
+  color: rgba(237, 185, 104, .1);
+  -webkit-text-stroke: 1px rgba(216, 154, 75, .55);
+}
+.laltin-scope .laltin-night__tag {
+  max-width: 40ch;
+  letter-spacing: .18em;
+  line-height: 1.9;
+  color: rgba(221, 215, 201, .72);
+}
+.laltin-scope .journal__grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: clamp(1.5rem, 3vw, 3rem);
+}
+.laltin-scope .reserve__grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
+  gap: clamp(2.5rem, 6vw, 6rem);
+  align-items: center;
+}
+.laltin-scope .reserve__intro {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1.75rem;
+}
+@media (max-width: 1023px) {
+.laltin-scope .eat__title { grid-column: 1 / span 4; }
+.laltin-scope .eat__hands { grid-column: 5 / span 4; }
+.laltin-scope .people__grid .person--lead, .laltin-scope .people__grid .person:nth-child(2), .laltin-scope .people__grid .person:nth-child(3) { grid-column: span 4; }
+.laltin-scope .person--lead .person__media { aspect-ratio: 3 / 4; }
+.laltin-scope .footprint__intro { grid-template-columns: minmax(0, 1fr); align-items: start; }
+.laltin-scope .journey__coords { grid-column: 1 / span 3; }
+.laltin-scope .journey__text { grid-column: 4 / span 5; }
+.laltin-scope .journal__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.laltin-scope .reserve__grid { grid-template-columns: minmax(0, 1fr); }}
+@media (max-width: 767px) {.laltin-scope .journal__grid { grid-template-columns: minmax(0, 1fr); }}
+@media (max-width: 639px) {
+.laltin-scope .eat__title, .laltin-scope .eat__hands { grid-column: 1 / -1; }
+.laltin-scope .eat__flow { grid-template-columns: minmax(0, 1fr); gap: 2rem; }
+.laltin-scope .eat__step:not(:last-child)::after { content: none; }
+.laltin-scope .eat__tonight { grid-template-columns: minmax(0, 1fr); }
+.laltin-scope .people__grid .person--lead, .laltin-scope .people__grid .person:nth-child(2), .laltin-scope .people__grid .person:nth-child(3) { grid-column: 1 / -1; }
+.laltin-scope .fact { grid-template-columns: minmax(0, 1fr); gap: .45rem; }
+.laltin-scope .fact__status { justify-self: start; }
+.laltin-scope .journey__coords, .laltin-scope .journey__text { grid-column: 1 / -1; }
+.laltin-scope .dusk__band--b {
+    width: min(100% - (var(--page-x) * 2), var(--content-max));
+    margin-inline: auto;
+    aspect-ratio: 16 / 8;
+  }
+.laltin-scope .lantern__more { flex-direction: column; }
+.laltin-scope .lantern--three { margin-top: 0; }
+.laltin-scope .dialog { padding: .75rem; }
+.laltin-scope .dialog__panel { max-height: calc(100svh - 1.5rem); }
+.laltin-scope .dialog__pair { grid-template-columns: minmax(0, 1fr); }
+.laltin-scope .booking__fields { grid-template-columns: minmax(0, 1fr); }}

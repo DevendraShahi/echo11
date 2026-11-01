@@ -1,0 +1,79 @@
+.section { padding-block: 4rem 2rem; scroll-margin-top: 76px; }
+.label, .number, .category { font-family: var(--font-geist-mono), monospace; font-size: 10px; letter-spacing: .15em; text-transform: uppercase; color: rgb(255 255 255 / .6); }
+.introduction { display: flex; align-items: flex-end; justify-content: space-between; gap: 2rem; padding-top: 2rem; border-top: 1px solid rgb(255 255 255 / .2); }
+.heading { margin-top: 1.5rem; font-size: clamp(2.6rem, 6vw, 5.6rem); line-height: .98; letter-spacing: -.055em; font-weight: 600; }
+.heading span { color: rgb(255 255 255 / .55); }
+.lead { max-width: 29ch; font-size: 16px; line-height: 1.8; color: rgb(255 255 255 / .75); }
+.archive { display: inline-flex; align-items: center; gap: 1.5rem; min-height: 44px; margin-top: 1rem; font-size: 14px; color: white; border-bottom: 1px solid rgb(255 255 255 / .3); }
+.archive:hover { color: var(--accent, #00e5ff); border-color: currentColor; }
+.spread { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 3rem 1.5rem; margin-top: 4rem; isolation: isolate; }
+.project { min-width: 0; align-self: start; }
+.forge { grid-column: 1 / 9; grid-row: 1; }
+.laltin { grid-column: 9 / 13; grid-row: 1; margin-top: 10rem; transform: translateX(-2.5rem); position: relative; z-index: 1; }
+.projectHeading { display: flex; align-items: baseline; gap: 1rem; padding-bottom: 1rem; }
+.number { flex-shrink: 0; }
+.projectName { font-size: clamp(2.5rem, 5.8vw, 6rem); font-weight: 600; line-height: .9; letter-spacing: -.065em; }
+.laltin .projectName { font-size: clamp(2.5rem, 4vw, 4.5rem); letter-spacing: -.045em; }
+.plate { position: relative; aspect-ratio: 1250 / 830; overflow: hidden; background: #111; box-shadow: 0 0 0 1px rgb(255 255 255 / .1); }
+.laltin .plate { aspect-ratio: 4 / 5; }
+.imageButton { position: absolute; inset: 0; width: 100%; height: 100%; cursor: pointer; }
+.image { object-fit: cover; object-position: left top; transition: transform .65s cubic-bezier(.22, 1, .36, 1); }
+.laltin .image { object-position: left top; }
+.imageButton:hover .image { transform: scale(1.025); }
+.caption { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; padding-top: 1.25rem; }
+.category { font-size: 10px; letter-spacing: .09em; }
+.description { margin-top: .6rem; font-size: 15px; line-height: 1.65; color: rgb(255 255 255 / .85); max-width: 32ch; }
+.explore { display: inline-flex; align-items: center; gap: .75rem; flex-shrink: 0; min-height: 44px; font-size: 14px; border-bottom: 1px solid rgb(255 255 255 / .3); }
+.explore:hover { color: #00e5ff; border-color: #00e5ff; }
+.provenance { margin-top: .65rem; font-size: 12px; line-height: 1.6; color: rgb(255 255 255 / .6); }
+.closing { display: flex; justify-content: space-between; align-items: flex-end; gap: 2rem; margin-top: 3rem; padding-block: 2rem; border-top: 1px solid rgb(255 255 255 / .2); }
+.closing p { font-size: clamp(1.2rem, 2.2vw, 1.8rem); line-height: 1.4; letter-spacing: -.025em; }
+.closing p span { color: rgb(255 255 255 / .6); }
+.dialog { position: fixed; inset: 0; width: calc(100% - 2rem); height: calc(100dvh - 2rem); max-width: none; max-height: none; margin: auto; padding: 0; border: 0; background: transparent; color: white; overflow: visible; }
+.dialog::backdrop { background: rgb(0 0 0 / .88); backdrop-filter: blur(12px); }
+.viewer { display: flex; flex-direction: column; height: 100%; overflow: hidden; background: #101010; border: 1px solid #333; }
+.toolbar { display: flex; align-items: center; gap: 1rem; min-height: 64px; padding: .5rem 1rem; border-bottom: 1px solid #333; }
+.toolbar h3 { margin-right: auto; font-size: 16px; font-weight: 600; }
+.toolbar h3 span { font-weight: 400; color: #aaa; font-size: 12px; }
+.devices { display: flex; gap: .25rem; }
+.devices button, .close { display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px; }
+.devices button[aria-pressed="true"] { color: #00e5ff; background: rgb(0 229 255 / .08); }
+.fullSite { display: inline-flex; gap: .5rem; align-items: center; min-height: 44px; font-size: 13px; }
+.viewport { position: relative; min-height: 0; flex: 1; display: flex; justify-content: center; background: #080808; }
+.frame { position: relative; width: 100%; height: 100%; border: 0; background: #111; }
+.mobileFrame { width: 390px; max-width: 100%; }
+.loading { position: absolute; z-index: 1; top: 1rem; left: 50%; transform: translateX(-50%); width: max-content; max-width: calc(100% - 2rem); background: #111; border: 1px solid #444; padding: .75rem 1rem; font-size: 13px; text-align: center; }
+.loading a { display: inline-block; color: #00e5ff; padding-top: .5rem; }
+.viewerNote { padding: .6rem 1rem; font-size: 11px; color: #bbb; border-top: 1px solid #333; }
+.section :is(a, button):focus-visible { outline: 2px solid #00e5ff; outline-offset: 5px; }
+.imageButton:focus-visible { outline-offset: -4px !important; }
+@media (min-width: 1024px) { .forge .caption { padding-right: 2.5rem; } }
+@media (min-width: 1440px) { .laltin { margin-top: 12rem; } }
+@media (max-width: 1023px) {
+  .introduction { align-items: flex-start; flex-direction: column; }
+  .lead { max-width: 48ch; }
+  .spread { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 3rem 2rem; margin-top: 3rem; }
+  .forge { grid-column: 1; grid-row: 1; width: 100%; }
+  .laltin { grid-column: 2; grid-row: 1; margin-top: 5rem; transform: none; }
+  .caption { flex-direction: column; gap: .5rem; }
+  .projectName { font-size: clamp(2.5rem, 7.5vw, 5rem); }
+}
+@media (max-width: 639px) {
+  .section { padding-block: 2.5rem 1rem; }
+  .spread { display: flex; flex-direction: column; gap: 2.5rem; margin-top: 2.5rem; }
+  .project { width: 100%; margin: 0; }
+  .projectHeading { padding-bottom: .85rem; }
+  .projectName, .laltin .projectName { font-size: clamp(2.6rem, 13vw, 4.5rem); }
+  .laltin .plate { aspect-ratio: 4 / 5; }
+  .caption { flex-direction: row; }
+  .description { font-size: 14px; }
+  .category { font-size: 9px; }
+  .explore { font-size: 13px; gap: .4rem; }
+  .closing { align-items: flex-start; flex-direction: column; gap: .5rem; margin-top: 2rem; }
+  .dialog { width: 100%; height: 100dvh; }
+  .toolbar { flex-wrap: wrap; gap: .25rem .75rem; padding: .5rem .75rem; }
+  .toolbar h3 span, .devices { display: none; }
+  .fullSite { font-size: 12px; }
+  .viewerNote { font-size: 10px; }
+}
+@media (prefers-reduced-motion: reduce) { .image { transition: none; } .imageButton:hover .image { transform: none; } }

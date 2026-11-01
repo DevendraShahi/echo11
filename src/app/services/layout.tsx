@@ -3,7 +3,7 @@ import { createMetadata } from "@/lib/seo";
 export const metadata = createMetadata({
   title: "Services | echo11",
   description:
-    "Website design, app development, performance SEO, and maintenance retainers for teams that need reliable digital product delivery.",
+    "Business websites, redesigns, and online stores built around your customers. Echo11 is a website studio.",
   path: "/services",
 });
 

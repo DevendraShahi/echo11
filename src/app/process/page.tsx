@@ -1,19 +1,14 @@
 import { PageWrapper } from "@/components/layout/PageWrapper";
-import { ProcessTimeline } from "@/components/sections/ProcessTimeline";
 import { createMetadata } from "@/lib/seo";
+import { navigation } from "@/data/navigation";
+import { ProcessExperience } from "./ProcessExperience";
 
 export const metadata = createMetadata({
-  title: "Process | echo11",
-  description: "The delivery engine behind how echo11 scopes, designs, builds, and scales digital products.",
+  title: `${navigation.process.name} | echo11`,
+  description: "A clear way from ambition to launch. Explore Echo11’s website process, your deliverables, shared decisions, typical timelines, and ownership at handover.",
   path: "/process",
 });
 
 export default function ProcessPage() {
-  return (
-    <PageWrapper>
-      <div className="pt-32 pb-16 min-h-screen">
-        <ProcessTimeline standalone={true} />
-      </div>
-    </PageWrapper>
-  );
+  return <PageWrapper><ProcessExperience /></PageWrapper>;
 }

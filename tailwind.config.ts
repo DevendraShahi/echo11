@@ -39,6 +39,7 @@ const config: Config = {
         "fade-in": "fade-in 0.5s ease-out",
         "slide-up": "slide-up 0.5s ease-out",
         "pulse-slow": "pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite",
+        "select-in": "select-in 0.16s cubic-bezier(0.16, 1, 0.3, 1)",
       },
       keyframes: {
         marquee: {
@@ -52,6 +53,10 @@ const config: Config = {
         "slide-up": {
           "0%": { transform: "translateY(20px)", opacity: "0" },
           "100%": { transform: "translateY(0)", opacity: "1" },
+        },
+        "select-in": {
+          "0%": { opacity: "0", transform: "translateY(-4px)" },
+          "100%": { opacity: "1", transform: "translateY(0)" },
         },
       },
     },

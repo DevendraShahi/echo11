@@ -36,8 +36,8 @@ function getDeadlineStatus(deadline: string | null) {
 
 export function ActiveProjects({ projects: initialProjects }: ActiveProjectsProps) {
   const projects = initialProjects || [
-    { id: '1', name: 'TrueLuxe Website', status: 'active' as ProjectStatus, progress: 75, deadline: addDays(new Date(), 5).toISOString(), color: '#00E5FF' },
-    { id: '2', name: 'Prika Mobile App', status: 'active' as ProjectStatus, progress: 45, deadline: addDays(new Date(), 12).toISOString(), color: '#10b981' },
+    { id: '1', name: 'TrueLuxe Nepal', status: 'active' as ProjectStatus, progress: 75, deadline: addDays(new Date(), 5).toISOString(), color: '#00E5FF' },
+    { id: '2', name: 'Siyo Dhaago Brand System', status: 'active' as ProjectStatus, progress: 45, deadline: addDays(new Date(), 12).toISOString(), color: '#10b981' },
     { id: '3', name: 'Leaders NP', status: 'active' as ProjectStatus, progress: 90, deadline: addDays(new Date(), 2).toISOString(), color: '#f59e0b' },
     { id: '4', name: 'Green Lifestyle', status: 'on_hold' as ProjectStatus, progress: 30, deadline: null, color: '#ec4899' },
   ]

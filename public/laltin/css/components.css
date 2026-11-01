@@ -1,0 +1,533 @@
+/* ==========================================================
+   LALTIN — components.css
+   Buttons, rooms, experience, eat, facts, people, journal,
+   booking, dialogs, pointer chip.
+   Chapter layout lives in sections.css.
+   ========================================================== */
+
+/* ---------- utilities ------------------------------------------------- */
+
+[hidden] { display: none !important; }
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* generic fade-up reveal — gated on html.anim, driven by motion.js */
+html.anim [data-reveal] {
+  opacity: 0;
+  transform: translateY(18px);
+  will-change: opacity, transform;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html.anim [data-reveal] { opacity: 1; transform: none; }
+}
+
+/* ---------- buttons (§11) --------------------------------------------- */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: .75rem;
+  min-height: 52px;
+  padding: .9rem 1.5rem; /* §34: 24px inline */
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  border-radius: var(--radius-xs); /* §34: 2px */
+  white-space: nowrap;
+  transition: background-color var(--dur-ui) var(--ease-standard),
+              color var(--dur-ui) var(--ease-standard);
+}
+
+.btn--primary { background: var(--laltin-ink); color: var(--laltin-bone); }
+.btn--primary:hover { background: var(--laltin-amber); color: var(--laltin-ink); }
+
+.btn--light { background: var(--laltin-bone); color: var(--laltin-ink); }
+.btn--light:hover { background: var(--laltin-amber); color: var(--laltin-ink); }
+
+/* editorial text link with rule (§11) */
+.link-editorial {
+  display: inline-flex;
+  align-items: center;
+  gap: .55rem;
+  min-height: 44px;
+  padding: 0;
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: inherit;
+  border-bottom: 1px solid currentColor;
+  padding-bottom: .3rem;
+  transition: color var(--dur-ui) var(--ease-standard);
+}
+.link-editorial:hover { color: var(--laltin-earth); }
+.link-editorial span { transition: transform var(--dur-ui) var(--ease-standard); }
+.link-editorial:hover span { transform: translate(3px, -3px); }
+
+/* ---------- rooms (§18–20) -------------------------------------------- */
+
+.room {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: var(--gutter);
+  align-items: center;
+  margin-block: clamp(3.5rem, 7vw, 6.5rem);
+}
+
+.room__index { color: var(--laltin-muted-text); }
+
+.room__media {
+  display: block;
+  width: 100%;
+  padding: 0;
+  aspect-ratio: 4 / 3;
+  cursor: pointer;
+}
+
+.room__info {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: .9rem;
+}
+
+.room__name { font-family: var(--font-display); font-size: var(--text-h3); }
+
+.room__facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .5rem 1.25rem;
+  color: var(--laltin-muted-text);
+}
+.room__facts li:not(:last-child)::after {
+  content: "·";
+  margin-left: 1.25rem;
+  color: var(--laltin-earth);
+}
+
+/* ---------- experience rows (§22–23) ---------------------------------- */
+
+.exp__row {
+  width: 100%;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: baseline;
+  gap: clamp(1rem, 2vw, 1.75rem);
+  padding: clamp(1rem, 2vw, 1.4rem) 0;
+  text-align: left;
+  border-top: 1px solid var(--border-light);
+}
+.exp__item:last-child .exp__row { border-bottom: 1px solid var(--border-light); }
+
+.exp__idx { color: var(--laltin-muted-text); transition: color var(--dur-ui) var(--ease-standard); }
+
+.exp__label {
+  font-family: var(--font-display);
+  font-size: clamp(1.6rem, 3vw, 2.75rem);
+  line-height: 1.02;
+  letter-spacing: -.02em;
+  color: var(--laltin-muted-text);
+  transition: color var(--dur-ui) var(--ease-standard);
+}
+
+.exp__arrow {
+  color: var(--laltin-amber);
+  opacity: 0;
+  transform: translate(-6px, 4px);
+  transition: opacity var(--dur-ui) var(--ease-standard),
+              transform var(--dur-ui) var(--ease-standard);
+}
+
+.exp__row:hover .exp__label,
+.exp__row:focus-visible .exp__label,
+.exp__row.is-active .exp__label { color: var(--laltin-ink); }
+
+.exp__row.is-active .exp__idx { color: var(--laltin-earth); }
+
+.exp__row:hover .exp__arrow,
+.exp__row:focus-visible .exp__arrow,
+.exp__row.is-active .exp__arrow { opacity: 1; transform: translate(0, 0); }
+
+.exp__mobile { display: none; }
+
+.exp__stage { position: relative; }
+
+.exp__stage-media {
+  position: relative;
+  aspect-ratio: 4 / 5;
+  border-radius: var(--radius-media);
+}
+.exp__stage-media img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0;
+  transition: opacity .55s var(--ease-gentle),
+              transform var(--dur-image) var(--ease-gentle);
+}
+.exp__stage-media img.is-active { opacity: 1; }
+
+.exp__caption {
+  margin-top: 1.1rem;
+  max-width: 44ch;
+  min-height: 4.5em;
+  font-size: var(--text-sm);
+  line-height: 1.6;
+  color: var(--laltin-muted-text);
+  transition: opacity var(--dur-ui) var(--ease-standard);
+}
+.exp__caption.is-fading { opacity: 0; }
+
+/* ---------- eat: flow + tonight menu (§24–25) ------------------------- */
+
+.eat__flow {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--gutter);
+  margin-block: clamp(3rem, 6vw, 5rem);
+}
+
+.eat__step { position: relative; }
+.eat__step figure { aspect-ratio: 4 / 3; }
+.eat__step p { margin-top: .85rem; color: var(--laltin-muted-text); }
+
+.eat__step:not(:last-child)::after {
+  content: "→";
+  position: absolute;
+  top: 45%;
+  right: calc(var(--gutter) * -0.5);
+  transform: translate(50%, -50%);
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  color: var(--laltin-earth);
+}
+
+.eat__tonight {
+  display: grid;
+  grid-template-columns: minmax(120px, 200px) minmax(0, 1fr);
+  gap: 1rem clamp(1.5rem, 4vw, 3rem);
+  max-width: 860px;
+  padding-top: clamp(1.5rem, 3vw, 2.25rem);
+  border-top: 1px solid var(--border-light);
+}
+.eat__tonight-label { color: var(--laltin-muted-text); }
+.eat__sample { grid-column: 1 / -1; margin-top: 1rem; }
+
+.menu-list { display: flex; flex-direction: column; }
+.menu-list__item {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 1.25rem;
+  padding: 1rem 0;
+  border-bottom: 1px solid var(--border-light);
+}
+.menu-list__item:first-child { border-top: 1px solid var(--border-light); }
+.menu-list__idx { color: var(--laltin-muted-text); padding-top: .45rem; }
+.menu-list__name {
+  font-family: var(--font-display);
+  font-size: var(--text-h4);
+  line-height: 1.05;
+  margin-bottom: .3rem;
+}
+.menu-list__desc { font-size: var(--text-sm); color: var(--laltin-muted-text); }
+
+/* ---------- people (§27) ---------------------------------------------- */
+
+.person { display: flex; flex-direction: column; }
+.person__media { aspect-ratio: 3 / 4; border-radius: var(--radius-media); }
+.person--lead .person__media { aspect-ratio: 4 / 5; }
+
+.person__cap {
+  display: flex;
+  flex-direction: column;
+  gap: .35rem;
+  margin-top: 1rem;
+  align-items: flex-start;
+}
+.person__name {
+  font-family: var(--font-display);
+  font-size: clamp(1.5rem, 2.2vw, 2rem);
+  line-height: 1.1;
+}
+.person--lead .person__name { font-size: clamp(1.75rem, 2.8vw, 2.5rem); }
+.person__role { color: var(--laltin-muted-text); }
+.person__quote {
+  margin-top: .75rem;
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: var(--text-lead);
+  line-height: 1.3;
+  color: var(--laltin-muted-text);
+}
+
+/* ---------- footprint facts (§26) ------------------------------------- */
+
+.footprint__list { border-top: 1px solid var(--border-light); }
+
+.fact {
+  display: grid;
+  grid-template-columns: minmax(110px, 160px) minmax(0, 1fr) auto;
+  gap: .75rem 2rem;
+  align-items: baseline;
+  padding: clamp(1.1rem, 2vw, 1.5rem) 0;
+  border-bottom: 1px solid var(--border-light);
+}
+.fact__cat { color: var(--laltin-ink); }
+.fact__body { font-size: var(--text-body); }
+.fact__status {
+  color: var(--laltin-muted-text);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-sm);
+  padding: .3rem .65rem;
+  white-space: nowrap;
+}
+
+/* ---------- journal cards (§56) --------------------------------------- */
+
+.story__media {
+  display: block;
+  width: 100%;
+  padding: 0;
+  aspect-ratio: 4 / 3;
+  border-radius: var(--radius-media);
+}
+.story__meta {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  margin: 1rem 0 .6rem;
+  color: rgba(221, 215, 201, .72);
+}
+.story__title { font-weight: 500; }
+.story__title button {
+  text-align: left;
+  padding: 0;
+  color: var(--laltin-linen);
+  transition: color var(--dur-ui) var(--ease-standard);
+}
+.story__title button:hover { color: var(--laltin-flame); }
+
+/* ---------- booking panel (§31) --------------------------------------- */
+
+.booking {
+  background: var(--laltin-charcoal);
+  border: 1px solid var(--border-dark);
+  border-radius: var(--radius-media);
+  padding: clamp(1.5rem, 3vw, 2.5rem);
+}
+
+.booking__fields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.35rem 1.5rem;
+}
+
+.booking__field { display: flex; flex-direction: column; gap: .5rem; }
+.booking__field > .mono { color: rgba(221, 215, 201, .72); }
+
+.booking__field input {
+  width: 100%;
+  min-height: 44px;
+  padding: .55rem 0;
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid var(--border-dark);
+  border-radius: 0;
+  color: var(--laltin-bone);
+  font-family: var(--font-sans);
+  font-size: var(--text-body);
+  color-scheme: dark;
+  transition: border-color var(--dur-ui) var(--ease-standard);
+}
+.booking__field input:hover { border-bottom-color: rgba(255, 255, 255, .4); }
+.booking__field input:focus-visible {
+  outline: none;
+  border-bottom-color: var(--laltin-amber);
+}
+
+.booking__guests { grid-column: 1 / -1; }
+
+.stepper {
+  display: flex;
+  align-items: center;
+  gap: 1.1rem;
+}
+.stepper button {
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--border-dark);
+  border-radius: var(--radius-sm);
+  color: var(--laltin-bone);
+  font-size: 1.1rem;
+  transition: border-color var(--dur-micro) var(--ease-standard),
+              color var(--dur-micro) var(--ease-standard);
+}
+.stepper button:hover { border-color: var(--laltin-amber); color: var(--laltin-flame); }
+.stepper output {
+  min-width: 2ch;
+  text-align: center;
+  font-family: var(--font-mono);
+  font-size: var(--text-body);
+  color: var(--laltin-bone);
+}
+
+.booking__submit { grid-column: 1 / -1; justify-self: start; }
+
+.booking__error { margin-top: 1rem; color: var(--laltin-flame); }
+
+.booking__result {
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--border-dark);
+}
+.booking__result-head { color: rgba(221, 215, 201, .72); }
+.booking__result-dates {
+  margin: .75rem 0;
+  font-family: var(--font-display);
+  font-size: clamp(1.6rem, 3vw, 2.5rem);
+  line-height: 1.1;
+  letter-spacing: -.02em;
+  color: var(--laltin-bone);
+  max-width: none;
+}
+.booking__result-note { color: rgba(221, 215, 201, .62); max-width: 52ch; }
+
+/* ---------- dialogs (§20) --------------------------------------------- */
+
+.dialog {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: grid;
+  place-items: center;
+  padding: clamp(1rem, 3vw, 2rem);
+}
+
+.dialog__backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(23, 24, 20, .74);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+.dialog__panel {
+  position: relative;
+  z-index: 1;
+  width: min(100%, 940px);
+  max-height: calc(100svh - 3rem);
+  overflow-y: auto;
+  background: var(--laltin-paper);
+  color: var(--laltin-ink);
+  border-radius: var(--radius-media);
+  box-shadow: 0 30px 80px rgba(23, 24, 20, .35);
+}
+
+.dialog--story .dialog__panel { width: min(100%, 700px); }
+
+.dialog__close {
+  position: absolute;
+  top: .85rem;
+  right: .85rem;
+  z-index: 2;
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--laltin-bone);
+  color: var(--laltin-ink);
+  transition: background-color var(--dur-ui) var(--ease-standard),
+              color var(--dur-ui) var(--ease-standard);
+}
+.dialog__close:hover { background: var(--laltin-ink); color: var(--laltin-bone); }
+
+.dialog__hero { aspect-ratio: 16 / 9; }
+/* dialogs are excluded from motion reveals — never leave them masked */
+html.anim .dialog .win > img { transform: none; }
+
+.dialog__body {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1.15rem;
+  padding: clamp(1.5rem, 4vw, 3rem);
+}
+.dialog__body p { max-width: none; }
+
+.dialog__index { color: var(--laltin-muted-text); }
+
+.dialog__pair {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: .75rem;
+  width: 100%;
+  margin-block: .5rem;
+}
+.dialog__pair img {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+  border-radius: var(--radius-sm);
+  background: var(--laltin-linen);
+}
+/* detail crop: native-pixel zoom of the same frame (§20) */
+.dialog__pair img[data-room-dialog-pair-b] {
+  object-fit: none;
+  object-position: 64% 30%;
+}
+
+.dialog__amenities { display: flex; flex-wrap: wrap; gap: .5rem; }
+.dialog__amenities li {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--laltin-muted-text);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-sm);
+  padding: .4rem .75rem;
+}
+
+.dialog__provisional { margin-top: .25rem; }
+
+.story-body__cat { color: var(--laltin-muted-text); }
+
+/* ---------- pointer chip (§19) ---------------------------------------- */
+
+.pointer-chip {
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 70;
+  padding: .5rem .85rem;
+  background: var(--laltin-ink);
+  color: var(--laltin-flame);
+  border-radius: var(--radius-sm);
+  transform: translate(-50%, -150%);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--dur-micro) var(--ease-standard);
+}
+.pointer-chip.is-on { opacity: 1; }
+
+@media (hover: none) { .pointer-chip { display: none; } }

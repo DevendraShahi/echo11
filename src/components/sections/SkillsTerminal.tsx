@@ -74,7 +74,7 @@ export function SkillsTerminal() {
   return (
     <section className="py-24 relative">
       <Container>
-        <div className="w-full max-w-4xl mx-auto rounded-none border border-white/10 bg-[#050505] shadow-[0_0_30px_rgba(0,0,0,0.8)] overflow-hidden">
+        <div className="w-full max-w-4xl mx-auto rounded-none border border-white/10 bg-[var(--color-surface-panel)] shadow-[0_0_30px_rgba(0,0,0,0.8)] overflow-hidden">
           {/* Terminal Window Header */}
           <div className="flex items-center justify-between px-4 py-3 border-b border-white/10 bg-white/5 group/terminal">
             <div className="flex gap-2">

@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "kind": "html",
+  "title": "public/laltin/index.html",
+  "entry": "public/laltin/index.html",
+  "renderer": "html",
+  "status": "complete",
+  "exports": [
+    "html",
+    "pdf",
+    "zip"
+  ],
+  "createdAt": "2026-10-09T22:57:36.352Z",
+  "updatedAt": "2026-10-09T22:57:36.352Z",
+  "metadata": {
+    "inferred": true,
+    "reconciled": true
+  }
+}

@@ -6,8 +6,8 @@ import { Container } from "@/components/ui/Container";
 import { Button } from "@/components/ui/Button";
 import Link from "next/link";
 import Image from "next/image";
-import { motion, useScroll, useTransform, useInView } from "framer-motion";
-import { ArrowLeft, ArrowRight, ExternalLink, Check, ArrowUpRight, Layers, Zap, Target, Eye, MousePointer } from "lucide-react";
+import { motion, useScroll, useTransform, useInView, useReducedMotion } from "framer-motion";
+import { ArrowLeft, ArrowRight, ExternalLink, Check, ArrowUpRight, Layers, Target, Eye, MousePointer } from "lucide-react";
 import { CaseStudy } from "@/data/caseStudies";
 
 interface CaseStudyContentProps {
@@ -16,12 +16,12 @@ interface CaseStudyContentProps {
   nextProject: CaseStudy;
 }
 
-function FloatingParticle({ delay = 0, x = 0, y = 0 }: { delay?: number; x?: number; y?: number }) {
+function FloatingParticle({ delay = 0, x = 0, y = 0, reduced = false }: { delay?: number; x?: number; y?: number; reduced?: boolean }) {
   return (
     <motion.div
       className="absolute w-1 h-1 bg-accent/40 rounded-full"
       style={{ left: `${x}%`, top: `${y}%` }}
-      animate={{
+      animate={reduced ? { opacity: 0.3 } : {
         y: [-20, 20, -20],
         opacity: [0.2, 0.8, 0.2],
         scale: [1, 1.5, 1],
@@ -70,23 +70,28 @@ function AnimatedMetric({ value, label, delay = 0 }: { value: string; label: str
 }
 
 export function CaseStudyContent({ project, prevProject, nextProject }: CaseStudyContentProps) {
+  // Offer the outbound link only when its URL was opened and answered
+  // (`linkVerifiedOn`). A missing public deployment does not imply unfinished work.
+  const liveLink = project.link && project.linkVerifiedOn ? project.link : null;
   const heroRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({
     target: heroRef,
     offset: ["start start", "end start"]
   });
 
-  const heroY = useTransform(scrollYProgress, [0, 1], [0, 150]);
-  const heroScale = useTransform(scrollYProgress, [0, 1], [1, 1.1]);
-  const heroOpacity = useTransform(scrollYProgress, [0, 0.8], [1, 0]);
+  const reduceMotion = useReducedMotion();
+  const heroY = useTransform(scrollYProgress, [0, 1], [0, reduceMotion ? 0 : 150]);
+  const heroScale = useTransform(scrollYProgress, [0, 1], [1, reduceMotion ? 1 : 1.1]);
+  const heroOpacity = useTransform(scrollYProgress, [0, 0.8], [1, reduceMotion ? 1 : 0]);
 
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
 
   return (
     <PageWrapper>
-      <div 
+      <main>
+      <div
         ref={heroRef}
-        className="pt-32 sm:pt-40 md:pt-48 pb-12 md:pb-16 relative overflow-hidden"
+        className="studio-intro pb-12 md:pb-16 relative overflow-hidden"
         style={{ "--project-color": project.color } as React.CSSProperties}
       >
         <div className="absolute inset-0" style={{ background: `radial-gradient(circle_at_30%_20%, ${project.color}15, transparent_50%)` }} />
@@ -96,8 +101,9 @@ export function CaseStudyContent({ project, prevProject, nextProject }: CaseStud
             <FloatingParticle 
               key={i} 
               delay={i * 0.3}
-              x={10 + Math.random() * 80}
-              y={10 + Math.random() * 80}
+              x={10 + ((i * 37) % 80)}
+              y={10 + ((i * 53) % 80)}
+              reduced={Boolean(reduceMotion)}
             />
           ))}
         </div>
@@ -130,14 +136,14 @@ export function CaseStudyContent({ project, prevProject, nextProject }: CaseStud
               >
                 <span className="font-mono text-xs sm:text-sm text-accent px-2.5 sm:px-3 py-1 border border-accent/30 bg-accent/10 rounded-sm">{project.category}</span>
                 <span className="text-white/20">•</span>
-                <span className="font-mono text-xs sm:text-sm text-white/40">{project.year}</span>
+                <span className="font-mono text-xs sm:text-sm text-white/40">{project.kind === "concept" ? "Echo11-owned concept" : project.kind === "owned" ? "Independent project" : project.year}</span>
               </motion.div>
               
               <motion.h1 
                 initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.2, duration: 0.8 }}
-                className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold font-sans tracking-tight text-foreground mb-5 sm:mb-6 leading-[1.1]"
+                className="text-[clamp(2.25rem,5.2vw,5rem)] text-balance break-words font-semibold font-sans tracking-[-0.035em] text-foreground mb-5 sm:mb-6 leading-[1.1]"
               >
                 {project.title}
               </motion.h1>
@@ -146,7 +152,7 @@ export function CaseStudyContent({ project, prevProject, nextProject }: CaseStud
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.3 }}
-                className="text-base sm:text-lg md:text-xl text-muted-foreground font-mono leading-relaxed mb-8 sm:mb-10 max-w-2xl"
+                className="text-base sm:text-[18px] text-pretty text-white/70 font-sans leading-[1.65] mb-8 sm:mb-10 max-w-[48ch]"
               >
                 {project.tagline}
               </motion.p>
@@ -157,11 +163,18 @@ export function CaseStudyContent({ project, prevProject, nextProject }: CaseStud
                 transition={{ delay: 0.4 }}
                 className="flex flex-col sm:flex-row sm:flex-wrap gap-3 sm:gap-4"
               >
-                {project.link && (
+                {liveLink && (
                   <Button asChild className="font-mono group relative overflow-hidden w-full sm:w-auto">
-                    <a href={project.link} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2">
+                    <a href={liveLink} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2">
                       <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
                       Visit Site <ExternalLink className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+                    </a>
+                  </Button>
+                )}
+                {project.sourceLink && (
+                  <Button asChild variant="outline" className="font-mono w-full sm:w-auto">
+                    <a href={project.sourceLink} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2">
+                      Source code <ExternalLink aria-hidden="true" className="h-4 w-4" /><span className="sr-only"> (opens in a new tab)</span>
                     </a>
                   </Button>
                 )}
@@ -183,44 +196,45 @@ export function CaseStudyContent({ project, prevProject, nextProject }: CaseStud
             initial={{ opacity: 0, y: 50 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.5, duration: 0.8 }}
-            className="relative aspect-video w-full overflow-hidden rounded-none border border-white/10 bg-[#050505]"
+            className="relative aspect-video w-full overflow-hidden rounded-none border border-white/10 bg-[var(--color-surface-panel)]"
           >
             <Image
               src={project.thumbnail}
-              alt={`${project.title} cover image`}
+              alt={project.id === "green" ? "Editorial sustainability photograph illustrating the Green Lifestyle project" : `${project.title} website preview`}
               fill
               sizes="100vw"
               className="absolute inset-0 object-cover object-top"
               priority
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-black/20" />
             
             <motion.div 
               className="absolute inset-0 flex items-center justify-center"
               whileHover={{ scale: 1.05 }}
             >
-              {project.link ? (
+              {liveLink ? (
                 <a 
-                  href={project.link}
+                  href={liveLink}
+                  aria-label={`Open ${project.title} live ${project.kind === "concept" ? "concept" : "site"} in a new tab`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 rounded-full border-2 border-white/20 flex items-center justify-center hover:border-white/60 hover:bg-white/10 transition-all group"
+                  className="w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 rounded-full border-2 border-white/40 bg-black/60 flex items-center justify-center hover:border-accent hover:bg-black/80 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-accent transition-colors group"
                 >
                   <ExternalLink className="w-7 h-7 sm:w-8 sm:h-8 md:w-10 md:h-10 text-white/60 group-hover:text-white group-hover:scale-110 transition-all" />
                 </a>
-              ) : (
-                <span className="font-sans font-black text-white/10 text-[6rem] md:text-[12rem] leading-none select-none">WIP</span>
-              )}
+              ) : null}
             </motion.div>
             
             <div className="absolute bottom-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-white/20 to-transparent" />
           </motion.div>
+          {project.id === "green" && <p className="mt-3 text-sm leading-6 text-white/60">Editorial sustainability imagery. The original public deployment is no longer available.</p>}
         </Container>
       </motion.div>
 
+      {/* The metrics band renders only when the record carries verified
+          figures; a project without them ships no section rather than an
+          invented one. */}
+      {project.results && project.results.length > 0 && (
       <div className="py-16 border-y border-white/5 relative overflow-hidden" style={{ "--project-color": project.color } as React.CSSProperties}>
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808006_1px,transparent_1px),linear-gradient(to_bottom,#80808006_1px,transparent_1px)] bg-[size:60px_60px]" />
-        
         <motion.div 
           className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full blur-3xl opacity-20"
           style={{ background: `radial-gradient(circle, ${project.color}40, transparent)` }}
@@ -240,6 +254,7 @@ export function CaseStudyContent({ project, prevProject, nextProject }: CaseStud
           </div>
         </Container>
       </div>
+      )}
 
       <div className="py-16 md:py-24 relative">
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-accent/[0.02] to-transparent" />
@@ -278,6 +293,7 @@ export function CaseStudyContent({ project, prevProject, nextProject }: CaseStud
                   </div>
                 </motion.div>
 
+                {project.techStackVerified && (
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -302,32 +318,9 @@ export function CaseStudyContent({ project, prevProject, nextProject }: CaseStud
                     ))}
                   </div>
                 </motion.div>
+                )}
 
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.9 }}
-                  className="p-4 sm:p-6 border border-white/10 bg-white/[0.02] rounded-none"
-                >
-                  <div className="flex items-center gap-3 mb-4">
-                    <Zap className="w-5 h-5 text-accent" />
-                    <h3 className="font-mono text-xs text-accent uppercase tracking-widest">Features</h3>
-                  </div>
-                  <div className="flex flex-col gap-3">
-                    {project.features.map((feature, index) => (
-                      <motion.div 
-                        key={feature}
-                        initial={{ opacity: 0, x: -10 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: 1 + index * 0.05 }}
-                        className="flex items-center gap-3 text-sm font-mono text-white/60 group"
-                      >
-                        <Check className="w-4 h-4 transition-colors" style={{ color: project.color }} />
-                        <span className="group-hover:text-white transition-colors">{feature}</span>
-                      </motion.div>
-                    ))}
-                  </div>
-                </motion.div>
+
               </div>
             </motion.aside>
 
@@ -356,7 +349,7 @@ export function CaseStudyContent({ project, prevProject, nextProject }: CaseStud
                       <h2 className="text-xl md:text-2xl font-bold font-sans text-white">Business Context</h2>
                     </div>
                   </div>
-                  <p className="text-base md:text-lg text-muted-foreground font-mono leading-loose pl-0 sm:pl-[4.5rem]">
+                  <p className="max-w-[65ch] text-base md:text-lg text-muted-foreground font-mono leading-loose pl-0 sm:pl-[4.5rem]">
                     {project.description}
                   </p>
                 </motion.div>
@@ -429,6 +422,7 @@ export function CaseStudyContent({ project, prevProject, nextProject }: CaseStud
                       </motion.div>
                     ))}
                   </div>
+                  {!!project.additionalFeatures?.length && <div className="mt-6 pl-0 sm:pl-[4.5rem]"><h3 className="font-mono text-xs uppercase tracking-widest text-white/60">Additional capabilities</h3><ul className="mt-3 flex flex-wrap gap-3">{project.additionalFeatures.map(feature => <li key={feature} className="border-l border-white/20 pl-3 text-sm leading-6 text-white/70">{feature}</li>)}</ul></div>}
                 </motion.div>
               </div>
             </motion.div>
@@ -481,6 +475,7 @@ export function CaseStudyContent({ project, prevProject, nextProject }: CaseStud
           </div>
         </Container>
       </div>
+      </main>
     </PageWrapper>
   );
 }

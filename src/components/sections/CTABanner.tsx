@@ -1,69 +1,147 @@
 "use client";
 
-import { motion } from "framer-motion";
-import { Container } from "@/components/ui/Container";
-import { Button } from "@/components/ui/Button";
+import { useId } from "react";
 import Link from "next/link";
-import { ArrowRight, Terminal } from "lucide-react";
+import { motion, useReducedMotion } from "framer-motion";
+import { ArrowUpRight } from "lucide-react";
+
+import { Button } from "@/components/ui/Button";
+import { Container } from "@/components/ui/Container";
+import { RevealText } from "@/components/ui/RevealText";
+
+const EASE = [0.16, 1, 0.3, 1] as const;
+const VIEWPORT = { once: true, amount: 0.25 };
+
+/** A signal taking shape. The meridians draw once, then settle. */
+function SignalSculpture() {
+  const reduce = useReducedMotion();
+  const glowId = useId();
+
+  return (
+    <motion.svg
+      aria-hidden="true"
+      viewBox="0 0 480 480"
+      className="h-full w-full"
+      initial={reduce ? false : "hidden"}
+      whileInView="visible"
+      viewport={VIEWPORT}
+    >
+      <defs>
+        <radialGradient id={glowId}>
+          <stop offset="0" stopColor="#00E5FF" stopOpacity="0.09" />
+          <stop offset="1" stopColor="#00E5FF" stopOpacity="0" />
+        </radialGradient>
+      </defs>
+      <circle cx="240" cy="240" r="230" fill={`url(#${glowId})`} />
+      <g transform="rotate(-28 240 240)" fill="none" strokeWidth="0.8">
+        {Array.from({ length: 18 }, (_, index) => (
+          <motion.ellipse
+            key={index}
+            cx="240"
+            cy="240"
+            rx={12 + index * 10}
+            ry="182"
+            stroke={index % 5 === 0 ? "#00E5FF" : "#fcfcfc"}
+            strokeOpacity={index % 5 === 0 ? 0.55 : 0.18}
+            variants={{
+              hidden: { pathLength: 0, opacity: 0 },
+              visible: { pathLength: 1, opacity: 1 },
+            }}
+            transition={{ duration: reduce ? 0 : 1.6, delay: reduce ? 0 : index * 0.035, ease: EASE }}
+          />
+        ))}
+        <motion.path
+          d="M 58 240 H 422"
+          stroke="#00E5FF"
+          strokeOpacity="0.65"
+          variants={{ hidden: { pathLength: 0 }, visible: { pathLength: 1 } }}
+          transition={{ duration: reduce ? 0 : 1.4, ease: EASE }}
+        />
+      </g>
+      <circle cx="240" cy="240" r="3" fill="#00E5FF" />
+    </motion.svg>
+  );
+}
 
 export function CTABanner() {
+  const reduce = useReducedMotion();
+  const entrance = reduce ? false : { opacity: 0, y: 18 };
+
   return (
-    <section className="py-32 md:py-48 relative overflow-hidden bg-black border-t border-white/5">
-      {/* Dynamic Background */}
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom_center,_var(--tw-gradient-stops))] from-accent/10 via-black to-black opacity-80" />
-      
-      {/* Animated Grid Floor */}
-      <div className="absolute inset-x-0 bottom-0 h-96 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:40px_40px] [mask-image:linear-gradient(to_top,black,transparent)]" />
-
-      <Container className="relative z-10 flex flex-col items-center justify-center">
+    <section aria-labelledby="homepage-invitation" className="relative overflow-hidden bg-background pb-16 pt-16 sm:pb-24 sm:pt-24 lg:pb-28 lg:pt-32">
+      <Container>
         <motion.div
-          initial={{ opacity: 0, scale: 0.95, y: 40 }}
-          whileInView={{ opacity: 1, scale: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-          className="w-full max-w-4xl relative"
-        >
-          {/* Glowing Border Box */}
-          <div className="absolute inset-0 bg-gradient-to-r from-accent/0 via-accent/30 to-accent/0 rounded-none blur-xl opacity-50" />
-          
-          <div className="bg-[#050505] p-12 md:p-24 rounded-none border border-white/10 shadow-2xl relative overflow-hidden flex flex-col items-center text-center">
-            
-            {/* Inner Light Sweep */}
-            <motion.div 
-              animate={{ x: ["-100%", "200%"] }}
-              transition={{ repeat: Infinity, duration: 3, ease: "linear" }}
-              className="absolute top-0 w-1/2 h-px bg-gradient-to-r from-transparent via-accent to-transparent opacity-50" 
-            />
+          aria-hidden="true"
+          className="h-px origin-left bg-accent/30"
+          initial={reduce ? false : { scaleX: 0 }}
+          whileInView={{ scaleX: 1 }}
+          viewport={VIEWPORT}
+          transition={{ duration: 1, ease: EASE }}
+        />
 
-            <div className="w-16 h-16 rounded-none bg-white/[0.03] border border-white/10 flex items-center justify-center mb-8 shadow-[inset_0_0_20px_rgba(255,255,255,0.02)] relative group cursor-crosshair">
-              <div className="absolute inset-0 bg-accent/20 rounded-none blur-md opacity-0 group-hover:opacity-100 transition-opacity" />
-              <Terminal className="w-8 h-8 text-accent relative z-10" />
+        <div className="mt-7 flex items-center justify-between gap-6 font-mono text-[10px] uppercase tracking-[0.18em] text-white/50 sm:mt-9">
+          <span>Begin a conversation</span>
+          <span className="hidden sm:block">Your ambition. Our craft.</span>
+        </div>
+
+        <div className="relative mt-12 grid items-center gap-12 sm:mt-16 lg:grid-cols-[1.35fr_0.85fr] lg:gap-8">
+          <div className="relative z-10 min-w-0">
+            <div id="homepage-invitation">
+              <RevealText
+                as="h2"
+                text="Your next chapter."
+                trigger="view"
+                blur={5}
+                className="max-w-[12ch] font-sans text-[clamp(3rem,6.6vw,6.3rem)] font-bold leading-[0.98] tracking-[-0.055em] text-foreground"
+              />
+              <RevealText
+                as="p"
+                text="Built together."
+                trigger="view"
+                blur={5}
+                className="mt-3 font-sans text-[clamp(2.65rem,5.8vw,5.5rem)] font-medium leading-[1.05] tracking-[-0.055em] text-accent"
+              />
             </div>
 
-            {/* Title */}
-            <h2 className="text-4xl md:text-7xl font-bold font-sans tracking-tight text-white mb-8">
-              Build Your Next <br className="hidden md:block" /> 
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-white via-accent/80 to-accent">Growth Product.</span>
-            </h2>
-
-            <p className="max-w-2xl text-white/50 font-mono text-sm md:text-lg mb-12 leading-relaxed">
-              Start with a focused discovery session. We align product goals, technical direction, and delivery plan before we write the first line of code.
-            </p>
-
-            <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto relative z-20">
-              <Button asChild size="lg" className="w-full sm:w-auto h-14 md:h-16 px-8 rounded-none bg-white text-black hover:bg-white/90 font-mono text-sm uppercase tracking-widest font-bold shadow-[0_0_30px_rgba(255,255,255,0.2)] transition-all hover:scale-105">
-                <Link href="/contact" className="flex items-center justify-center gap-3">
-                  Book Discovery <ArrowRight className="w-4 h-4" />
+            <motion.div
+              initial={entrance}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={VIEWPORT}
+              transition={{ duration: 0.9, delay: 0.15, ease: EASE }}
+              className="mt-8 sm:mt-10"
+            >
+              <p className="max-w-[42ch] text-pretty font-sans text-base leading-[1.75] text-white/60 sm:text-[17px]">
+                A new business. A bigger ambition. A website you’ve outgrown. Tell us where you want to go — we’ll help shape the way forward.
+              </p>
+              <Button asChild size="lg" className="mt-8 h-14 gap-8 px-7 font-mono text-xs shadow-none sm:mt-10">
+                <Link href="/contact" className="group">
+                  Start a project
+                  <ArrowUpRight aria-hidden="true" className="h-4 w-4 transition-transform duration-300 group-hover:-translate-y-0.5 group-hover:translate-x-0.5 motion-reduce:transform-none motion-reduce:transition-none" />
                 </Link>
               </Button>
-              <Button asChild variant="outline" size="lg" className="w-full sm:w-auto h-14 md:h-16 px-8 rounded-none bg-transparent border-white/10 hover:bg-white/5 hover:border-white/30 text-white font-mono text-sm uppercase tracking-widest transition-all">
-                <Link href="mailto:echo11.labs@gmail.com">
-                  Email Team
-                </Link>
-              </Button>
-            </div>
-
+              <p className="mt-5 max-w-[40ch] text-pretty font-mono text-[10px] leading-5 text-white/45">
+                Share your goals. We’ll review your inquiry and reply with the next step.
+              </p>
+            </motion.div>
           </div>
+
+          <div className="mx-auto -mt-4 w-full max-w-[320px] lg:mt-0 lg:max-w-[480px]">
+            <SignalSculpture />
+            <p className="-mt-2 text-center font-mono text-[9px] uppercase tracking-[0.2em] text-white/40">
+              An idea becomes a signal.
+            </p>
+          </div>
+        </div>
+
+        <motion.div
+          initial={reduce ? false : { opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+          viewport={VIEWPORT}
+          transition={{ duration: 1, ease: EASE }}
+          className="mt-12 flex flex-wrap items-center justify-between gap-x-6 gap-y-3 border-t border-white/10 pt-5 font-mono text-[9px] uppercase tracking-[0.14em] text-white/40 sm:mt-16 lg:mt-20"
+        >
+          <span>Strategy · Design · Development</span>
+          <span>Echo11 / Website studio</span>
         </motion.div>
       </Container>
     </section>

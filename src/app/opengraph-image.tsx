@@ -2,7 +2,7 @@ import { ImageResponse } from "next/og";
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 
-export const alt = "echo11 Product Engineering Studio";
+export const alt = "echo11 Website Strategy, Design & Engineering Studio";
 export const size = {
   width: 1200,
   height: 630,

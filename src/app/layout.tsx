@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
 import { Syne, JetBrains_Mono } from "next/font/google";
+import { MotionConfig } from "framer-motion";
 import "./globals.css";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { SplashScreen } from "@/components/layout/SplashScreen";
+import { SmoothScroll } from "@/components/layout/SmoothScroll";
 import { Cursor } from "@/components/ui/Cursor";
 import { JsonLd } from "@/components/seo/JsonLd";
 import {
@@ -56,15 +58,30 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  /**
+   * Neither element carries `overflow-x-hidden` on purpose. The base layer
+   * already sets `overflow-x: clip` on both, and the utility would win over it
+   * and turn the body into a scroll container that never scrolls, which stands
+   * every `position: sticky` on the site down. Measured on Home: a `sticky
+   * top-16` element tracked the scroll instead of pinning, and held at its 64px
+   * offset once the utility was dropped.
+   */
   return (
-    <html lang="en" className="dark overflow-x-hidden">
-      <body className={`${syne.variable} ${spaceMono.variable} antialiased selection:bg-accent selection:text-black overflow-x-hidden w-full min-h-screen relative`}>
-        <JsonLd data={[organizationJsonLd(), websiteJsonLd()]} />
-        <SplashScreen />
-        <Cursor />
-        <Navbar />
-        {children}
-        <Footer />
+    <html lang="en" className="dark">
+      <body className={`${syne.variable} ${spaceMono.variable} antialiased selection:bg-accent selection:text-black w-full min-h-screen relative`}>
+        {/* reducedMotion="user": framer-motion skips transform/layout animations
+            when the OS requests reduced motion; opacity/color still animate.
+            CSS keyframes (marquee) are guarded in globals.css. */}
+        <MotionConfig reducedMotion="user">
+          <SmoothScroll>
+            <JsonLd data={[organizationJsonLd(), websiteJsonLd()]} />
+            <SplashScreen />
+            <Cursor />
+            <Navbar />
+            {children}
+            <Footer />
+          </SmoothScroll>
+        </MotionConfig>
       </body>
     </html>
   );

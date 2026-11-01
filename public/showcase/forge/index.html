@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FORGE — Performance Club Concept | Echo11</title>
+<link rel="canonical" href="https://echo11.tech/showcase/forge">
+<meta name="description" content="FORGE is an Echo11 strength-club brand and website concept. Training schedules, membership prices and facility details are illustrative.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23090909'/%3E%3Cpath d='M9 7h14v5h-9v4h8v5h-8v6H9z' fill='%23E34A21'/%3E%3C/svg%3E">
+<script>
+  document.documentElement.classList.add('js');
+  if (!matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    document.documentElement.classList.add('anim');
+  }
+  /* fail-safe: if motion.js hasn't fully initialized within 3s (GSAP CDN
+     hang, offline, parse error), drop `anim` so masked/revealed content
+     is shown and the static fallback un-pins the cinematic sections */
+  setTimeout(function () {
+    if (!document.documentElement.hasAttribute('data-motion-ready')) {
+      document.documentElement.classList.remove('anim');
+    }
+  }, 3000);
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Narrow:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/showcase/forge/css/tokens.css">
+<link rel="stylesheet" href="/showcase/forge/css/base.css">
+<link rel="stylesheet" href="/showcase/forge/css/layout.css">
+<link rel="stylesheet" href="/showcase/forge/css/components.css">
+<link rel="stylesheet" href="/showcase/forge/css/sections.css">
+</head>
+<body id="top">
+
+<!-- ============================ SYSTEM CHROME ============================ -->
+
+<header class="nav" data-nav data-od-id="site-nav">
+  <div class="nav__inner">
+    <a class="nav__mark" href="#top" data-od-id="nav-wordmark">FORGE</a>
+    <nav class="nav__links" aria-label="Primary">
+      <a class="nav__link" href="#training" data-od-id="nav-link-training">TRAINING</a>
+      <a class="nav__link" href="#facility" data-od-id="nav-link-facility">FACILITY</a>
+      <a class="nav__link" href="#coaches" data-od-id="nav-link-coaches">COACHES</a>
+      <a class="nav__link" href="#journal" data-od-id="nav-link-journal">JOURNAL</a>
+    </nav>
+    <div class="nav__actions">
+      <a class="btn btn--ghost nav__cta" href="#membership" data-od-id="nav-cta-join">
+        <span class="btn__label">JOIN</span>
+        <svg class="btn__arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square" stroke-linejoin="miter" aria-hidden="true"><path d="M6 18 18 6M9 6h9v9"/></svg>
+      </a>
+      <button class="nav__toggle" data-menu-open aria-expanded="false" aria-controls="menu" data-od-id="nav-menu-toggle">
+        <span>MENU</span>
+        <span class="bars" aria-hidden="true"><i></i><i></i></span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<div class="menu" id="menu" aria-hidden="true" data-od-id="fullscreen-menu">
+  <div class="menu__media" aria-hidden="true">
+    <img src="/showcase/forge/assets/img/prog-strength.jpg" alt="">
+    <img src="/showcase/forge/assets/img/fac-floor.jpg" alt="">
+    <img src="/showcase/forge/assets/img/fac-coaching.jpg" alt="">
+    <img src="/showcase/forge/assets/img/card-conditioning.jpg" alt="">
+    <img src="/showcase/forge/assets/img/journal-recovery.jpg" alt="">
+  </div>
+  <div class="menu__inner">
+    <div class="menu__top">
+      <span class="nav__mark" aria-hidden="true">FORGE</span>
+      <button class="menu__close" data-menu-close data-od-id="menu-close">CLOSE ×</button>
+    </div>
+    <nav class="menu__rows" aria-label="Menu">
+      <a class="menu__row" href="#training" data-media="0" data-od-id="menu-row-training"><span class="idx">01</span>TRAINING</a>
+      <a class="menu__row" href="#facility" data-media="1" data-od-id="menu-row-facility"><span class="idx">02</span>FACILITY</a>
+      <a class="menu__row" href="#coaches" data-media="2" data-od-id="menu-row-coaches"><span class="idx">03</span>COACHES</a>
+      <a class="menu__row" href="#membership" data-media="3" data-od-id="menu-row-membership"><span class="idx">04</span>MEMBERSHIP</a>
+      <a class="menu__row" href="#journal" data-media="4" data-od-id="menu-row-journal"><span class="idx">05</span>JOURNAL</a>
+    </nav>
+    <div class="menu__foot mono">
+      <a href="#footer" data-od-id="menu-link-instagram">INSTAGRAM</a>
+      <a href="#footer" data-od-id="menu-link-location">LOCATION</a>
+    </div>
+  </div>
+</div>
+
+<div class="cursor" data-cursor-root aria-hidden="true">
+  <div class="cursor__dot"></div>
+  <div class="cursor__box" data-cursor-label></div>
+</div>
+
+<div class="preview" data-preview aria-hidden="true">
+  <img data-key="strength" src="/showcase/forge/assets/img/prog-strength.jpg" alt="">
+  <img data-key="conditioning" src="/showcase/forge/assets/img/prog-conditioning.jpg" alt="">
+  <img data-key="mobility" src="/showcase/forge/assets/img/prog-mobility.jpg" alt="">
+  <img data-key="personal" src="/showcase/forge/assets/img/fac-coaching.jpg" alt="">
+</div>
+
+<main>
+
+  <!-- ============================ 00 — ENTRY ============================ -->
+
+  <section class="hero" data-od-id="section-entry" aria-labelledby="hero-title">
+    <div class="hero__media" data-od-id="hero-media">
+      <img src="/showcase/forge/assets/img/hero.jpg" alt="Athlete training under a barbell in a dark performance gym" fetchpriority="high">
+    </div>
+    <div class="shell hero__inner">
+      <div class="hero__meta mono" data-reveal data-od-id="hero-meta">
+        <span>FORGE / PERFORMANCE CLUB</span>
+        <span>ECHO11 STUDIO CONCEPT</span>
+      </div>
+      <h1 class="hero__title display" id="hero-title" data-mask-reveal data-od-id="hero-title">
+        <span class="mask"><span class="line">FORGE</span></span>
+        <span class="mask"><span class="line indent">YOUR</span></span>
+        <span class="mask"><span class="line">LIMIT</span></span>
+      </h1>
+      <div class="hero__bottom" data-reveal data-od-id="hero-bottom">
+        <div class="hero__ctas">
+          <a class="btn btn--primary" href="#membership" data-cursor="OPEN" data-od-id="hero-cta-join">
+            <span class="btn__label">JOIN FORGE</span>
+            <svg class="btn__arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square" stroke-linejoin="miter" aria-hidden="true"><path d="M6 18 18 6M9 6h9v9"/></svg>
+          </a>
+          <a class="link-under" href="#training" data-od-id="hero-cta-explore">
+            EXPLORE TRAINING
+            <svg class="btn__arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square" stroke-linejoin="miter" aria-hidden="true"><path d="M6 18 18 6M9 6h9v9"/></svg>
+          </a>
+        </div>
+        <div class="hero__scroll mono" aria-hidden="true">
+          <span>SCROLL</span>
+          <span class="tick"></span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================ 01 — MANIFESTO ============================ -->
+
+  <section class="section manifesto" id="manifesto" data-od-id="section-manifesto" aria-labelledby="manifesto-title">
+    <div class="shell">
+      <h2 class="section-tag mono" data-reveal data-od-id="manifesto-tag"><span class="eyebrow-dot" aria-hidden="true"></span>01 / MANIFESTO</h2>
+      <div class="manifesto__text h2" id="manifesto-title" data-mask-reveal data-od-id="manifesto-title-text">
+        <span class="mask"><span>YOU DON'T</span></span>
+        <span class="mask"><span>FIND STRENGTH.</span></span>
+        <span class="manifesto__rule" aria-hidden="true"></span>
+        <span class="mask"><span>YOU BUILD IT.</span></span>
+      </div>
+      <div class="manifesto__foot">
+        <p class="body-lg" data-reveal data-od-id="manifesto-standfirst">Raw material. Pressure. Repetition. Refinement. Stronger form.</p>
+        <p class="mono" data-reveal>CHAPTER 01 — WHY WE TRAIN</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================ 02 — FORGING SEQUENCE ============================ -->
+
+  <section class="forging" id="forging" data-od-id="section-forging" aria-label="The forging sequence">
+    <div class="forging__pin">
+      <p class="section-tag mono forging__tag" data-od-id="forging-tag">02 / FORGING</p>
+      <div class="forging__stages" aria-hidden="true">
+        <span class="stage is-on">RAW</span>
+        <span class="stage">LOAD</span>
+        <span class="stage">PRESSURE</span>
+        <span class="stage">FORM</span>
+      </div>
+      <div class="forging__frame" data-cursor="VIEW" data-od-id="forging-frame">
+        <figure class="forge-layer">
+          <img src="/showcase/forge/assets/img/forge-raw.jpg" alt="Strength athlete applying chalk with powder dispersing in dramatic gym rim lighting — RAW">
+          <figcaption>RAW</figcaption>
+        </figure>
+        <figure class="forge-layer">
+          <img src="/showcase/forge/assets/img/forge-load.jpg" alt="Barbell flexing under calibrated heavy steel plates during a deadlift — LOAD">
+          <figcaption>LOAD</figcaption>
+        </figure>
+        <figure class="forge-layer">
+          <img src="/showcase/forge/assets/img/forge-sparks.jpg" alt="Athlete driving through peak exertion on a heavy deadlift pull with chalk exploding off the platform — PRESSURE">
+          <figcaption>PRESSURE</figcaption>
+        </figure>
+        <figure class="forge-layer">
+          <img src="/showcase/forge/assets/img/forge-form.jpg" alt="Muscular athlete standing poised with sculpted symmetry over loaded barbell — FORM">
+          <figcaption>FORM</figcaption>
+        </figure>
+        <div class="forging__end" data-od-id="forging-end">
+          <p class="h2">TRAINING BUILDS FORM.</p>
+        </div>
+      </div>
+      <div class="forging__progress" aria-hidden="true"><i></i></div>
+    </div>
+  </section>
+
+  <!-- ============================ 03 — PROGRAMS + CARDS ============================ -->
+
+  <section class="section programs" id="training" data-od-id="section-training" aria-labelledby="training-title">
+    <div class="shell">
+      <header class="section__head">
+        <h2 class="section-tag mono" id="training-title" data-reveal data-od-id="training-tag"><span class="eyebrow-dot" aria-hidden="true"></span>03 / TRAINING</h2>
+        <p class="programs__intro body-lg" data-reveal data-od-id="training-intro">Four disciplines, one standard: coached work you can measure.</p>
+      </header>
+
+      <div class="programs__list" data-programs data-od-id="programs-list">
+
+        <a class="prow" href="#membership" data-preview-target="strength" data-cursor="VIEW" data-od-id="program-strength">
+          <span class="prow__head"><span class="mono">PROGRAM / 01</span><span class="prow__rule" aria-hidden="true"></span><span class="mono">STRENGTH</span></span>
+          <span class="prow__titlerow">
+            <span class="prow__name">STRENGTH</span>
+            <svg class="prow__arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square" stroke-linejoin="miter" aria-hidden="true"><path d="M6 18 18 6M9 6h9v9"/></svg>
+          </span>
+          <span class="prow__foot">
+            <span class="prow__desc">Develop force, stability and structural strength.</span>
+            <span class="prow__meta mono">45–60 MIN / INTENSITY 08</span>
+          </span>
+          <span class="prow__media"><img src="/showcase/forge/assets/img/prog-strength.jpg" alt="Chalked hands gripping a barbell"></span>
+        </a>
+
+        <a class="prow" href="#membership" data-preview-target="conditioning" data-cursor="VIEW" data-od-id="program-conditioning">
+          <span class="prow__head"><span class="mono">PROGRAM / 02</span><span class="prow__rule" aria-hidden="true"></span><span class="mono">CONDITIONING</span></span>
+          <span class="prow__titlerow">
+            <span class="prow__name">CONDITIONING</span>
+            <svg class="prow__arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square" stroke-linejoin="miter" aria-hidden="true"><path d="M6 18 18 6M9 6h9v9"/></svg>
+          </span>
+          <span class="prow__foot">
+            <span class="prow__desc">Build a repeatable engine: intervals, output, recovery.</span>
+            <span class="prow__meta mono">30–45 MIN / INTENSITY 09</span>
+          </span>
+          <span class="prow__media"><img src="/showcase/forge/assets/img/prog-conditioning.jpg" alt="Athlete working on a rowing machine"></span>
+        </a>
+
+        <a class="prow" href="#membership" data-preview-target="mobility" data-cursor="VIEW" data-od-id="program-mobility">
+          <span class="prow__head"><span class="mono">PROGRAM / 03</span><span class="prow__rule" aria-hidden="true"></span><span class="mono">MOBILITY</span></span>
+          <span class="prow__titlerow">
+            <span class="prow__name">MOBILITY</span>
+            <svg class="prow__arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square" stroke-linejoin="miter" aria-hidden="true"><path d="M6 18 18 6M9 6h9v9"/></svg>
+          </span>
+          <span class="prow__foot">
+            <span class="prow__desc">Own your range so positions hold under load.</span>
+            <span class="prow__meta mono">40 MIN / INTENSITY 04</span>
+          </span>
+          <span class="prow__media"><img src="/showcase/forge/assets/img/prog-mobility.jpg" alt="Athlete performing a controlled Cossack squat mobility drill in dark gym"></span>
+        </a>
+
+        <a class="prow" href="#membership" data-preview-target="personal" data-cursor="VIEW" data-od-id="program-personal">
+          <span class="prow__head"><span class="mono">PROGRAM / 04</span><span class="prow__rule" aria-hidden="true"></span><span class="mono">PERSONAL TRAINING</span></span>
+          <span class="prow__titlerow">
+            <span class="prow__name">PERSONAL TRAINING</span>
+            <svg class="prow__arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square" stroke-linejoin="miter" aria-hidden="true"><path d="M6 18 18 6M9 6h9v9"/></svg>
+          </span>
+          <span class="prow__foot">
+            <span class="prow__desc">One coach, one plan, built around your numbers.</span>
+            <span class="prow__meta mono">50 MIN / 1 : 1</span>
+          </span>
+          <span class="prow__media"><img src="/showcase/forge/assets/img/fac-coaching.jpg" alt="Strength coach providing 1-on-1 technique guidance beside squat rack"></span>
+        </a>
+
+      </div>
+
+      <div class="cards" data-od-id="training-cards">
+        <article class="tcard" data-cursor="OPEN ↗" data-od-id="training-card-strength">
+          <div class="tcard__top">
+            <span class="mono">01</span>
+            <svg class="tcard__arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square" stroke-linejoin="miter" aria-hidden="true"><path d="M6 18 18 6M9 6h9v9"/></svg>
+          </div>
+          <div class="tcard__media"><img src="/showcase/forge/assets/img/card-strength.jpg" alt="Athlete setting up under a barbell in a rack"></div>
+          <h3 class="tcard__title">STRENGTH<br>FOUNDATION</h3>
+          <p class="tcard__meta mono">60 MIN / ADVANCED</p>
+        </article>
+
+        <article class="tcard" data-cursor="OPEN ↗" data-od-id="training-card-conditioning">
+          <div class="tcard__top">
+            <span class="mono">02</span>
+            <svg class="tcard__arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square" stroke-linejoin="miter" aria-hidden="true"><path d="M6 18 18 6M9 6h9v9"/></svg>
+          </div>
+          <div class="tcard__media"><img src="/showcase/forge/assets/img/card-conditioning.jpg" alt="Athlete mid-effort with battle ropes"></div>
+          <h3 class="tcard__title">CONDITIONING<br>ENGINE</h3>
+          <p class="tcard__meta mono">45 MIN / INTERMEDIATE</p>
+        </article>
+
+        <article class="tcard" data-cursor="OPEN ↗" data-od-id="training-card-mobility">
+          <div class="tcard__top">
+            <span class="mono">03</span>
+            <svg class="tcard__arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square" stroke-linejoin="miter" aria-hidden="true"><path d="M6 18 18 6M9 6h9v9"/></svg>
+          </div>
+          <div class="tcard__media"><img src="/showcase/forge/assets/img/card-mobility.jpg" alt="Athlete performing a deep Cossack squat mobility drill on gym floor"></div>
+          <h3 class="tcard__title">MOBILITY<br>CONTROL</h3>
+          <p class="tcard__meta mono">40 MIN / ALL LEVELS</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================ 05 — FACILITY FILM STRIP ============================ -->
+
+  <section class="facility" id="facility" data-od-id="section-facility" aria-labelledby="facility-title">
+    <div class="facility__pin">
+      <header class="facility__head">
+        <h2 class="section-tag mono" id="facility-title" data-od-id="facility-tag"><span class="eyebrow-dot" aria-hidden="true"></span>04 / FACILITY</h2>
+        <p class="mono">05 SPREADS — SCROLL</p>
+      </header>
+      <div class="facility__track" data-od-id="facility-track">
+
+        <article class="spread" data-od-id="spread-floor">
+          <div class="spread__img" data-cursor="VIEW">
+            <img src="/showcase/forge/assets/img/fac-floor.jpg" alt="The training floor with racks and platforms">
+            <span class="idx">04.1 / TRAINING FLOOR</span>
+          </div>
+          <h3 class="h2 spread__title">TRAINING FLOOR</h3>
+          <p class="spread__text">Racks, platforms, open floor — built around barbell work, not machines.</p>
+        </article>
+
+        <article class="spread" data-od-id="spread-recovery">
+          <div class="spread__img" data-cursor="VIEW">
+            <img src="/showcase/forge/assets/img/fac-recovery.jpg" alt="The recovery room with heat and quiet">
+            <span class="idx">04.2 / RECOVERY</span>
+          </div>
+          <h3 class="h2 spread__title">RECOVERY</h3>
+          <p class="spread__text">Designed around what happens after the work.</p>
+        </article>
+
+        <article class="spread" data-od-id="spread-conditioning">
+          <div class="spread__img" data-cursor="VIEW">
+            <img src="/showcase/forge/assets/img/fac-conditioning.jpg" alt="Conditioning zone with bikes and rowers">
+            <span class="idx">04.3 / CONDITIONING</span>
+          </div>
+          <h3 class="h2 spread__title">CONDITIONING</h3>
+          <p class="spread__text">Bikes, rowers, skiers — intervals measured in work, not noise.</p>
+        </article>
+
+        <article class="spread" data-od-id="spread-locker">
+          <div class="spread__img" data-cursor="VIEW">
+            <img src="/showcase/forge/assets/img/fac-locker.jpg" alt="Locker room in dark steel and timber">
+            <span class="idx">04.4 / LOCKER</span>
+          </div>
+          <h3 class="h2 spread__title">LOCKER</h3>
+          <p class="spread__text">Steel, timber, heat and quiet — the ten minutes either side of training.</p>
+        </article>
+
+        <article class="spread" data-od-id="spread-coaching">
+          <div class="spread__img" data-cursor="VIEW">
+            <img src="/showcase/forge/assets/img/fac-coaching.jpg" alt="Dedicated 1-on-1 coaching session with athlete in squat rack">
+            <span class="idx">04.5 / COACHING</span>
+          </div>
+          <h3 class="h2 spread__title">COACHING</h3>
+          <p class="spread__text">Small groups and real eyes on every rep.</p>
+        </article>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================ 06 — NUMBERS ============================ -->
+
+  <section class="section numbers" id="numbers" data-od-id="section-numbers" aria-labelledby="numbers-title">
+    <div class="shell">
+      <header class="section__head">
+        <h2 class="section-tag mono" id="numbers-title" data-reveal data-od-id="numbers-tag">05 / NUMBERS</h2>
+        <p class="mono">MEASURED, NOT MARKETED</p>
+      </header>
+      <ul class="numbers__list" data-mask-reveal data-od-id="numbers-list">
+        <li class="stat" data-od-id="stat-sqft">
+          <span class="mask"><span class="stat__num">14,000</span></span>
+          <span class="mask"><span class="stat__label mono">SQ FT</span></span>
+        </li>
+        <li class="stat" data-od-id="stat-stations">
+          <span class="mask"><span class="stat__num">24</span></span>
+          <span class="mask"><span class="stat__label mono">TRAINING STATIONS</span></span>
+        </li>
+        <li class="stat" data-od-id="stat-coaches">
+          <span class="mask"><span class="stat__num">06</span></span>
+          <span class="mask"><span class="stat__label mono">SPECIALIST COACHES</span></span>
+        </li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- ============================ 07 — COACHES ============================ -->
+
+  <section class="section coaches" id="coaches" data-od-id="section-coaches" aria-labelledby="coaches-title">
+    <div class="shell">
+      <header class="section__head">
+        <h2 class="section-tag mono" id="coaches-title" data-reveal data-od-id="coaches-tag"><span class="eyebrow-dot" aria-hidden="true"></span>06 / COACHES</h2>
+        <p class="mono">PHOTOGRAPHY FIRST</p>
+      </header>
+      <div class="coaches__grid">
+        <div class="coaches__media" data-coach-stage data-cursor="VIEW" data-od-id="coach-stage">
+          <img class="is-active" src="/showcase/forge/assets/img/coach-01.jpg" alt="Coach Alex Morgan"
+               data-name="ALEX MORGAN" data-tag="01 / STRENGTH"
+               data-disc="Strength & conditioning — barbell fundamentals and returns from injury.">
+          <img src="/showcase/forge/assets/img/coach-02.jpg" alt="Coach Maya Riley"
+               data-name="MAYA RILEY" data-tag="02 / CONDITIONING"
+               data-disc="Conditioning — engine building, interval design and pacing.">
+          <img src="/showcase/forge/assets/img/coach-03.jpg" alt="Coach James Okafor"
+               data-name="JAMES OKAFOR" data-tag="03 / PERFORMANCE"
+               data-disc="Strength & performance — testing weeks, training blocks, competition prep.">
+          <img src="/showcase/forge/assets/img/coach-04.jpg" alt="Coach Arun Thapa"
+               data-name="ARUN THAPA" data-tag="04 / MOBILITY"
+               data-disc="Mobility & recovery — range, tissue work and reload weeks.">
+          <img src="/showcase/forge/assets/img/coach-05.jpg" alt="Coach Noa Hazel"
+               data-name="NOA HAZEL" data-tag="05 / REHAB"
+               data-disc="Rehab & return-to-train — screening and load management.">
+        </div>
+        <div class="coaches__info" aria-live="polite">
+          <div class="coaches__index mono" data-od-id="coach-index">
+            <span class="now" data-coach-now>01</span><span>/ 05</span>
+            <span class="tag" data-coach-tag>01 / STRENGTH</span>
+          </div>
+          <h3 class="coaches__name" data-coach-name data-od-id="coach-name">ALEX MORGAN</h3>
+          <p class="coaches__disc" data-coach-disc data-od-id="coach-disc">Strength & conditioning — barbell fundamentals and returns from injury.</p>
+          <div class="coaches__ctrl">
+            <button class="coaches__btn" data-coach-prev aria-label="Previous coach" data-od-id="coach-prev">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square" stroke-linejoin="miter" aria-hidden="true"><path d="M19 12H5M11 6l-6 6 6 6"/></svg>
+            </button>
+            <button class="coaches__btn" data-coach-next aria-label="Next coach" data-od-id="coach-next">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square" stroke-linejoin="miter" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================ 08 — SCHEDULE ============================ -->
+
+  <section class="section schedule" id="schedule" data-od-id="section-schedule" aria-labelledby="schedule-title">
+    <div class="shell">
+      <header class="section__head">
+        <h2 class="section-tag mono" id="schedule-title" data-reveal data-od-id="schedule-tag"><span class="eyebrow-dot" aria-hidden="true"></span>07 / SCHEDULE</h2>
+        <p class="mono">TRAINING TERMINAL</p>
+      </header>
+
+      <div class="sched__bar mono" data-od-id="schedule-bar">
+        <span>MON 06 OCT</span>
+        <span>WEEK 41</span>
+      </div>
+
+      <div class="sched" role="table" aria-label="Monday schedule" data-od-id="schedule-grid">
+        <div class="sched__head mono" role="row">
+          <span role="columnheader">TIME</span>
+          <span role="columnheader">PROGRAM</span>
+          <span role="columnheader">COACH</span>
+          <span class="sched__status" role="columnheader">STATUS</span>
+        </div>
+
+        <div class="sched__row" role="row" data-od-id="schedule-row-0600">
+          <span class="sched__time" role="cell">06:00</span>
+          <span class="sched__prog" role="cell">CONDITIONING</span>
+          <span class="sched__coach" role="cell">JAMES</span>
+          <span class="sched__status" role="cell"><span class="qty">03</span> LEFT<span class="sched__arrow" aria-hidden="true">→</span></span>
+        </div>
+
+        <div class="sched__row" role="row" data-od-id="schedule-row-0730">
+          <span class="sched__time" role="cell">07:30</span>
+          <span class="sched__prog" role="cell">STRENGTH</span>
+          <span class="sched__coach" role="cell">MAYA</span>
+          <span class="sched__status" role="cell">OPEN<span class="sched__arrow" aria-hidden="true">→</span></span>
+        </div>
+
+        <div class="sched__row" role="row" data-od-id="schedule-row-0900">
+          <span class="sched__time" role="cell">09:00</span>
+          <span class="sched__prog" role="cell">MOBILITY</span>
+          <span class="sched__coach" role="cell">ARUN</span>
+          <span class="sched__status" role="cell">OPEN<span class="sched__arrow" aria-hidden="true">→</span></span>
+        </div>
+
+        <div class="sched__break" role="presentation"></div>
+
+        <div class="sched__row" role="row" data-od-id="schedule-row-1730">
+          <span class="sched__time" role="cell">17:30</span>
+          <span class="sched__prog" role="cell">STRENGTH</span>
+          <span class="sched__coach" role="cell">JAMES</span>
+          <span class="sched__status is-full" role="cell">FULL<span class="sched__arrow" aria-hidden="true">→</span></span>
+        </div>
+
+        <div class="sched__row" role="row" data-od-id="schedule-row-1900">
+          <span class="sched__time" role="cell">19:00</span>
+          <span class="sched__prog" role="cell">CONDITIONING</span>
+          <span class="sched__coach" role="cell">MAYA</span>
+          <span class="sched__status" role="cell"><span class="qty">02</span> LEFT<span class="sched__arrow" aria-hidden="true">→</span></span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================ 09 — MEMBERSHIP ============================ -->
+
+  <section class="section membership" id="membership" data-od-id="section-membership" aria-labelledby="membership-title">
+    <div class="shell">
+      <header class="section__head">
+        <h2 class="section-tag mono" id="membership-title" data-reveal data-od-id="membership-tag"><span class="eyebrow-dot" aria-hidden="true"></span>08 / MEMBERSHIP</h2>
+        <p class="membership__note" data-reveal data-od-id="membership-note">Illustrative membership tiers. Prices and schedules are sample content; no memberships are sold.</p>
+      </header>
+
+      <!-- Tiers 02 / 03 names and prices are proposed defaults — see forge-showcase-plan.md §13 -->
+      <div class="tiers" data-od-id="membership-tiers">
+
+        <article class="tier" data-od-id="tier-foundation">
+          <span class="tier__fill" aria-hidden="true"></span>
+          <div class="tier__inner">
+            <span class="tier__num">01</span>
+            <h3 class="tier__name">FOUNDATION</h3>
+            <p class="tier__price"><span class="tier__amount">$89</span><span class="mono">/ MONTH</span></p>
+            <div class="tier__rule" aria-hidden="true"></div>
+            <ul class="tier__features">
+              <li>Open gym</li>
+              <li>Classes</li>
+              <li>Assessment</li>
+            </ul>
+            <a class="tier__join" href="#footer" data-od-id="tier-join-foundation">
+              JOIN
+              <svg class="btn__arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square" stroke-linejoin="miter" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+            </a>
+          </div>
+        </article>
+
+        <article class="tier" data-od-id="tier-performance">
+          <span class="tier__fill" aria-hidden="true"></span>
+          <div class="tier__inner">
+            <span class="tier__num">02</span>
+            <h3 class="tier__name">PERFORMANCE</h3>
+            <p class="tier__price"><span class="tier__amount">$139</span><span class="mono">/ MONTH</span></p>
+            <div class="tier__rule" aria-hidden="true"></div>
+            <ul class="tier__features">
+              <li>Open gym</li>
+              <li>All classes</li>
+              <li>Monthly testing</li>
+              <li>1 PT session</li>
+            </ul>
+            <a class="tier__join" href="#footer" data-od-id="tier-join-performance">
+              JOIN
+              <svg class="btn__arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square" stroke-linejoin="miter" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+            </a>
+          </div>
+        </article>
+
+        <article class="tier" data-od-id="tier-unlimited">
+          <span class="tier__fill" aria-hidden="true"></span>
+          <div class="tier__inner">
+            <span class="tier__num">03</span>
+            <h3 class="tier__name">UNLIMITED</h3>
+            <p class="tier__price"><span class="tier__amount">$189</span><span class="mono">/ MONTH</span></p>
+            <div class="tier__rule" aria-hidden="true"></div>
+            <ul class="tier__features">
+              <li>All classes</li>
+              <li>Priority booking</li>
+              <li>Recovery suite</li>
+              <li>Custom programming</li>
+            </ul>
+            <a class="tier__join" href="#footer" data-od-id="tier-join-unlimited">
+              JOIN
+              <svg class="btn__arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square" stroke-linejoin="miter" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+            </a>
+          </div>
+        </article>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================ 10 — JOURNAL TEASER ============================ -->
+
+  <section class="section journal" id="journal" data-od-id="section-journal" aria-labelledby="journal-heading">
+    <div class="shell">
+      <header class="section__head">
+        <h2 class="section-tag mono" id="journal-heading" data-reveal data-od-id="journal-tag"><span class="eyebrow-dot" aria-hidden="true"></span>09 / JOURNAL</h2>
+        <p class="mono">JOURNAL / 012</p>
+      </header>
+      <div class="journal__grid">
+        <div class="journal__text">
+          <h3 class="h2 journal__title" data-reveal data-od-id="journal-title">THE SCIENCE OF RECOVERY</h3>
+          <p class="body-lg" data-reveal data-od-id="journal-standfirst">Sleep, load, and the unglamorous work between sessions — why the rest is the training.</p>
+          <div class="journal__meta mono" data-reveal data-od-id="journal-meta">
+            <span>8 MIN READ</span>
+            <span>PERFORMANCE / RECOVERY</span>
+          </div>
+          <span class="link-under" data-od-id="journal-read">
+            JOURNAL PREVIEW
+            <svg class="btn__arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square" stroke-linejoin="miter" aria-hidden="true"><path d="M6 18 18 6M9 6h9v9"/></svg>
+          </span>
+        </div>
+        <figure class="journal__media" data-cursor="VIEW" data-od-id="journal-media">
+          <img src="/showcase/forge/assets/img/journal-recovery.jpg" alt="Athlete during a recovery session">
+          <figcaption class="badge">JOURNAL / 012</figcaption>
+        </figure>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<!-- ============================ FOOTER ============================ -->
+
+<footer class="footer" id="footer" data-od-id="section-footer">
+  <div class="shell">
+    <a class="footer__cta" href="/contact?reference=forge" data-cursor="OPEN ↗" data-od-id="footer-cta">
+      <span>BUILD YOUR OWN IDENTITY</span>
+      <svg class="btn__arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square" stroke-linejoin="miter" aria-hidden="true"><path d="M6 18 18 6M9 6h9v9"/></svg>
+    </a>
+    <div class="footer__cols">
+      <div class="footer__col" data-od-id="footer-location">
+        <p class="mono">LOCATION</p>
+        <p class="val"><span class="ph">Imagined training space</span></p>
+      </div>
+      <div class="footer__col" data-od-id="footer-hours">
+        <p class="mono">HOURS</p>
+        <p class="val"><span class="ph">Illustrative schedule above</span></p>
+      </div>
+      <div class="footer__col" data-od-id="footer-contact">
+        <p class="mono">CONTACT</p>
+        <p class="val"><span class="ph"><a href="/contact?reference=forge">Discuss your website ↗</a></span></p>
+      </div>
+      <div class="footer__col" data-od-id="footer-follow">
+        <p class="mono">FOLLOW</p>
+        <p class="val"><span class="ph"><a href="/showcase">Explore Echo11 ↗</a></span></p>
+      </div>
+    </div>
+    <div class="footer__legal mono">
+      <span>FORGE / PERFORMANCE CLUB</span>
+      <span>© 2026 FORGE — SHOWCASE BUILD</span>
+    </div>
+  </div>
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js" defer></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js" defer></script>
+<script src="/showcase/forge/js/main.js" defer></script>
+<script src="/showcase/forge/js/cursor.js" defer></script>
+<script src="/showcase/forge/js/interactions.js" defer></script>
+<script src="/showcase/forge/js/motion.js" defer></script>
+
+</body>
+</html>

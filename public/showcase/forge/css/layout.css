@@ -1,0 +1,61 @@
+/* ============================================================
+   FORGE — layout.css
+   Universal grid: 12 / 8 / 4 · max 1600 · gutters 24–32 / 16
+   Deliberate grid breaks live in sections.css
+   ============================================================ */
+
+.shell {
+  width: min(100% - (var(--outer) * 2), var(--layout-max));
+  margin-inline: auto;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);   /* mobile: 4 cols */
+  gap: var(--gutter);
+}
+
+.section {
+  position: relative;
+  padding-block: var(--space-section);
+}
+
+.section__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem 2rem;
+  margin-bottom: clamp(2.5rem, 6vw, 5rem);
+}
+
+/* ---------- tablet: 768–1279 → 8 columns ------------------ */
+@media (min-width: 768px) {
+  .grid { grid-template-columns: repeat(8, 1fr); }
+}
+
+/* ---------- desktop: ≥1280 → 12 columns ------------------- */
+@media (min-width: 1280px) {
+  .grid { grid-template-columns: repeat(12, 1fr); }
+}
+
+/* ---------- utility spans (desktop) ----------------------- */
+@media (min-width: 1280px) {
+  .c1-7  { grid-column: 1 / 8; }
+  .c1-6  { grid-column: 1 / 7; }
+  .c1-5  { grid-column: 1 / 6; }
+  .c1-4  { grid-column: 1 / 5; }
+  .c2-6  { grid-column: 2 / 7; }
+  .c5-13 { grid-column: 5 / 13; }
+  .c6-13 { grid-column: 6 / 13; }
+  .c7-13 { grid-column: 7 / 13; }
+  .c8-13 { grid-column: 8 / 13; }
+  .c9-13 { grid-column: 9 / 13; }
+}
+
+@media (min-width: 768px) and (max-width: 1279px) {
+  .c1-7, .c1-6, .c1-5, .c1-4, .c2-6 { grid-column: 1 / -1; }
+  .c5-13, .c6-13, .c7-13, .c8-13, .c9-13 { grid-column: 1 / -1; }
+  .t-c1-5 { grid-column: 1 / 6; }
+  .t-c4-9 { grid-column: 4 / 9; }
+}

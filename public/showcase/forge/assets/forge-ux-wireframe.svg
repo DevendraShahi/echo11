@@ -1,0 +1,439 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1512 6400" width="1512" height="6400">
+<defs>
+  <style>
+    .display { font-family: 'Archivo Narrow', 'Arial Narrow', sans-serif; font-weight: 700; text-transform: uppercase; fill: #F4F2ED; }
+    .mono { font-family: 'IBM Plex Mono', 'Menlo', monospace; font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; fill: #8A8984; }
+    .body { font-family: 'Inter', -apple-system, sans-serif; font-size: 14px; fill: #8A8984; }
+    .spec-label { font-family: 'IBM Plex Mono', monospace; font-size: 10px; font-weight: 600; fill: #00E5FF; }
+    .spec-line { stroke: #00E5FF; stroke-width: 1; stroke-dasharray: 4,4; opacity: 0.7; }
+    .spec-solid { stroke: #00E5FF; stroke-width: 1; opacity: 0.8; }
+    .grid-line { stroke: rgba(255, 255, 255, 0.03); stroke-width: 1; }
+    .wireframe-box { fill: #111111; stroke: #222222; stroke-width: 1; }
+  </style>
+  <marker id="arrow" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+    <path d="M 0 2 L 10 5 L 0 8 z" fill="#00E5FF"/>
+  </marker>
+</defs>
+
+<!-- BACKGROUND -->
+<rect width="1512" height="6400" fill="#090909"/>
+
+<!-- 12-COLUMN LAYOUT GRID GUIDES -->
+
+<rect x="96" y="0" width="88" height="6400" fill="rgba(255,255,255,0.012)"/>
+<line x1="96" y1="0" x2="96" y2="6400" class="grid-line"/>
+<line x1="184" y1="0" x2="184" y2="6400" class="grid-line"/>
+<rect x="208" y="0" width="88" height="6400" fill="rgba(255,255,255,0.012)"/>
+<line x1="208" y1="0" x2="208" y2="6400" class="grid-line"/>
+<line x1="296" y1="0" x2="296" y2="6400" class="grid-line"/>
+<rect x="320" y="0" width="88" height="6400" fill="rgba(255,255,255,0.012)"/>
+<line x1="320" y1="0" x2="320" y2="6400" class="grid-line"/>
+<line x1="408" y1="0" x2="408" y2="6400" class="grid-line"/>
+<rect x="432" y="0" width="88" height="6400" fill="rgba(255,255,255,0.012)"/>
+<line x1="432" y1="0" x2="432" y2="6400" class="grid-line"/>
+<line x1="520" y1="0" x2="520" y2="6400" class="grid-line"/>
+<rect x="544" y="0" width="88" height="6400" fill="rgba(255,255,255,0.012)"/>
+<line x1="544" y1="0" x2="544" y2="6400" class="grid-line"/>
+<line x1="632" y1="0" x2="632" y2="6400" class="grid-line"/>
+<rect x="656" y="0" width="88" height="6400" fill="rgba(255,255,255,0.012)"/>
+<line x1="656" y1="0" x2="656" y2="6400" class="grid-line"/>
+<line x1="744" y1="0" x2="744" y2="6400" class="grid-line"/>
+<rect x="768" y="0" width="88" height="6400" fill="rgba(255,255,255,0.012)"/>
+<line x1="768" y1="0" x2="768" y2="6400" class="grid-line"/>
+<line x1="856" y1="0" x2="856" y2="6400" class="grid-line"/>
+<rect x="880" y="0" width="88" height="6400" fill="rgba(255,255,255,0.012)"/>
+<line x1="880" y1="0" x2="880" y2="6400" class="grid-line"/>
+<line x1="968" y1="0" x2="968" y2="6400" class="grid-line"/>
+<rect x="992" y="0" width="88" height="6400" fill="rgba(255,255,255,0.012)"/>
+<line x1="992" y1="0" x2="992" y2="6400" class="grid-line"/>
+<line x1="1080" y1="0" x2="1080" y2="6400" class="grid-line"/>
+<rect x="1104" y="0" width="88" height="6400" fill="rgba(255,255,255,0.012)"/>
+<line x1="1104" y1="0" x2="1104" y2="6400" class="grid-line"/>
+<line x1="1192" y1="0" x2="1192" y2="6400" class="grid-line"/>
+<rect x="1216" y="0" width="88" height="6400" fill="rgba(255,255,255,0.012)"/>
+<line x1="1216" y1="0" x2="1216" y2="6400" class="grid-line"/>
+<line x1="1304" y1="0" x2="1304" y2="6400" class="grid-line"/>
+<rect x="1328" y="0" width="88" height="6400" fill="rgba(255,255,255,0.012)"/>
+<line x1="1328" y1="0" x2="1328" y2="6400" class="grid-line"/>
+<line x1="1416" y1="0" x2="1416" y2="6400" class="grid-line"/>
+
+<g id="Nav-Chrome" transform="translate(0, 0)">
+  <rect width="1512" height="72" fill="#090909" opacity="0.95"/>
+  <line x1="0" y1="72" x2="1512" y2="72" stroke="#222222" stroke-width="1"/>
+  
+  <!-- Logo -->
+  <text x="96" y="44" class="display" font-size="24" letter-spacing="-0.02em">FORGE</text>
+  
+  <!-- Nav links -->
+  <g transform="translate(560, 42)">
+    <text x="0" y="0" class="mono" fill="#F4F2ED">TRAINING</text>
+    <text x="120" y="0" class="mono">FACILITY</text>
+    <text x="240" y="0" class="mono">COACHES</text>
+    <text x="360" y="0" class="mono">JOURNAL</text>
+  </g>
+  
+  <!-- CTA Button -->
+  <rect x="1336" y="20" width="80" height="32" rx="2" fill="transparent" stroke="#383838" stroke-width="1"/>
+  <text x="1362" y="40" class="mono" font-size="10" fill="#F4F2ED">JOIN ↗</text>
+  
+  <!-- Measurement annotation -->
+  <line x1="80" y1="72" x2="80" y2="0" class="spec-solid"/>
+  <text x="45" y="40" class="spec-label">H: 72px</text>
+</g>
+
+
+<g id="00-Entry-Hero" transform="translate(0, 72)">
+  <!-- Eyebrow -->
+  <circle cx="96" cy="60" r="3" fill="#E34A21"/>
+  <text x="108" y="64" class="mono" fill="#E34A21">NOW SHOWING / LIVE BUILD 2026</text>
+  
+  <!-- Hero Display Headline -->
+  <text x="96" y="160" class="display" font-size="88" letter-spacing="-0.04em">RAW MATERIAL.</text>
+  <text x="96" y="244" class="display" font-size="88" letter-spacing="-0.04em">PRESSURE. FORM.</text>
+  
+  <text x="96" y="310" class="body" font-size="16" fill="#8A8984">A strength gym carried through one continuous scroll narrative — manifesto to membership.</text>
+  
+  <!-- CTA buttons -->
+  <rect x="96" y="350" width="180" height="48" rx="2" fill="#E34A21"/>
+  <text x="140" y="379" class="mono" font-weight="700" fill="#FFFFFF">EXPLORE ↗</text>
+  
+  <rect x="292" y="350" width="180" height="48" rx="2" fill="transparent" stroke="#383838"/>
+  <text x="340" y="379" class="mono" fill="#F4F2ED">FACILITY</text>
+  
+  <!-- Hero Media Plate (16:9) -->
+  <rect x="740" y="40" width="676" height="380" rx="4" class="wireframe-box"/>
+  <path d="M 740 40 L 1416 420 M 1416 40 L 740 420" stroke="#222222" stroke-width="1"/>
+  <rect x="978" y="210" width="200" height="40" fill="#090909" stroke="#222222" rx="2"/>
+  <text x="1010" y="235" class="mono" font-size="10">HERO MEDIA [16:9]</text>
+  
+  <!-- Bottom HUD Rule -->
+  <line x1="96" y1="520" x2="1416" y2="520" stroke="#222222" stroke-width="1"/>
+  <text x="96" y="550" class="mono" font-size="10">00 / SCROLL TO INITIATE</text>
+  <text x="1340" y="550" class="mono" font-size="10">CHAPTER 01 ↘</text>
+  
+  <!-- Specs -->
+  <line x1="1430" y1="40" x2="1430" y2="420" class="spec-solid"/>
+  <text x="1440" y="230" class="spec-label">380px</text>
+  <line x1="740" y1="435" x2="1416" y2="435" class="spec-solid"/>
+  <text x="1040" y="450" class="spec-label">W: 676px (6 cols)</text>
+</g>
+
+
+<g id="01-Manifesto" transform="translate(0, 652)">
+  <line x1="96" y1="0" x2="1416" y2="0" stroke="#222222" stroke-width="1"/>
+  <text x="96" y="40" class="mono">01 / MANIFESTO</text>
+  <text x="1220" y="40" class="mono">CHAPTER 01 — WHY WE TRAIN</text>
+  
+  <text x="96" y="130" class="display" font-size="52" letter-spacing="-0.03em">"WE DO NOT TRAIN TO BURN CALORIES.</text>
+  <text x="96" y="190" class="display" font-size="52" letter-spacing="-0.03em">WE TRAIN TO RESHAPE STRUCTURE."</text>
+  
+  <rect x="96" y="250" width="600" height="2" fill="#E34A21"/>
+  
+  <text x="96" y="300" class="body" font-size="18" fill="#F4F2ED">Raw material. Pressure. Repetition. Refinement. Stronger form.</text>
+  <text x="96" y="340" class="body" font-size="15" fill="#8A8984">Five chapters on one continuous scroll — built to be walked through rather than screenshotted.</text>
+  
+  <!-- Specs -->
+  <text x="720" y="255" class="spec-label">← ACCENT EMBER RULE (#E34A21, W: 600px)</text>
+</g>
+
+
+<g id="02-Forging-Sequence" transform="translate(0, 1092)">
+  <rect x="0" y="0" width="1512" height="840" fill="#111111" opacity="0.4"/>
+  <line x1="0" y1="0" x2="1512" y2="0" stroke="#222222" stroke-width="1"/>
+  
+  <!-- Section Tag -->
+  <text x="96" y="44" class="mono" fill="#E34A21">02 / FORGING SEQUENCE [GSAP SCRUBBED PIN]</text>
+  
+  <!-- Stage Indicators (RAW, LOAD, PRESSURE, FORM) -->
+  <g transform="translate(520, 42)">
+    <rect x="0" y="-8" width="10" height="10" transform="rotate(45 5 -3)" fill="#8A8984"/>
+    <text x="20" y="0" class="mono">01 RAW</text>
+    
+    <rect x="120" y="-8" width="10" height="10" transform="rotate(45 125 -3)" fill="#8A8984"/>
+    <text x="140" y="0" class="mono">02 LOAD</text>
+    
+    <rect x="250" y="-8" width="10" height="10" transform="rotate(45 255 -3)" fill="#E34A21"/>
+    <text x="270" y="0" class="mono" fill="#E34A21">03 PRESSURE</text>
+    
+    <rect x="400" y="-8" width="10" height="10" transform="rotate(45 405 -3)" fill="#8A8984"/>
+    <text x="420" y="0" class="mono">04 FORM</text>
+  </g>
+  
+  <!-- Forging Frame (16:9, W: 1100, H: 618.75) Seamless No Border -->
+  <rect x="206" y="90" width="1100" height="619" rx="4" fill="#0D0D0D" stroke="none"/>
+  <rect x="206" y="90" width="1100" height="619" rx="4" fill="none" stroke="#222222" stroke-dasharray="6,6"/>
+  
+  <!-- Cross placeholder -->
+  <path d="M 206 90 L 1306 709 M 1306 90 L 206 709" stroke="rgba(255,255,255,0.04)" stroke-width="1"/>
+  
+  <!-- Active 4K Image Graphic Overlay Representation -->
+  <rect x="456" y="320" width="600" height="120" fill="rgba(0,0,0,0.7)" rx="4"/>
+  <text x="500" y="365" class="display" font-size="32" fill="#F4F2ED">03 / PRESSURE [ACTIVE 4K LAYER]</text>
+  <text x="500" y="400" class="mono" font-size="12" fill="#E34A21">3840 × 2160 UHD · SEAMLESS BLEED (BORDER: NONE)</text>
+  
+  <!-- Scrub Progress Bar -->
+  <line x1="206" y1="730" x2="1306" y2="730" stroke="#222222" stroke-width="2"/>
+  <line x1="206" y1="730" x2="1031" y2="730" stroke="#E34A21" stroke-width="2"/>
+  <circle cx="1031" cy="730" r="4" fill="#E34A21"/>
+  
+  <text x="206" y="760" class="mono" font-size="10">SCRUB PROGRESS: 75%</text>
+  <text x="1170" y="760" class="mono" font-size="10">TRAINING BUILDS FORM.</text>
+  
+  <!-- Annotation callouts -->
+  <line x1="180" y1="90" x2="180" y2="709" class="spec-solid"/>
+  <text x="90" y="400" class="spec-label">H: 618.75px (16:9)</text>
+  <line x1="206" y1="75" x2="1306" y2="75" class="spec-solid"/>
+  <text x="690" y="65" class="spec-label">W: 1100px (Centered)</text>
+</g>
+
+
+<g id="03-Training-Disciplines" transform="translate(0, 1952)">
+  <line x1="96" y1="0" x2="1416" y2="0" stroke="#222222" stroke-width="1"/>
+  
+  <text x="96" y="50" class="mono">03 / TRAINING</text>
+  <text x="96" y="90" class="display" font-size="44">FOUR DISCIPLINES, ONE STANDARD.</text>
+  
+  <!-- Interactive Rows -->
+  <!-- Row 1: STRENGTH -->
+  <g transform="translate(96, 140)">
+    <line x1="0" y1="0" x2="1320" y2="0" stroke="#222222"/>
+    <text x="0" y="32" class="mono">01</text>
+    <text x="80" y="36" class="display" font-size="32">STRENGTH</text>
+    <text x="500" y="32" class="body">Develop force, stability and structural integrity.</text>
+    <text x="1080" y="32" class="mono">45–60 MIN / 08</text>
+    <text x="1300" y="32" class="mono" fill="#E34A21">↗</text>
+  </g>
+  
+  <!-- Row 2: CONDITIONING -->
+  <g transform="translate(96, 210)">
+    <line x1="0" y1="0" x2="1320" y2="0" stroke="#222222"/>
+    <text x="0" y="32" class="mono">02</text>
+    <text x="80" y="36" class="display" font-size="32">CONDITIONING</text>
+    <text x="500" y="32" class="body">Build a repeatable engine: intervals, output, recovery.</text>
+    <text x="1080" y="32" class="mono">30–45 MIN / 09</text>
+    <text x="1300" y="32" class="mono" fill="#E34A21">↗</text>
+  </g>
+  
+  <!-- Row 3: MOBILITY -->
+  <g transform="translate(96, 280)">
+    <line x1="0" y1="0" x2="1320" y2="0" stroke="#222222"/>
+    <text x="0" y="32" class="mono">03</text>
+    <text x="80" y="36" class="display" font-size="32" fill="#E34A21">MOBILITY</text>
+    <text x="500" y="32" class="body">Own your range so positions hold under load.</text>
+    <text x="1080" y="32" class="mono">40 MIN / 04</text>
+    <text x="1300" y="32" class="mono" fill="#E34A21">↗</text>
+  </g>
+  
+  <!-- Row 4: PERSONAL TRAINING -->
+  <g transform="translate(96, 350)">
+    <line x1="0" y1="0" x2="1320" y2="0" stroke="#222222"/>
+    <text x="0" y="32" class="mono">04</text>
+    <text x="80" y="36" class="display" font-size="32">PERSONAL TRAINING</text>
+    <text x="500" y="32" class="body">One coach, one plan, built around your numbers.</text>
+    <text x="1080" y="32" class="mono">50 MIN / 1 : 1</text>
+    <text x="1300" y="32" class="mono" fill="#E34A21">↗</text>
+    <line x1="0" y1="56" x2="1320" y2="56" stroke="#222222"/>
+  </g>
+  
+  <!-- 3 Training Cards Grid (Auto-Layout 3-Columns, gap: 24px) -->
+  <text x="96" y="470" class="mono" fill="#8A8984">FEATURED TRAINING CARDS [ASPECT 4:5]</text>
+  
+  <!-- Card 1 -->
+  <g transform="translate(96, 500)">
+    <rect width="424" height="460" rx="4" class="wireframe-box"/>
+    <rect x="20" y="20" width="384" height="260" rx="2" fill="#1A1A1A"/>
+    <text x="20" y="320" class="mono" font-size="10">01 / ADVANCED</text>
+    <text x="20" y="360" class="display" font-size="28">STRENGTH FOUNDATION</text>
+    <text x="20" y="400" class="body" font-size="13">Barbell velocity &amp; structural volume.</text>
+  </g>
+  
+  <!-- Card 2 -->
+  <g transform="translate(544, 500)">
+    <rect width="424" height="460" rx="4" class="wireframe-box"/>
+    <rect x="20" y="20" width="384" height="260" rx="2" fill="#1A1A1A"/>
+    <text x="20" y="320" class="mono" font-size="10">02 / INTERMEDIATE</text>
+    <text x="20" y="360" class="display" font-size="28">CONDITIONING ENGINE</text>
+    <text x="20" y="400" class="body" font-size="13">Threshold pacing &amp; anaerobic capacity.</text>
+  </g>
+  
+  <!-- Card 3 (MOBILITY CONTROL - 4K Updated) -->
+  <g transform="translate(992, 500)">
+    <rect width="424" height="460" rx="4" class="wireframe-box" stroke="#E34A21"/>
+    <rect x="20" y="20" width="384" height="260" rx="2" fill="#1C1816"/>
+    <text x="20" y="320" class="mono" font-size="10" fill="#E34A21">03 / ALL LEVELS · 4K PHOTO</text>
+    <text x="20" y="360" class="display" font-size="28" fill="#F4F2ED">MOBILITY CONTROL</text>
+    <text x="20" y="400" class="body" font-size="13">Cossack squat &amp; thoracic rotational range.</text>
+  </g>
+  
+  <!-- Specs -->
+  <line x1="96" y1="980" x2="520" y2="980" class="spec-solid"/>
+  <text x="260" y="1000" class="spec-label">W: 424px (4 cols)</text>
+  <line x1="520" y1="980" x2="544" y2="980" class="spec-solid"/>
+  <text x="515" y="1015" class="spec-label">Gap: 24px</text>
+</g>
+
+
+<g id="04-Facility-Spreads" transform="translate(0, 2992)">
+  <line x1="96" y1="0" x2="1416" y2="0" stroke="#222222" stroke-width="1"/>
+  <text x="96" y="44" class="mono">04 / FACILITY</text>
+  <text x="1220" y="44" class="mono">05 SPREADS — SCROLL</text>
+  
+  <text x="96" y="100" class="display" font-size="44">THE PERFORMANCE ENVIRONMENT.</text>
+  
+  <!-- Horizontal Track Representation -->
+  <g transform="translate(96, 140)">
+    <!-- Spread 1 -->
+    <rect x="0" y="0" width="410" height="480" rx="4" class="wireframe-box"/>
+    <rect x="16" y="16" width="378" height="320" rx="2" fill="#181818"/>
+    <text x="24" y="370" class="mono" font-size="10">04.1 / TRAINING FLOOR</text>
+    <text x="24" y="410" class="display" font-size="24">MAIN PLATFORMS</text>
+    <text x="24" y="440" class="body" font-size="12">12 custom power racks &amp; Eleiko plates.</text>
+    
+    <!-- Spread 2 -->
+    <rect x="434" y="0" width="410" height="480" rx="4" class="wireframe-box"/>
+    <rect x="450" y="16" width="378" height="320" rx="2" fill="#181818"/>
+    <text x="458" y="370" class="mono" font-size="10">04.2 / HEAVY IRON</text>
+    <text x="458" y="410" class="display" font-size="24">CALIBRATED STEEL</text>
+    <text x="458" y="440" class="body" font-size="12">Specialty bars, dumbbells to 70kg.</text>
+    
+    <!-- Spread 3 (COACHING SUITE 4K Updated) -->
+    <rect x="868" y="0" width="410" height="480" rx="4" class="wireframe-box" stroke="#E34A21"/>
+    <rect x="884" y="16" width="378" height="320" rx="2" fill="#1C1816"/>
+    <text x="892" y="370" class="mono" font-size="10" fill="#E34A21">04.5 / 1:1 COACHING SUITE</text>
+    <text x="892" y="410" class="display" font-size="24">COACHING</text>
+    <text x="892" y="440" class="body" font-size="12">Small groups and real eyes on every rep.</text>
+  </g>
+</g>
+
+
+<g id="05-Coaches-Schedule" transform="translate(0, 3712)">
+  <line x1="96" y1="0" x2="1416" y2="0" stroke="#222222" stroke-width="1"/>
+  <text x="96" y="44" class="mono">05 / COACHES &amp; SCHEDULE</text>
+  <text x="96" y="100" class="display" font-size="44">MEASURED EYES ON EVERY REP.</text>
+  
+  <!-- Coach Roster Preview -->
+  <g transform="translate(96, 140)">
+    <rect x="0" y="0" width="280" height="360" rx="4" class="wireframe-box"/>
+    <rect x="16" y="16" width="248" height="240" rx="2" fill="#181818"/>
+    <text x="20" y="290" class="display" font-size="22">MARCUS VANE</text>
+    <text x="20" y="320" class="mono" font-size="10">HEAD OF STRENGTH</text>
+    
+    <rect x="304" y="0" width="280" height="360" rx="4" class="wireframe-box"/>
+    <rect x="320" y="16" width="248" height="240" rx="2" fill="#181818"/>
+    <text x="324" y="290" class="display" font-size="22">ELENA ROSTOVA</text>
+    <text x="324" y="320" class="mono" font-size="10">MOBILITY &amp; RECOVERY</text>
+    
+    <!-- Weekly Schedule Grid Mini Table -->
+    <g transform="translate(620, 0)">
+      <rect width="700" height="360" rx="4" class="wireframe-box"/>
+      <text x="24" y="40" class="mono">WEEKLY SCHEDULE (MON–SUN)</text>
+      
+      <!-- Table rows -->
+      <line x1="24" y1="60" x2="676" y2="60" stroke="#222222"/>
+      <text x="30" y="90" class="mono" font-size="10">06:00</text>
+      <text x="120" y="90" class="body">Early Strength Block (Waves A &amp; B)</text>
+      <text x="560" y="90" class="mono">COACH MARCUS</text>
+      
+      <line x1="24" y1="120" x2="676" y2="120" stroke="#222222"/>
+      <text x="30" y="150" class="mono" font-size="10">09:30</text>
+      <text x="120" y="150" class="body">Conditioning Engine (Aerobic Power)</text>
+      <text x="560" y="150" class="mono">COACH KAI</text>
+      
+      <line x1="24" y1="180" x2="676" y2="180" stroke="#222222"/>
+      <text x="30" y="210" class="mono" font-size="10">14:00</text>
+      <text x="120" y="210" class="body">Mobility &amp; Structural Range</text>
+      <text x="560" y="210" class="mono">COACH ELENA</text>
+      
+      <line x1="24" y1="240" x2="676" y2="240" stroke="#222222"/>
+      <text x="30" y="270" class="mono" font-size="10">17:30</text>
+      <text x="120" y="270" class="body">Heavy Powerlifting &amp; Squat Rack</text>
+      <text x="560" y="270" class="mono">COACH MARCUS</text>
+    </g>
+  </g>
+</g>
+
+
+<g id="06-Membership-Tiers" transform="translate(0, 4392)">
+  <line x1="96" y1="0" x2="1416" y2="0" stroke="#222222" stroke-width="1"/>
+  <text x="96" y="44" class="mono">06 / MEMBERSHIP</text>
+  <text x="96" y="100" class="display" font-size="44">NO CASUAL VISITS. DEDICATED INTAKE.</text>
+  
+  <g transform="translate(96, 140)">
+    <!-- Tier 1: CLUB -->
+    <rect x="0" y="0" width="424" height="480" rx="4" class="wireframe-box"/>
+    <text x="32" y="50" class="mono">TIER 01</text>
+    <text x="32" y="90" class="display" font-size="36">CLUB</text>
+    <text x="32" y="140" class="display" font-size="48" fill="#F4F2ED">$180<tspan font-size="16" class="mono"> / MO</tspan></text>
+    <text x="32" y="180" class="body">Full open facility access, platforms, saunas and locker suite.</text>
+    <line x1="32" y1="220" x2="392" y2="220" stroke="#222222"/>
+    <text x="32" y="260" class="body" font-size="13">✓ Keycard entry 05:00–23:00</text>
+    <text x="32" y="295" class="body" font-size="13">✓ Recovery &amp; Cold Plunge suite</text>
+    <text x="32" y="330" class="body" font-size="13">✓ Member training journal app</text>
+    <rect x="32" y="400" width="360" height="48" rx="2" fill="transparent" stroke="#383838"/>
+    <text x="175" y="429" class="mono">APPLY ↗</text>
+    
+    <!-- Tier 2: PERFORMANCE (Featured) -->
+    <rect x="448" y="0" width="424" height="480" rx="4" class="wireframe-box" stroke="#E34A21" stroke-width="2"/>
+    <rect x="448" y="0" width="424" height="6" fill="#E34A21"/>
+    <text x="480" y="50" class="mono" fill="#E34A21">TIER 02 · RECOMMENDED</text>
+    <text x="480" y="90" class="display" font-size="36">PERFORMANCE</text>
+    <text x="480" y="140" class="display" font-size="48" fill="#E34A21">$280<tspan font-size="16" class="mono" fill="#8A8984"> / MO</tspan></text>
+    <text x="480" y="180" class="body">All Club access + coached programming blocks &amp; weekly metric audit.</text>
+    <line x1="480" y1="220" x2="840" y2="220" stroke="#222222"/>
+    <text x="480" y="260" class="body" font-size="13">✓ All Club tier inclusions</text>
+    <text x="480" y="295" class="body" font-size="13">✓ 3 coached group blocks / week</text>
+    <text x="480" y="330" class="body" font-size="13">✓ Monthly velocity &amp; force profile</text>
+    <rect x="480" y="400" width="360" height="48" rx="2" fill="#E34A21"/>
+    <text x="615" y="429" class="mono" font-weight="700" fill="#FFFFFF">JOIN NOW ↗</text>
+    
+    <!-- Tier 3: UNLIMITED -->
+    <rect x="896" y="0" width="424" height="480" rx="4" class="wireframe-box"/>
+    <text x="928" y="50" class="mono">TIER 03</text>
+    <text x="928" y="90" class="display" font-size="36">UNLIMITED</text>
+    <text x="928" y="140" class="display" font-size="48" fill="#F4F2ED">$420<tspan font-size="16" class="mono"> / MO</tspan></text>
+    <text x="928" y="180" class="body">Full access + dedicated 1-on-1 personal coach, programming &amp; nutrition.</text>
+    <line x1="928" y1="220" x2="1288" y2="220" stroke="#222222"/>
+    <text x="928" y="260" class="body" font-size="13">✓ Unlimited coached sessions</text>
+    <text x="928" y="295" class="body" font-size="13">✓ 2 dedicated 1:1 sessions / week</text>
+    <text x="928" y="330" class="body" font-size="13">✓ Permanent dedicated locker</text>
+    <rect x="928" y="400" width="360" height="48" rx="2" fill="transparent" stroke="#383838"/>
+    <text x="1070" y="429" class="mono">APPLY ↗</text>
+  </g>
+</g>
+
+
+<g id="07-Footer-Colophon" transform="translate(0, 5132)">
+  <line x1="96" y1="0" x2="1416" y2="0" stroke="#222222" stroke-width="1"/>
+  
+  <g transform="translate(96, 60)">
+    <text x="0" y="40" class="display" font-size="72" letter-spacing="-0.04em">BUILD STRONGER FORM.</text>
+    <text x="0" y="100" class="body" font-size="16">Intake opens quarterly. 240 active members maximum per facility.</text>
+    
+    <rect x="0" y="140" width="240" height="52" rx="2" fill="#E34A21"/>
+    <text x="65" y="172" class="mono" font-weight="700" fill="#FFFFFF">REQUEST INTAKE ↗</text>
+  </g>
+  
+  <line x1="96" y1="300" x2="1416" y2="300" stroke="#222222"/>
+  
+  <!-- Studio Metadata Footer -->
+  <g transform="translate(96, 360)">
+    <text x="0" y="0" class="display" font-size="24">FORGE</text>
+    <text x="0" y="30" class="mono" font-size="10">AN ECHO11 STUDIO CONCEPT BUILD</text>
+    
+    <text x="440" y="0" class="mono" fill="#F4F2ED">LOCATION</text>
+    <text x="440" y="25" class="body" font-size="13">412 Steelworks Yard, District 04</text>
+    <text x="440" y="48" class="body" font-size="13">Open Daily: 05:00 — 23:00</text>
+    
+    <text x="800" y="0" class="mono" fill="#F4F2ED">NAVIGATION</text>
+    <text x="800" y="25" class="mono" font-size="11">01 / MANIFESTO</text>
+    <text x="800" y="48" class="mono" font-size="11">02 / FORGING</text>
+    <text x="800" y="71" class="mono" font-size="11">03 / TRAINING</text>
+    <text x="800" y="94" class="mono" font-size="11">04 / MEMBERSHIP</text>
+    
+    <text x="1150" y="0" class="mono" fill="#F4F2ED">STUDIO</text>
+    <text x="1150" y="25" class="body" font-size="13">Echo11 Design &amp; Tech</text>
+    <text x="1150" y="48" class="mono" font-size="10" fill="#E34A21">ECHO11.TECH ↗</text>
+  </g>
+</g>
+
+</svg>

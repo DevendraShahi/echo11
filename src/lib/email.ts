@@ -561,3 +561,107 @@ export async function sendInvoiceEmail({
     return { success: false, error: message }
   }
 }
+
+interface WebsiteInquiryEmailParams {
+  inquiryId: string
+  offer_path: string
+  project_type: string
+  name: string
+  email: string
+  company: string
+  current_website: string | null
+  budget_range: string
+  timeline: string
+  goals: string
+  reference_project: string | null
+  source_path: string
+  country_code: string | null
+  currency: string
+  utm_source: string | null
+  utm_medium: string | null
+  utm_campaign: string | null
+}
+
+function escapeEmailHtml(value: string | null | undefined): string {
+  return (value || '')
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#039;')
+}
+
+function humanizeInquiryValue(value: string): string {
+  return value
+    .split('-')
+    .map(part => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(' ')
+}
+
+export async function sendWebsiteInquiryEmail(
+  inquiry: WebsiteInquiryEmailParams
+): Promise<{ success: boolean; error?: string }> {
+  if (!resend) {
+    console.warn('Website inquiry saved, but RESEND_API_KEY is not configured:', inquiry.inquiryId)
+    return { success: false, error: 'RESEND_API_KEY is not configured' }
+  }
+
+  const recipient = process.env.CONTACT_INBOX_EMAIL || 'echo11.labs@gmail.com'
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || DEFAULT_APP_ORIGIN
+  const campaign = [inquiry.utm_source, inquiry.utm_medium, inquiry.utm_campaign]
+    .filter(Boolean)
+    .join(' / ')
+
+  try {
+    const { error } = await resend.emails.send({
+      from: FROM_EMAIL,
+      to: recipient,
+      replyTo: inquiry.email,
+      subject: `New ${humanizeInquiryValue(inquiry.offer_path)} inquiry from ${inquiry.company}`,
+      html: `<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
+<body style="margin:0;padding:0;background:#070909;color:#f7f9f9;font-family:Arial,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="padding:32px 16px;background:#070909;">
+    <tr><td align="center">
+      <table width="100%" cellpadding="0" cellspacing="0" style="max-width:640px;background:#0d1112;border:1px solid #243033;">
+        <tr><td style="padding:28px 32px;border-bottom:2px solid #00E5FF;">
+          <img src="${appUrl}/echo11-logo-white.png" alt="echo11" style="height:30px;width:auto;display:block;" />
+          <p style="margin:18px 0 0;color:#00E5FF;font-size:11px;letter-spacing:2px;text-transform:uppercase;">Website inquiry · ${escapeEmailHtml(inquiry.inquiryId)}</p>
+        </td></tr>
+        <tr><td style="padding:32px;">
+          <h1 style="margin:0 0 8px;font-size:26px;line-height:1.2;">${escapeEmailHtml(inquiry.company)}</h1>
+          <p style="margin:0 0 28px;color:#9ba7a9;font-size:14px;">${escapeEmailHtml(inquiry.name)} · <a href="mailto:${escapeEmailHtml(inquiry.email)}" style="color:#00E5FF;">${escapeEmailHtml(inquiry.email)}</a></p>
+          <table width="100%" cellpadding="0" cellspacing="0" style="background:#080b0c;border:1px solid #1d2729;margin-bottom:24px;">
+            <tr><td style="padding:18px;color:#879396;font-size:12px;">Route</td><td style="padding:18px;color:#ffffff;font-size:13px;">${escapeEmailHtml(humanizeInquiryValue(inquiry.offer_path))}</td></tr>
+            <tr><td style="padding:18px;color:#879396;font-size:12px;border-top:1px solid #1d2729;">Project</td><td style="padding:18px;color:#ffffff;font-size:13px;border-top:1px solid #1d2729;">${escapeEmailHtml(humanizeInquiryValue(inquiry.project_type))}</td></tr>
+            <tr><td style="padding:18px;color:#879396;font-size:12px;border-top:1px solid #1d2729;">Budget</td><td style="padding:18px;color:#ffffff;font-size:13px;border-top:1px solid #1d2729;">${escapeEmailHtml(humanizeInquiryValue(inquiry.budget_range))} (${escapeEmailHtml(inquiry.currency)})</td></tr>
+            <tr><td style="padding:18px;color:#879396;font-size:12px;border-top:1px solid #1d2729;">Timeline</td><td style="padding:18px;color:#ffffff;font-size:13px;border-top:1px solid #1d2729;">${escapeEmailHtml(humanizeInquiryValue(inquiry.timeline))}</td></tr>
+            ${inquiry.current_website ? `<tr><td style="padding:18px;color:#879396;font-size:12px;border-top:1px solid #1d2729;">Website</td><td style="padding:18px;color:#ffffff;font-size:13px;border-top:1px solid #1d2729;">${escapeEmailHtml(inquiry.current_website)}</td></tr>` : ''}
+            ${inquiry.reference_project ? `<tr><td style="padding:18px;color:#879396;font-size:12px;border-top:1px solid #1d2729;">Reference</td><td style="padding:18px;color:#ffffff;font-size:13px;border-top:1px solid #1d2729;">${escapeEmailHtml(inquiry.reference_project)}</td></tr>` : ''}
+          </table>
+          <p style="margin:0 0 8px;color:#879396;font-size:11px;letter-spacing:1.5px;text-transform:uppercase;">What they need</p>
+          <p style="margin:0 0 28px;color:#f7f9f9;font-size:15px;line-height:1.7;white-space:pre-wrap;">${escapeEmailHtml(inquiry.goals)}</p>
+          <p style="margin:0;color:#5f6b6d;font-size:11px;line-height:1.6;">Source: ${escapeEmailHtml(inquiry.source_path)}${inquiry.country_code ? ` · Country: ${escapeEmailHtml(inquiry.country_code)}` : ''}${campaign ? ` · Campaign: ${escapeEmailHtml(campaign)}` : ''}</p>
+        </td></tr>
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>`,
+    })
+
+    if (error) {
+      console.error('Resend website inquiry error:', error)
+      return { success: false, error: error.message }
+    }
+
+    return { success: true }
+  } catch (error) {
+    console.error('Failed to send website inquiry notification:', error)
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Failed to send inquiry notification',
+    }
+  }
+}

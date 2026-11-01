@@ -3,9 +3,12 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 import { MousePointer2 } from "lucide-react";
+import { markSplashDone } from "@/lib/splash";
 import styles from "./SplashScreen.module.css";
 
-const SPLASH_DURATION_MS = 3900;
+const SPLASH_DURATION_MS = 1700;
+const SPLASH_EXIT_MS = 650;
+const AUDIO_FADE_MS = 320;
 const SPLASH_SESSION_KEY = "echo11:splash-shown";
 const COLOR_A = "hsla(0, 0%, 0%, .35)";
 const COLOR_B = "hsla(186, 100%, 50%, .95)";
@@ -71,14 +74,17 @@ function getSplashConfig(width: number, height: number): SplashConfig {
 export function SplashScreen() {
   const pathname = usePathname();
   const [visible, setVisible] = useState(false);
-  const [audioBlocked, setAudioBlocked] = useState(false);
+  const [exiting, setExiting] = useState(false);
+  const [soundEnabled, setSoundEnabled] = useState(false);
   const attemptedRef = useRef(false);
   const timeoutRef = useRef<number | null>(null);
+  const exitTimeoutRef = useRef<number | null>(null);
+  const exitingRef = useRef(false);
+  const shownPathRef = useRef<string | null>(null);
   const dismissDurationRef = useRef<number>(SPLASH_DURATION_MS);
   const rootRef = useRef<HTMLDivElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
-  const audioUnlockHandlerRef = useRef<(() => void) | null>(null);
 
   const unlockScroll = useCallback(() => {
     document.documentElement.style.overflow = "";
@@ -92,8 +98,36 @@ export function SplashScreen() {
     }
     audio.pause();
     audio.currentTime = 0;
-    audio.muted = false;
-    setAudioBlocked(false);
+    audio.volume = 1;
+  }, []);
+
+  const fadeOutAudio = useCallback(() => {
+    const audio = audioRef.current;
+    if (!audio) {
+      return;
+    }
+    if (audio.paused) {
+      audio.volume = 1;
+      return;
+    }
+    const from = audio.volume;
+    const startedAt = performance.now();
+    const step = (now: number) => {
+      const current = audioRef.current;
+      if (!current) {
+        return;
+      }
+      const progress = Math.min(1, (now - startedAt) / AUDIO_FADE_MS);
+      current.volume = from * (1 - progress);
+      if (progress < 1) {
+        window.requestAnimationFrame(step);
+        return;
+      }
+      current.pause();
+      current.currentTime = 0;
+      current.volume = 1;
+    };
+    window.requestAnimationFrame(step);
   }, []);
 
   const clearDismissTimer = useCallback(() => {
@@ -103,6 +137,26 @@ export function SplashScreen() {
     }
   }, []);
 
+  const beginExit = useCallback(() => {
+    if (exitingRef.current) {
+      return;
+    }
+    exitingRef.current = true;
+    markSplashDone();
+    setExiting(true);
+    unlockScroll();
+    fadeOutAudio();
+    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    exitTimeoutRef.current = window.setTimeout(
+      () => {
+        exitTimeoutRef.current = null;
+        setVisible(false);
+        setExiting(false);
+      },
+      reduceMotion ? 0 : SPLASH_EXIT_MS,
+    );
+  }, [fadeOutAudio, unlockScroll]);
+
   const armDismissTimer = useCallback(() => {
     if (timeoutRef.current) {
       return;
@@ -110,74 +164,39 @@ export function SplashScreen() {
 
     timeoutRef.current = window.setTimeout(() => {
       timeoutRef.current = null;
-      setVisible(false);
-      stopAudio();
-      unlockScroll();
+      beginExit();
     }, dismissDurationRef.current);
-  }, [stopAudio, unlockScroll]);
+  }, [beginExit]);
 
-  const removeAudioUnlockListeners = useCallback(() => {
-    const handler = audioUnlockHandlerRef.current;
-    if (!handler) {
+  const enableSound = useCallback(async () => {
+    const audio = audioRef.current;
+    if (!audio || soundEnabled) {
       return;
     }
-    window.removeEventListener("pointerdown", handler);
-    window.removeEventListener("keydown", handler);
-    window.removeEventListener("touchstart", handler);
-    audioUnlockHandlerRef.current = null;
-  }, []);
-
-  const tryPlayAudio = useCallback(async () => {
-    const audio = audioRef.current;
-    if (!audio) {
-      return false;
-    }
-
-    // Skip if already playing.
-    if (!audio.paused) {
-      setAudioBlocked(false);
-      armDismissTimer();
-      return true;
-    }
-
+    audio.muted = false;
+    audio.currentTime = 0;
+    audio.volume = 0;
     try {
-      audio.currentTime = 0;
-      audio.muted = false;
-      audio.volume = 1;
       await audio.play();
-      setAudioBlocked(false);
-      armDismissTimer();
-      return true;
     } catch {
-      // Fallback attempt: start muted, then unmute shortly after.
-      try {
-        audio.currentTime = 0;
-        audio.muted = true;
-        await audio.play();
-        window.setTimeout(() => {
-          const current = audioRef.current;
-          if (!current) {
-            return;
-          }
-          current.muted = false;
-          current.volume = 1;
-        }, 120);
-        setAudioBlocked(false);
-        armDismissTimer();
-        return true;
-      } catch {
-        setAudioBlocked(true);
-        return false;
+      audio.volume = 1;
+      return;
+    }
+    setSoundEnabled(true);
+    const startedAt = performance.now();
+    const step = (now: number) => {
+      const current = audioRef.current;
+      if (!current || current.paused) {
+        return;
       }
-    }
-  }, [armDismissTimer]);
-
-  const enableAudio = useCallback(async () => {
-    const played = await tryPlayAudio();
-    if (played) {
-      removeAudioUnlockListeners();
-    }
-  }, [removeAudioUnlockListeners, tryPlayAudio]);
+      const progress = Math.min(1, (now - startedAt) / AUDIO_FADE_MS);
+      current.volume = progress;
+      if (progress < 1) {
+        window.requestAnimationFrame(step);
+      }
+    };
+    window.requestAnimationFrame(step);
+  }, [soundEnabled]);
 
   useEffect(() => {
     if (!visible || !canvasRef.current) {
@@ -282,43 +301,19 @@ export function SplashScreen() {
   }, [visible]);
 
   useEffect(() => {
-    if (!visible) {
-      return;
-    }
-
-    let canceled = false;
-
-    const bootAudio = async () => {
-      const played = await tryPlayAudio();
-      if (played || canceled) {
-        return;
-      }
-
-      const unlockHandler = () => {
-        void enableAudio();
-      };
-      audioUnlockHandlerRef.current = unlockHandler;
-      window.addEventListener("pointerdown", unlockHandler);
-      window.addEventListener("keydown", unlockHandler);
-      window.addEventListener("touchstart", unlockHandler);
-    };
-
-    void bootAudio();
-
-    return () => {
-      canceled = true;
-      stopAudio();
-      removeAudioUnlockListeners();
-    };
-  }, [enableAudio, removeAudioUnlockListeners, stopAudio, tryPlayAudio, visible]);
-
-  useEffect(() => {
     const isAppSurface =
       pathname.startsWith("/lab") ||
       pathname.startsWith("/portal") ||
-      pathname.startsWith("/client");
+      pathname.startsWith("/client") ||
+      pathname.startsWith("/laltin") ||
+      pathname.startsWith("/pizzaslice");
 
-    if (attemptedRef.current || isAppSurface) {
+    if (isAppSurface) {
+      markSplashDone();
+      return;
+    }
+
+    if (attemptedRef.current) {
       return;
     }
 
@@ -331,21 +326,27 @@ export function SplashScreen() {
 
     if (alreadyShownThisSession) {
       attemptedRef.current = true;
+      markSplashDone();
       return;
     }
 
     attemptedRef.current = true;
+    shownPathRef.current = pathname;
     try {
       window.sessionStorage.setItem(SPLASH_SESSION_KEY, "1");
     } catch {
       // Ignore storage failures and rely on in-memory attemptedRef fallback.
     }
 
+    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (reduceMotion) {
+      markSplashDone();
+    }
+
     setVisible(true);
     document.documentElement.style.overflow = "hidden";
     document.body.style.overflow = "hidden";
 
-    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     dismissDurationRef.current = reduceMotion ? 700 : SPLASH_DURATION_MS;
     armDismissTimer();
 
@@ -356,20 +357,26 @@ export function SplashScreen() {
   }, [armDismissTimer, clearDismissTimer, pathname, unlockScroll]);
 
   useEffect(() => {
-    return () => {
-      clearDismissTimer();
-      stopAudio();
-      removeAudioUnlockListeners();
-      unlockScroll();
-    };
-  }, [clearDismissTimer, removeAudioUnlockListeners, stopAudio, unlockScroll]);
-
-  const onSplashInteraction = useCallback(() => {
-    if (!audioBlocked) {
+    if (!visible || !shownPathRef.current) {
       return;
     }
-    void enableAudio();
-  }, [audioBlocked, enableAudio]);
+    if (pathname !== shownPathRef.current) {
+      beginExit();
+    }
+  }, [beginExit, pathname, visible]);
+
+  useEffect(() => {
+    return () => {
+      clearDismissTimer();
+      if (exitTimeoutRef.current) {
+        window.clearTimeout(exitTimeoutRef.current);
+        exitTimeoutRef.current = null;
+      }
+      stopAudio();
+      unlockScroll();
+      markSplashDone();
+    };
+  }, [clearDismissTimer, stopAudio, unlockScroll]);
 
   if (!visible) {
     return null;
@@ -378,21 +385,13 @@ export function SplashScreen() {
   return (
     <div
       ref={rootRef}
-      className={`${styles.splashRoot} ${audioBlocked ? styles.audioInteractive : ""}`}
+      className={exiting ? `${styles.splashRoot} ${styles.exiting}` : styles.splashRoot}
       role="status"
       aria-live="polite"
       aria-label="Loading echo11"
-      tabIndex={audioBlocked ? 0 : -1}
-      onPointerDown={onSplashInteraction}
-      onKeyDown={(event) => {
-        if ((event.key === "Enter" || event.key === " ") && audioBlocked) {
-          event.preventDefault();
-          onSplashInteraction();
-        }
-      }}
     >
       <canvas id="canv" ref={canvasRef} className={styles.canvas} />
-      <audio ref={audioRef} src="/echo11-splash-audio.mp3" preload="auto" autoPlay playsInline />
+      <audio ref={audioRef} src="/echo11-splash-audio.mp3" preload="auto" playsInline />
       <div className={styles.brandBlock} aria-hidden="true">
         <div className={styles.brandLayer}>
           {"echo11".split("").map((char, index) => (
@@ -401,14 +400,14 @@ export function SplashScreen() {
             </span>
           ))}
         </div>
-        <p className={styles.brandSub}>product engineering studio</p>
+        <p className={styles.brandSub}>website strategy, design &amp; engineering</p>
       </div>
-      {audioBlocked && (
+      {!soundEnabled && (
         <button
           type="button"
           className={styles.centerHint}
           aria-label="Enable splash audio"
-          onClick={() => void enableAudio()}
+          onClick={() => void enableSound()}
         >
           <span className={styles.centerHintRing} />
           <span className={styles.centerHintRing} />

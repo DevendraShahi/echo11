@@ -19,8 +19,8 @@ const priorityConfig: Record<TaskPriority, { bg: string; text: string; label: st
 
 export function OverdueTasks({ tasks: initialTasks }: OverdueTasksProps) {
   const tasks = initialTasks || [
-    { id: '1', title: 'Fix navigation bug', priority: 'high' as TaskPriority, due_date: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(), project: { name: 'TrueLuxe Website' } },
-    { id: '2', title: 'Update payment integration', priority: 'urgent' as TaskPriority, due_date: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(), project: { name: 'Prika App' } },
+    { id: '1', title: 'Review product discovery flow', priority: 'high' as TaskPriority, due_date: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(), project: { name: 'TrueLuxe Nepal' } },
+    { id: '2', title: 'Prepare campaign direction', priority: 'urgent' as TaskPriority, due_date: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(), project: { name: 'Siyo Dhaago Brand System' } },
     { id: '3', title: 'Review design mockups', priority: 'medium' as TaskPriority, due_date: new Date().toISOString(), project: { name: 'Leaders NP' } },
   ]
 

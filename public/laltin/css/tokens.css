@@ -1,0 +1,73 @@
+/* ==========================================================
+   LALTIN — tokens.css
+   The only file permitted to contain raw hex.
+   Values from the LALTIN Brand & Website Build Book §05/§07/§08/§38/§47.
+   ========================================================== */
+
+:root {
+  /* ---- color (brand book §05, verbatim) ---- */
+  --laltin-ink: #171814;
+  --laltin-charcoal: #20231E;
+  --laltin-forest: #293329;
+  --laltin-moss: #66705C;
+  --laltin-earth: #8A6B50;
+  --laltin-clay: #AA8060;
+  --laltin-amber: #D89A4B;
+  --laltin-flame: #EDB968;
+  --laltin-linen: #DDD7C9;
+  --laltin-bone: #F0ECE2;
+  --laltin-paper: #F6F3EB;
+  --laltin-muted: #77766E;
+
+  /* derived — darkened muted so ≤16px text meets 4.5:1 on paper/bone
+     (measures 4.9:1 on paper, 4.8:1 on bone). Never use --laltin-muted
+     for body-size copy; labels ≥18px only. */
+  --laltin-muted-text: #6B6A62;
+
+  /* ---- semantic surfaces ---- */
+  --bg: var(--laltin-paper);
+  --fg: var(--laltin-ink);
+  --surface: var(--laltin-bone);
+  --accent: var(--laltin-amber);
+  --border-light: rgba(23, 24, 20, .14);   /* §47 */
+  --border-dark: rgba(255, 255, 255, .16);  /* §47 */
+
+  /* ---- typography (§06) ---- */
+  --font-display: "Cormorant Garamond", Georgia, "Times New Roman", serif;
+  --font-sans: "Geist", "Inter", system-ui, -apple-system, sans-serif;
+  --font-mono: "Geist Mono", ui-monospace, "SF Mono", Menlo, monospace;
+
+  /* ---- type scale (§07, verbatim) ---- */
+  --text-xs: clamp(.72rem, .7vw, .78rem);
+  --text-sm: clamp(.82rem, .8vw, .9rem);
+  --text-body: clamp(1rem, 1vw, 1.125rem);
+  --text-lead: clamp(1.25rem, 1.8vw, 1.75rem);
+  --text-h4: clamp(1.5rem, 2vw, 2rem);
+  --text-h3: clamp(2rem, 3vw, 3.25rem);
+  --text-h2: clamp(3rem, 5.5vw, 6rem);
+  --text-display: clamp(4.5rem, 9vw, 10rem);
+
+  /* ---- spacing (§08) ---- */
+  --page-x: clamp(1.25rem, 4vw, 5rem);
+  --section-y: clamp(6rem, 12vw, 12rem);
+  --section-y-lg: clamp(8rem, 16vw, 16rem);
+  --content-max: 1600px;
+  --reading-max: 720px;
+  --gutter: clamp(1rem, 2vw, 1.5rem);
+  --nav-h: 72px;
+
+  /* ---- shape (§47) ---- */
+  --radius-xs: 2px;
+  --radius-sm: 4px;
+  --radius-media: 6px;
+
+  /* ---- motion (§38, verbatim) ---- */
+  --dur-micro: .18s;
+  --dur-ui: .32s;
+  --dur-reveal: .75s;
+  --dur-image: 1.15s;
+  --dur-cinematic: 1.6s;
+  --ease-standard: cubic-bezier(.22, 1, .36, 1);
+  --ease-gentle: cubic-bezier(.16, 1, .3, 1);
+  --ease-cinematic: cubic-bezier(.76, 0, .24, 1);
+}

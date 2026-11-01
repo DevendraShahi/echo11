@@ -1,6 +1,6 @@
 "use client";
 
-import { forwardRef } from "react";
+import { Children, cloneElement, forwardRef, isValidElement, ReactElement } from "react";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
 
@@ -10,7 +10,7 @@ import { motion } from "framer-motion";
 
 // Tailwind utilities are perfect for this.
 const buttonVariants = {
-  base: "inline-flex items-center justify-center whitespace-nowrap rounded-none text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50",
+  base: "inline-flex items-center justify-center whitespace-nowrap rounded-none text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50",
   variants: {
     variant: {
       default: "bg-accent text-accent-foreground hover:bg-accent/90 shadow-[0_0_20px_var(--accent-glow)]",
@@ -42,7 +42,7 @@ export interface ButtonProps
 }
 
 const Button = forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant = "default", size = "default", ...props }, ref) => {
+  ({ className, variant = "default", size = "default", asChild = false, children, ...props }, ref) => {
     // Generate class string based on variants
     const classes = cn(
       buttonVariants.base,
@@ -51,6 +51,16 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       className
     );
     
+    if (asChild) {
+      const child = Children.only(children);
+      if (!isValidElement(child)) return null;
+
+      const element = child as ReactElement<{ className?: string }>;
+      return cloneElement(element, {
+        className: cn(classes, element.props.className),
+      });
+    }
+
     return (
       <motion.button
         ref={ref}
@@ -60,7 +70,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         disabled={props.disabled}
         onClick={props.onClick}
       >
-        {props.children}
+        {children}
       </motion.button>
     );
   }

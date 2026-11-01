@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "kind": "html",
+  "title": "public/showcase/forge/index.html",
+  "entry": "public/showcase/forge/index.html",
+  "renderer": "html",
+  "status": "complete",
+  "exports": [
+    "html",
+    "pdf",
+    "zip"
+  ],
+  "createdAt": "2026-10-24T21:57:27.279Z",
+  "updatedAt": "2026-10-24T21:57:27.279Z",
+  "metadata": {
+    "inferred": true,
+    "reconciled": true
+  }
+}

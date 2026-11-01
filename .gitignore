@@ -11,6 +11,7 @@
 
 # next.js
 /.next/
+/.next-dev-*/
 /out/
 
 # production
@@ -34,3 +35,11 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Local agent state, render caches, and browser verification output
+/.freebuff/
+/.hyperframes-cache/
+/.kilo/
+/.od-skills/
+/browser/
+/http:/

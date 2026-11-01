@@ -1,0 +1,185 @@
+/* ==========================================================
+   LALTIN — base.css · reset, typography, reveal scaffolding
+   ========================================================== */
+
+*, *::before, *::after { box-sizing: border-box; }
+* { margin: 0; }
+
+html {
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font-sans);
+  font-size: var(--text-body);
+  line-height: 1.55;
+  font-weight: 400;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+}
+
+img { display: block; max-width: 100%; }
+button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; }
+a { color: inherit; text-decoration: none; }
+ul, ol { list-style: none; padding: 0; }
+
+:focus-visible {
+  outline: 2px solid var(--laltin-amber);
+  outline-offset: 3px;
+}
+
+::selection { background: var(--laltin-forest); color: var(--laltin-bone); }
+
+/* ---------- headings ------------------------------------------------ */
+
+h1, h2, h3, h4 {
+  font-family: var(--font-display);
+  font-weight: 500;
+  line-height: 1.05;
+  letter-spacing: -.02em;
+  font-size: var(--text-h3);
+}
+
+.display {
+  font-family: var(--font-display);
+  font-size: var(--text-display);
+  line-height: .91;
+  letter-spacing: -.04em;
+  font-weight: 500;
+}
+
+.h2 {
+  font-family: var(--font-display);
+  font-size: var(--text-h2);
+  line-height: .95;
+  letter-spacing: -.03em;
+  font-weight: 500;
+}
+
+.lead {
+  font-size: var(--text-lead);
+  line-height: 1.4;
+  max-width: var(--reading-max);
+}
+
+p { max-width: 65ch; }
+
+/* ---------- metadata / labels --------------------------------------- */
+
+.mono {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.eyebrow {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--laltin-muted-text);
+  display: inline-flex;
+  align-items: center;
+  gap: .75rem;
+}
+
+.eyebrow::before {
+  content: "";
+  width: 2.5rem;
+  height: 1px;
+  background: var(--border-light);
+  flex: none;
+}
+
+.on-dark .eyebrow, .eyebrow--dark { color: var(--laltin-linen); }
+.on-dark .eyebrow::before { background: var(--border-dark); }
+
+.muted { color: var(--laltin-muted-text); }
+
+/* ---------- line reveal (§39) — gated on html.anim ------------------ */
+
+.line-mask {
+  display: block;
+  overflow: hidden;
+  padding-block: .04em; /* keep descenders from clipping */
+}
+
+html.anim .line-mask > span {
+  display: block;
+  transform: translateY(110%);
+  will-change: transform;
+}
+
+/* label reveal: opacity + letter-spacing (§39) */
+html.anim .lbl-reveal { opacity: 0; letter-spacing: .12em; }
+
+/* ---------- window reveal (§17) — the standard LALTIN media reveal --- */
+
+.win {
+  overflow: hidden;
+  position: relative;
+}
+
+.win img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+html.anim .win > img,
+html.anim .win > .win__i {
+  transform: scale(1.08) translateY(5%);
+  will-change: transform;
+}
+
+.win__i { display: block; width: 100%; height: 100%; }
+
+/* media hover (§19) — image scales, warm overlay warms. No tilt.
+   Uses the individual `scale` property so it composes with the
+   inline `transform` GSAP writes during reveals. */
+.media-hover { position: relative; overflow: hidden; }
+.media-hover img {
+  transition: transform var(--dur-image) var(--ease-gentle),
+              scale var(--dur-image) var(--ease-gentle);
+}
+.media-hover::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: var(--laltin-flame);
+  opacity: 0;
+  transition: opacity var(--dur-image) var(--ease-gentle);
+  pointer-events: none;
+}
+.media-hover:hover img { scale: 1.025; }
+.media-hover:hover::after { opacity: .08; }
+
+/* ---------- reduced motion / no-anim static fallbacks ---------------- */
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  html.anim .line-mask > span { transform: none; }
+  html.anim .lbl-reveal { opacity: 1; letter-spacing: .08em; }
+  html.anim .win > img, html.anim .win > .win__i { transform: none; }
+  .media-hover img, .media-hover::after { transition: none; }
+}
+
+/* skip link */
+.skip {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  z-index: 200;
+  background: var(--laltin-ink);
+  color: var(--laltin-bone);
+  padding: .75rem 1.25rem;
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  letter-spacing: .1em;
+}
+.skip:focus { left: .5rem; top: .5rem; }

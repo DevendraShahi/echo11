@@ -1,10 +1,10 @@
 import { createMetadata } from "@/lib/seo";
 
 export const metadata = createMetadata({
-  title: "Manifesto | echo11",
+  title: "About us | echo11",
   description:
     "The product beliefs behind echo11's approach to clarity, useful design, transparent delivery, and durable craft.",
-  path: "/manifesto",
+  path: "/about",
 });
 
 export default function ManifestoLayout({

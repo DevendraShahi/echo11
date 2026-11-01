@@ -1,36 +1,38 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Echo11
 
-## Getting Started
+Echo11 is a dark-first digital studio site with an internal agency workspace and a client workspace.
 
-First, run the development server:
+## Applications
+
+- `/` — public marketing site
+- `/lab` — internal agency workspace
+- `/client` — current client workspace
+- `/portal` — legacy client portal kept for compatibility
+
+## Local setup
 
 ```bash
+npm ci
+cp .env.example .env.local
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [https://echo11.tech](https://echo11.tech) with your browser to see the result.
+Open the local URL printed by Next.js (normally `http://localhost:3000`). Fill in the Supabase settings in `.env.local` before using authenticated or data-backed features or creating a production build. See [.env.example](.env.example) for the supported variables.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Development checks
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+npm run lint
+npx tsc --noEmit
+npm run build
+```
 
-## Learn More
+No automated test suite is currently configured. Use the checks above and manually verify the affected route or workflow.
 
-To learn more about Next.js, take a look at the following resources:
+## Project guidance
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Read [AGENTS.md](AGENTS.md) before contributing. It contains the architecture, conventions, verification expectations, database rules, and routing instructions for the Echo11 project skills in `.opencode/skills/`.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Database
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Schema and RLS changes belong in [supabase/migrations](supabase/migrations). The migrations are the canonical schema history; `docs/supabase-schema.sql` is only a reference/bootstrap document and may not contain the latest changes.

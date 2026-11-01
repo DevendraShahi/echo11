@@ -1,5 +1,13 @@
 import { Variants } from "framer-motion";
 
+/**
+ * The house easing curve for entrance and hover motion. One owner, so new
+ * effects reuse it instead of declaring another copy. Components that need it in
+ * a CSS class string have to spell out the same cubic-bezier, since Tailwind
+ * cannot read a TypeScript constant.
+ */
+export const EASE_OUT = [0.16, 1, 0.3, 1] as const;
+
 export const fadeIn: Variants = {
   hidden: { opacity: 0 },
   visible: { opacity: 1, transition: { duration: 0.5, ease: "easeOut" } },

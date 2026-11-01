@@ -1,269 +1,387 @@
 "use client";
 
-import { useRef, useState, useEffect } from "react";
-import { motion, AnimatePresence, useInView } from "framer-motion";
+import { useLayoutEffect, useRef, useState } from "react";
+import Link from "next/link";
+import { motion, useReducedMotion, type Variants } from "framer-motion";
+import { ArrowRight } from "lucide-react";
 import { Container } from "@/components/ui/Container";
-import { Network, Globe } from "lucide-react";
+import { RevealText } from "@/components/ui/RevealText";
+import { HomeProcessExperience } from "@/components/sections/HomeProcessExperience";
+import { EASE_OUT } from "@/lib/animations";
+import { gsap } from "@/lib/gsap";
+import { OFFERS } from "@/lib/website-offers";
+import { cn } from "@/lib/utils";
 
-// --- Mini Visual Components for the Engine ---
+/**
+ * One stage of a project, written for the person paying for it: what happens,
+ * what exists at the end of it, and the single thing we need from them to move
+ * on. `youGet` is drawn from the two published scopes in `website-offers.ts`, so
+ * this section cannot promise a deliverable the offer does not already include.
+ *
+ * `num` renders here as the stage's ghost numeral beside the spine, and
+ * `/services` prints it beside the stage names.
+ */
+export interface DeliveryStage {
+  num: string;
+  title: string;
+  does: string;
+  youGet: string[];
+  fromYou: string;
+}
 
-const ArchitectureVisual = () => (
-  <div className="relative w-full h-full flex items-center justify-center p-4">
-    <motion.div 
-      initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: "spring", stiffness: 100 }}
-      className="w-16 h-16 md:w-20 md:h-20 rounded-none bg-black border border-white/10 flex items-center justify-center z-20 shadow-[0_0_40px_var(--accent-glow)]"
-    >
-      <Network className="w-8 h-8 text-accent" />
-    </motion.div>
-    {[0, 1, 2].map((i) => (
-      <motion.div
-        key={i}
-        className="absolute w-full h-full border-[0.5px] border-white/5 rounded-full"
-        initial={{ rotate: 0 }} animate={{ rotate: 360 }}
-        transition={{ duration: 15 + i * 5, repeat: Infinity, ease: "linear" }}
-        style={{ width: `${140 + i * 80}px`, height: `${140 + i * 80}px` }}
-      >
-        <div className="absolute -top-1.5 left-1/2 w-3 h-3 rounded-full bg-accent shadow-[0_0_15px_var(--accent-glow)] transform -translate-x-1/2" />
-      </motion.div>
-    ))}
-  </div>
-);
-
-const DesignVisual = () => (
-  <div className="relative w-full h-full flex flex-col items-center justify-center gap-4 p-6 scale-90 md:scale-100">
-    <motion.div 
-      initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.1 }}
-      className="w-full max-w-[280px] h-12 bg-white/5 rounded-none border border-white/10 flex items-center px-4"
-    >
-      <div className="w-6 h-6 bg-white/10 mr-3 rounded-none" />
-      <div className="w-24 h-2 bg-white/10 rounded-none" />
-    </motion.div>
-    <div className="flex w-full max-w-[280px] gap-4 h-36">
-      <motion.div 
-        initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.2 }}
-        className="w-1/3 h-full bg-accent/5 rounded-none border border-accent/20 relative overflow-hidden"
-      >
-        <div className="absolute inset-0 bg-gradient-to-t from-accent/10 to-transparent" />
-      </motion.div>
-      <motion.div 
-        initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.3 }}
-        className="w-2/3 h-full bg-white/5 rounded-none border border-white/10 flex flex-col gap-3 p-4 justify-center"
-      >
-        <div className="w-full h-2 bg-white/10 rounded-none" />
-        <div className="w-5/6 h-2 bg-white/10 rounded-none" />
-        <div className="w-1/2 h-2 bg-white/10 rounded-none" />
-        <div className="mt-2 w-1/3 h-6 bg-accent/20 border border-accent/30 rounded-none" />
-      </motion.div>
-    </div>
-  </div>
-);
-
-const EngineeringVisual = () => {
-  const code = [
-    '<Container>',
-    '  <motion.div',
-    '    initial={{ opacity: 0 }}',
-    '    animate={{ opacity: 1 }}',
-    '    className="premium"',
-    '  >',
-    '    <CoreSystem />',
-    '  </motion.div>',
-    '</Container>'
-  ];
-  return (
-    <div className="relative w-full h-full flex items-center justify-center p-4">
-      <div className="w-full max-w-[280px] md:max-w-[320px] bg-[#030303] rounded-none border border-white/10 overflow-hidden shadow-2xl scale-90 md:scale-100">
-        <div className="flex gap-1.5 px-4 py-2.5 border-b border-white/5 bg-white/5">
-          <div className="w-2.5 h-2.5 rounded-none bg-red-500/50" />
-          <div className="w-2.5 h-2.5 rounded-none bg-yellow-500/50" />
-          <div className="w-2.5 h-2.5 rounded-none bg-green-500/50" />
-        </div>
-        <div className="p-4 font-mono text-[12px] md:text-[13px] leading-[1.8] text-accent/80">
-          {code.map((line, i) => (
-            <motion.div key={i} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.1 }} className="whitespace-pre">
-              <span className="text-white/20 mr-4 select-none">{i + 1}</span>
-              {line}
-            </motion.div>
-          ))}
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1, repeat: Infinity, duration: 1 }} className="mt-1 text-white">_</motion.div>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-const DeploymentVisual = () => (
-  <div className="relative w-full h-full flex items-center justify-center overflow-hidden">
-    <Globe className="w-12 h-12 text-white/20 absolute z-10" />
-    <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-accent/10 via-transparent to-transparent opacity-50" />
-    {[0, 1, 2].map((i) => (
-      <motion.div
-        key={i}
-        className="absolute border border-accent/30 rounded-full"
-        initial={{ scale: 0.2, opacity: 1 }} animate={{ scale: 3, opacity: 0 }}
-        transition={{ duration: 4, repeat: Infinity, delay: i * 1.3, ease: "easeOut" }}
-        style={{ width: '100px', height: '100px' }}
-      />
-    ))}
-    <motion.div animate={{ rotate: 360 }} transition={{ duration: 10, repeat: Infinity, ease: "linear" }} className="absolute w-56 h-56">
-      <div className="absolute top-0 left-1/2 w-2 h-2 bg-accent shadow-[0_0_15px_var(--accent-glow)] rounded-none" />
-      <div className="absolute bottom-1/4 right-0 w-1.5 h-1.5 bg-white shadow-[0_0_10px_white] rounded-none" />
-      <div className="absolute bottom-0 left-1/4 w-2 h-2 bg-accent shadow-[0_0_15px_var(--accent-glow)] rounded-none" />
-    </motion.div>
-    <div className="absolute bottom-4 left-4 right-4 flex justify-between z-20 bg-black/50 p-3 rounded-none border border-white/5 backdrop-blur-sm">
-      <div className="flex flex-col">
-        <span className="font-mono text-[9px] text-white/40 uppercase tracking-widest">Network Status</span>
-        <span className="font-mono text-[11px] md:text-xs text-accent">200 OK — Ready</span>
-      </div>
-      <div className="flex flex-col text-right">
-        <span className="font-mono text-[9px] text-white/40 uppercase tracking-widest">Global Latency</span>
-        <span className="font-mono text-[11px] md:text-xs text-accent">12ms (Edge)</span>
-      </div>
-    </div>
-  </div>
-);
-
-export const steps = [
-  { 
-    num: "01", 
-    title: "Discovery & Architecture", 
-    desc: "We align on outcomes, user intent, and product constraints, then translate that into a clear technical blueprint before development starts.",
-    specs: ["Product Scope", "System Blueprint", "Data Model"],
-    visual: ArchitectureVisual
+export const steps: DeliveryStage[] = [
+  {
+    num: "01",
+    title: "Discovery and architecture",
+    does: "We agree what the site has to do, what it has to contain, and how we will know it worked.",
+    youGet: ["A written scope and page map", "The content, integration, and decision list"],
+    fromYou: "One call, and access to the content you already have.",
   },
-  { 
-    num: "02", 
-    title: "Design & Interaction", 
-    desc: "We shape interface direction, interaction patterns, and component language so the product feels precise, branded, and easy to use.",
-    specs: ["Interface Direction", "Component System", "Motion Rules"],
-    visual: DesignVisual
+  {
+    num: "02",
+    title: "Design and interaction",
+    does: "You see the direction and the page system before anything is built.",
+    youGet: [
+      "A visual direction you approve",
+      "The responsive page system",
+      "The rules that keep later pages consistent",
+    ],
+    fromYou: "One round of feedback on the direction.",
   },
-  { 
-    num: "03", 
-    title: "Product Engineering", 
-    desc: "We build clean, testable systems with dependable release practices, balancing delivery speed with long-term maintainability.",
-    specs: ["Typed Codebase", "Reliable Delivery", "Quality Gates"],
-    visual: EngineeringVisual
+  {
+    num: "03",
+    title: "Website engineering",
+    does: "We build the site, wire its content and integrations, and keep the code readable and typed.",
+    youGet: ["The build, wired to its content and integrations", "The content structure, ready to edit"],
+    fromYou: "Nothing, until we show you the built site.",
   },
-  { 
-    num: "04", 
-    title: "Launch & Scale", 
-    desc: "We launch with confidence, monitor performance continuously, and iterate based on real user behavior and business feedback.",
-    specs: ["Production Rollout", "Observability", "Iteration Loop"],
-    visual: DeploymentVisual
+  {
+    num: "04",
+    title: "Launch and handover",
+    does: "We put it live, watch the first days, and hand over everything it runs on.",
+    youGet: ["QA, analytics, and the launch", "The code, the content structure, and the accounts"],
+    fromYou: "Your domain, and the accounts we launch into.",
   },
 ];
 
-function StepContent({ step, isActive, onActive }: { step: typeof steps[0], isActive: boolean, onActive: () => void }) {
-  const ref = useRef<HTMLDivElement>(null);
-  
-  // Creates a highly accurate trigger zone right in the center of the user's viewport
-  const isInView = useInView(ref, { margin: "-30% 0px -30% 0px", once: false });
+/** The two published scopes and how long each one runs, read from the offer data. */
+const PATHS = [
+  { id: "foundation" as const, label: OFFERS.foundation.shortLabel, timeline: OFFERS.foundation.timeline },
+  { id: "custom" as const, label: OFFERS.custom.shortLabel, timeline: OFFERS.custom.timeline },
+];
 
-  useEffect(() => {
-    if (isInView) {
-      onActive();
-    }
-  }, [isInView, onActive]);
+const CUE =
+  "group/cue inline-flex items-center gap-2 font-sans text-[14px] text-white/70 transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background";
 
-  const Visual = step.visual;
+/**
+ * Ghost numeral: transparent fill under a light stroke at rest, solid white
+ * once the spine reaches the stage, accent under the pointer. Same outline
+ * language as the Capabilities wall; the stroke transition rides on `color`.
+ */
+const NUMERAL =
+  "select-none font-sans font-bold leading-none tracking-[-0.05em] text-[clamp(3rem,6vw,5rem)] [-webkit-text-stroke:1.5px_rgba(255,255,255,0.55)] transition-colors duration-500 ease-[cubic-bezier(0.16,1,0.3,1)]";
 
-  return (
-    <div ref={ref} className={`flex flex-col pb-24 pt-12 md:pb-40 md:pt-20 transition-all duration-1000 ease-[0.16,1,0.3,1] ${isActive ? 'opacity-100' : 'opacity-[0.15] blur-[2px] md:hover:opacity-40 md:hover:blur-none'}`}>
-       <div className="font-mono text-accent text-2xl md:text-3xl mb-6 tracking-widest border-b border-white/10 pb-4 w-fit inline-block">
-         {step.num}
-       </div>
-       <h3 className="text-4xl md:text-5xl lg:text-6xl font-bold font-sans text-white mb-6 tracking-tight leading-[1.1]">
-         {step.title}
-       </h3>
-       <p className="font-mono text-base md:text-lg text-white/50 leading-relaxed mb-8 max-w-lg">
-         {step.desc}
-       </p>
-       <div className="flex flex-wrap gap-3 pt-4">
-         {step.specs.map((spec: string, j: number) => (
-           <span key={j} className="font-mono text-[11px] md:text-xs text-accent uppercase tracking-widest border border-white/5 bg-white/[0.02] px-3 py-1.5 rounded-none">
-             [{spec}]
-           </span>
-         ))}
-       </div>
+/**
+ * The spine itself lives in the gutter between the numeral column and the
+ * stage column (half the grid gap either side of the content edge), and each
+ * stage's tick sits on it, centred on the stage title's first line.
+ */
+const SPINE = "pointer-events-none absolute top-0 bottom-0 left-[4.625rem] w-px md:left-[8.25rem]";
 
-       {/* Mobile Visual Integration: Embedded right below the text since there is no right-column */}
-       <div className="lg:hidden w-full aspect-square rounded-none flex items-center justify-center overflow-hidden relative mt-4">
-           {/* Deep subtle glow for blending */}
-           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[150%] h-[150%] bg-accent/5 blur-[50px] rounded-full pointer-events-none opacity-50" />
-           
-           <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
-              <Visual />
-           </div>
-       </div>
-    </div>
-  );
+const TICK =
+  "pointer-events-none absolute left-[-0.625rem] top-[0.55em] h-[9px] w-[9px] -translate-x-1/2 -translate-y-1/2 border-[1.5px] transition-colors duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] md:left-[-1.25rem]";
+
+/**
+ * "How a project runs" — the delivery spine.
+ *
+ * A 1px track runs down the gutter beside four ghost numerals; a GSAP
+ * ScrollTrigger scrub (the house-reserved scroll choreography) draws its fill
+ * as the list passes, and each stage's tick and numeral ignite when the drawn
+ * tip reaches them. The three data roles read as three voices: `does` is the
+ * body, `youGet` is a "You keep" list with quiet plus marks, `fromYou` sits
+ * under a hairline behind a mono label.
+ *
+ * Motion ownership: GSAP owns the scrub and the word reveals (`RevealText` on
+ * the heading and every stage title); framer-motion owns the entry choreography
+ * (house cue: y24 + blur6 → 0, 800ms, stagger .08 / delay .45); CSS owns hover
+ * (accent on tick, numeral, and plus marks). Reduced motion renders the spine
+ * pre-drawn with every stage lit, static.
+ *
+ * The homepage uses a concise overview; `standalone` keeps the detailed
+ * delivery spine on `/process`. Published durations share the offer data.
+ */
+export function ProcessTimeline({ standalone = false }: { standalone?: boolean } = {}) {
+  return standalone ? <DetailedProcessTimeline standalone /> : <HomeProcessExperience />;
 }
 
-export function ProcessTimeline({ standalone = false }: { standalone?: boolean } = {}) {
-  const [activeStep, setActiveStep] = useState(0);
+function DetailedProcessTimeline({ standalone = true }: { standalone?: boolean }) {
+  const reduce = useReducedMotion();
+  const Heading = standalone ? "h1" : "h2";
+  const StageHeading = standalone ? "h2" : "h3";
+  const displaySteps = steps;
+
+  const stageRef = useRef<HTMLDivElement>(null);
+  const fillRef = useRef<HTMLSpanElement>(null);
+  const [lit, setLit] = useState(0);
+
+  /**
+   * Draw the spine and light the stages the tip has passed. Ticks are measured
+   * through the offsetParent chain (layout positions), so the framer entry
+   * transforms on the rows never skew a threshold. Match media is
+   * authoritative: a reduced-motion visitor gets the end state — spine drawn,
+   * all stages lit — without the timeline ever engaging.
+   */
+  useLayoutEffect(() => {
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      if (fillRef.current) fillRef.current.style.transform = "scaleY(1)";
+      setLit(steps.length);
+      return;
+    }
+    const wrap = stageRef.current;
+    const fill = fillRef.current;
+    if (!wrap || !fill) return;
+
+    const ctx = gsap.context(() => {
+      const ticks = Array.from(wrap.querySelectorAll<HTMLElement>("[data-tick]"));
+      let offsets: number[] = [];
+
+      const measure = () => {
+        offsets = ticks.map((tick) => {
+          let y = 0;
+          for (let node: HTMLElement | null = tick; node && node !== wrap; node = node.offsetParent as HTMLElement | null) {
+            y += node.offsetTop;
+          }
+          return y + tick.offsetHeight / 2;
+        });
+      };
+
+      let reached = 0;
+      const apply = (progress: number) => {
+        const tip = progress * wrap.offsetHeight;
+        let next = 0;
+        while (next < offsets.length && offsets[next] <= tip) next += 1;
+        if (next !== reached) {
+          reached = next;
+          setLit(next);
+        }
+      };
+
+      measure();
+      gsap.fromTo(
+        fill,
+        { scaleY: 0 },
+        {
+          scaleY: 1,
+          ease: "none",
+          scrollTrigger: {
+            trigger: wrap,
+            start: "top 72%",
+            end: "bottom 58%",
+            scrub: true,
+            onRefresh: (self) => {
+              measure();
+              apply(self.progress);
+            },
+            onUpdate: (self) => apply(self.progress),
+          },
+        },
+      );
+    }, wrap);
+
+    return () => ctx.revert();
+  }, []);
+
+  const listV: Variants = reduce
+    ? { hidden: {}, visible: {} }
+    : { hidden: {}, visible: { transition: { staggerChildren: 0.08, delayChildren: 0.45 } } };
+
+  const rowV: Variants = reduce
+    ? { hidden: { opacity: 1, y: 0, filter: "blur(0px)" }, visible: { opacity: 1, y: 0, filter: "blur(0px)" } }
+    : {
+        hidden: { opacity: 0, y: 24, filter: "blur(6px)" },
+        visible: {
+          opacity: 1,
+          y: 0,
+          filter: "blur(0px)",
+          transition: { duration: 0.8, ease: EASE_OUT },
+        },
+      };
 
   return (
-    <section className={`relative overflow-clip ${standalone ? 'py-16' : 'py-12 md:py-32 bg-black border-y border-white/5'}`}>
+    <section
+      id="process"
+      className={cn(
+        "relative",
+        standalone
+          ? "overflow-hidden py-16"
+          : "overflow-hidden py-20 md:py-28 lg:py-32",
+      )}
+    >
       <Container>
-        {/* Simplified Header Segment */}
-        <div className="mb-12 md:mb-24 flex flex-col md:flex-row md:items-end justify-between gap-8 border-b border-white/5 pb-12">
-          <div className="max-w-2xl">
-            <h2 className="text-4xl md:text-5xl lg:text-7xl font-bold font-sans text-foreground mb-6 tracking-tight">
-              The <span className="text-accent text-glow">Engine.</span>
-            </h2>
-            <p className="text-lg text-muted-foreground font-mono leading-relaxed">
-              A structured delivery system that keeps strategy, design, and engineering aligned from kickoff to scale.
-            </p>
-          </div>
-          <div className="flex items-center gap-3 bg-white/5 border border-white/10 px-4 py-2 rounded-none mb-4 md:mb-0">
-            <span className="w-2 h-2 rounded-none bg-accent animate-pulse shadow-[0_0_10px_var(--accent-glow)]" />
-            <span className="font-mono text-[10px] md:text-xs tracking-widest text-white uppercase mt-0.5">Delivery System Active</span>
-          </div>
+        {/* Claim beside its mono meta line — deliberately not the
+            heading-plus-paragraph band the sibling sections share. */}
+        <div className="flex flex-wrap items-end justify-between gap-x-10 gap-y-5">
+          <RevealText
+            as={Heading}
+            text={standalone ? "How a project runs." : "Know what happens next."}
+            trigger="view"
+            blur={4}
+            className="font-sans text-[clamp(2.2rem,4.4vw,3.4rem)] font-bold leading-[1.06] tracking-[-0.04em] text-foreground"
+          />
+          <motion.p
+            initial={reduce ? false : { opacity: 0, y: 10 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-60px" }}
+            transition={{ duration: 0.6, ease: EASE_OUT }}
+            className="font-mono text-[11px] uppercase tracking-[0.2em] text-white/40"
+          >
+            {standalone ? "Four stages · Two paths · Same order" : "Clear deliverables · Shared decisions · Your ownership"}
+          </motion.p>
         </div>
 
-        {/* Uncompressed Side-by-Side Sticky Flow */}
-        <div className="flex flex-col lg:flex-row relative items-start gap-0 lg:gap-16 xl:gap-24">
-          
-          {/* Left Text Scroll Column */}
-          <div className="w-full lg:w-[45%] flex flex-col relative z-10 pt-[5vh] lg:pt-[15vh] pb-[20vh]">
-            {steps.map((step, index) => (
-              <StepContent 
-                key={index} 
-                step={step} 
-                isActive={activeStep === index} 
-                onActive={() => setActiveStep(index)} 
+        <motion.p
+          initial={reduce ? false : { opacity: 0, y: 24, filter: "blur(6px)" }}
+          whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+          viewport={{ once: true, margin: "-80px" }}
+          transition={reduce ? { duration: 0 } : { duration: 0.8, ease: EASE_OUT, delay: 0.1 }}
+          className="mt-6 max-w-[58ch] font-sans text-base leading-7 text-white/55 sm:text-[17px]"
+        >
+          {standalone
+            ? "Four stages, always in the same order. Each one ends in something you keep, and each one says what we need from you next."
+            : "From the first conversation to handover, you know what we are working on, what you receive, and where your input is needed."}
+        </motion.p>
+
+        <div className="mt-12 grid gap-12 lg:mt-20 lg:grid-cols-[minmax(0,17rem)_minmax(0,1fr)] lg:gap-20">
+          {/* The two published scopes, so the timelines and the stages meet. The
+              prices stay in the offer section, where the currency lives. */}
+          <motion.div
+            initial={reduce ? false : { opacity: 0, y: 24, filter: "blur(6px)" }}
+            whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+            viewport={{ once: true, margin: "-80px" }}
+            transition={reduce ? { duration: 0 } : { duration: 0.8, ease: EASE_OUT, delay: 0.06 }}
+            className="relative border-y border-white/[0.08] py-6 sm:grid sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] sm:gap-x-10 lg:sticky lg:top-24 lg:block lg:border-y-0 lg:py-0 lg:self-start"
+          >
+            <div>
+              <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-white/40">{standalone ? "Choose your starting point" : "A scope that fits"}</p>
+              <p className="mt-2 max-w-[22ch] font-sans text-[15px] leading-6 text-white/65">{standalone ? "Same working order. A different level of intervention." : "Foundation adapts an established page system. Custom starts with your specific requirements."}</p>
+            </div>
+            <div className="mt-5 sm:mt-0 lg:mt-7">
+            <dl className="grid gap-4 sm:grid-cols-2 lg:grid-cols-1 lg:gap-5">
+              {PATHS.map((path) => (
+                <div key={path.id} className="border-l border-white/20 pl-3 transition-colors duration-300 hover:border-accent">
+                  <dt className="font-sans text-[15px] font-semibold tracking-[-0.015em] text-white">{path.label}</dt>
+                  <dd className="mt-1 font-sans text-[13px] leading-5 text-white/45">
+                    {path.timeline} {standalone ? "from kickoff to launch" : "typical delivery"}
+                  </dd>
+                </div>
+              ))}
+            </dl>
+            <Link href="/make-it-yours" className={`${CUE} mt-7`}>
+              <span className="border-b border-white/25 pb-0.5 transition-colors group-hover/cue:border-white/70">
+                {standalone ? "See what each one includes" : "Compare the scopes"}
+              </span>
+              <ArrowRight
+                className="h-4 w-4 transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover/cue:translate-x-1"
+                aria-hidden="true"
               />
-            ))}
+            </Link>
+            </div>
+          </motion.div>
+
+          <div ref={stageRef} className="relative">
+            {/* The track reads at rest; the fill is the scrubbed draw. Both sit
+                under the rows, so ticks and type paint over them. */}
+            <span aria-hidden="true" className={cn(SPINE, "bg-white/10")} />
+            <span
+              aria-hidden="true"
+              ref={fillRef}
+              style={{ transform: "scaleY(0)" }}
+              className={cn(SPINE, "origin-top bg-white/40")}
+            />
+
+            <motion.ol
+              className="flex flex-col gap-10 md:gap-16"
+              initial={reduce ? false : "hidden"}
+              whileInView="visible"
+              viewport={{ once: true, margin: "-80px" }}
+              variants={listV}
+            >
+              {displaySteps.map((stage, index) => {
+                const isLit = index < lit;
+                return (
+                  <motion.li
+                    key={stage.num}
+                    variants={rowV}
+                    aria-current={isLit && index === lit - 1 ? "step" : undefined}
+                    className="group/stage"
+                  >
+                    <div className="grid grid-cols-[4rem_minmax(0,1fr)] gap-x-5 md:grid-cols-[7rem_minmax(0,1fr)] md:gap-x-10">
+                      <div className="flex justify-end pt-1">
+                        <span
+                          aria-hidden="true"
+                          className={cn(NUMERAL, isLit ? "text-white" : "text-transparent")}
+                        >
+                          {stage.num}
+                        </span>
+                      </div>
+
+                      <div>
+                        <StageHeading className="relative font-sans text-[1.5rem] font-bold leading-[1.12] tracking-[-0.03em] text-white sm:text-[1.75rem]">
+                          <span
+                            aria-hidden="true"
+                            data-tick
+                            className={cn(
+                              TICK,
+                              isLit ? "border-white bg-white" : "border-white/45",
+                              "group-hover/stage:border-accent group-hover/stage:bg-accent",
+                            )}
+                          />
+                          <RevealText as="span" text={stage.title} trigger="view" blur={3} />
+                        </StageHeading>
+
+                        <div className="mt-4 grid gap-x-10 gap-y-6 xl:grid-cols-[minmax(0,1fr)_minmax(0,17rem)]">
+                          <p className="max-w-[54ch] font-sans text-[15px] leading-7 text-white/60 sm:text-[16px]">
+                            {stage.does}
+                          </p>
+
+                          <div>
+                            <p className="font-mono text-[11px] uppercase tracking-[0.16em] text-white/40">
+                              You keep
+                            </p>
+                            <ul className="mt-3 flex flex-col gap-2">
+                              {stage.youGet.map((item) => (
+                                <li
+                                  key={item}
+                                  className="flex gap-2.5 font-sans text-[14px] leading-6 text-white/70"
+                                >
+                                  <span
+                                    aria-hidden="true"
+                                    className="font-mono text-white/30 transition-colors duration-500 group-hover/stage:text-accent"
+                                  >
+                                    +
+                                  </span>
+                                  <span>{item}</span>
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        </div>
+
+                        <div className="mt-6 border-t border-white/[0.09] pt-3">
+                          <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-white/40">
+                            From you
+                          </p>
+                          <p className="mt-1.5 max-w-[46ch] font-sans text-[13px] leading-6 text-white/45">
+                            {stage.fromYou}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </motion.li>
+                );
+              })}
+            </motion.ol>
           </div>
-
-          {/* Right Sticky Canvas (Hardware Accelerated & Dedicated) */}
-          <div className="hidden lg:flex lg:w-[55%] sticky top-[15vh] h-[70vh] min-h-[500px] rounded-none items-center justify-center overflow-hidden">
-             {/* Deep lighting beacon replacing hard container bounds */}
-             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] h-[120%] bg-[radial-gradient(circle_at_center,var(--tw-gradient-stops))] from-accent/[0.03] via-black/0 to-transparent pointer-events-none transition-all duration-1000" />
-             
-             {/* Abstract background indexing number - Extremely faint integration */}
-             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-[35vw] font-sans font-black text-white/[0.015] tracking-tighter select-none z-0 pointer-events-none leading-none">
-               {steps[activeStep].num}
-             </div>
-
-             <AnimatePresence mode="wait">
-               <motion.div
-                 key={activeStep}
-                 initial={{ opacity: 0, scale: 0.98, filter: "blur(5px)" }}
-                 animate={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
-                 exit={{ opacity: 0, scale: 0.98, filter: "blur(5px)" }}
-                 transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-                 className="w-full h-full flex items-center justify-center p-8 absolute inset-0 z-10 pointer-events-none"
-               >
-                 {(() => {
-                   const Visual = steps[activeStep].visual;
-                   return <Visual />;
-                 })()}
-               </motion.div>
-             </AnimatePresence>
-          </div>
-
         </div>
       </Container>
     </section>

@@ -9,8 +9,7 @@ const companyInfo = {
   name: 'Echo11Labs',
   phone: '+1 800 123 4567',
   email: 'echo11.labs@gmail.com',
-  website: 'echo11labs.com',
-  address: 'Kathmandu, Nepal'
+  website: 'echo11labs.com'
 }
 
 const styles = StyleSheet.create({
@@ -298,7 +297,6 @@ export function InvoicePDF({ invoice }: InvoicePDFProps) {
         <View style={styles.addressBlock}>
           <View style={styles.addressSender}>
             <Text style={styles.addressTitle}>{companyInfo.name}</Text>
-            <Text style={styles.addressText}>{companyInfo.address}</Text>
             <Text style={styles.addressText}>{companyInfo.email}</Text>
             <Text style={styles.addressText}>{companyInfo.phone}</Text>
           </View>

@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 export const siteConfig = {
   name: "echo11",
   url: "https://echo11.tech",
-  title: "echo11 — Strategy, Design & Product Engineering Studio",
+  title: "echo11 — Website Strategy, Design & Engineering Studio",
   description:
     "We design and engineer digital products with clear strategy, strong systems, and premium execution — crafted to perform, convert, and scale.",
   ogDescription:

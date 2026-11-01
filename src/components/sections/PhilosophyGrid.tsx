@@ -19,13 +19,13 @@ const features = [
   },
   {
     title: "Intentional Interaction",
-    desc: "Motion and transitions are applied with purpose so products feel coherent, branded, and easy to navigate.",
+    desc: "Motion and transitions are applied with purpose so websites feel coherent, branded, and easy to navigate.",
     icon: Layout,
     delay: 0.2,
   },
   {
-    title: "Component Ecosystems",
-    desc: "We build extensible systems, not one-off screens, so your product can evolve without constant rewrites.",
+    title: "Conversion Structure",
+    desc: "We build clear page systems that explain the offer, earn confidence, and guide visitors toward a next step.",
     icon: Blocks,
     delay: 0.3,
   },
@@ -39,10 +39,10 @@ export function PhilosophyGrid() {
       <Container>
         <div className="mb-16">
           <h2 className="text-3xl md:text-5xl font-bold font-sans text-white mb-4 tracking-tight">
-            Our Architecture.
+            Our Website Standard.
           </h2>
           <p className="font-mono text-white/50 max-w-xl">
-            The standards we enforce on every engagement to keep product quality high and delivery reliable.
+            The standards we bring to every website so it stays clear, fast, credible, and reliable.
           </p>
         </div>
 
@@ -56,7 +56,7 @@ export function PhilosophyGrid() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.7, delay: feature.delay, ease: [0.16, 1, 0.3, 1] }}
-                className="group p-8 border border-white/5 bg-[#030303] hover:border-accent/40 hover:bg-white/[0.02] transition-colors rounded-none shadow-[inset_0_0_15px_rgba(0,0,0,0.8)]"
+                className="group p-8 border border-white/5 bg-[var(--color-surface-inset)] hover:border-accent/40 hover:bg-white/[0.02] transition-colors rounded-none shadow-[inset_0_0_15px_rgba(0,0,0,0.8)]"
               >
                 <div className="w-12 h-12 bg-white/5 border border-white/10 rounded-none flex items-center justify-center mb-6 group-hover:scale-110 group-hover:bg-accent/10 transition-transform duration-500">
                   <Icon className="w-5 h-5 text-accent" />

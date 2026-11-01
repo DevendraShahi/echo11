@@ -4,20 +4,57 @@
 
 @layer base {
   :root {
-    --background: #000000;
-    --foreground: #fcfcfc;
-    
-    --border: #222222;
-    --muted: #1a1a1a;
-    --muted-foreground: #a1a1a1;
-    
-    /* Neon electric blue accent */
-    --accent: #00E5FF;
+    /* ---------- Primitive palette (current approved Echo11 values) ---------- */
+    --palette-black: #000000;
+    --palette-ink-950: #050505; /* recessed panel */
+    --palette-ink-925: #070a0b; /* lifted page canvas */
+    --palette-ink-900: #111111; /* card */
+    --palette-ink-850: #1a1a1a; /* muted surface */
+    --palette-ink-800: #222222; /* border */
+    --palette-ink-975: #030303; /* inset display box */
+    --palette-white: #fcfcfc;
+    --palette-gray-400: #a1a1a1; /* secondary text */
+    --palette-cyan-400: #00e5ff; /* the single brand accent */
+
+    /* ---------- Semantic roles (theme-aware entry points) ---------- */
+    --color-surface: var(--palette-black);
+    --color-surface-page: var(--palette-ink-925);
+    --color-surface-panel: var(--palette-ink-950);
+    --color-surface-inset: var(--palette-ink-975);
+    --color-surface-raised: var(--palette-ink-900);
+    --color-text-primary: var(--palette-white);
+    --color-text-secondary: var(--palette-gray-400);
+    --color-border: var(--palette-ink-800);
+    --color-accent: var(--palette-cyan-400);
+    --color-focus: var(--palette-cyan-400);
+
+    /* ---------- Existing tokens: now aliases (every current consumer keeps working) ---------- */
+    --background: var(--color-surface);
+    --foreground: var(--color-text-primary);
+    --border: var(--color-border);
+    --muted: var(--palette-ink-850);
+    --muted-foreground: var(--color-text-secondary);
+
+    --accent: var(--color-accent);
     --accent-foreground: #000000;
     --accent-glow: rgba(0, 229, 255, 0.4);
 
-    --card: #111111;
-    --card-foreground: #fcfcfc;
+    --card: var(--color-surface-raised);
+    --card-foreground: var(--color-text-primary);
+
+    /* ---------- Typography roles (documenting the scale the site already uses) ---------- */
+    --type-display-size: clamp(3rem, 4vw + 1.5rem, 4.5rem); /* text-5xl → lg:text-7xl */
+    --type-section-size: clamp(2.25rem, 2.5vw + 1.25rem, 3.75rem); /* text-4xl → md:text-6xl */
+    --type-lead-size: 1.125rem; /* text-lg */
+    --type-body-size: 1rem;
+    --type-meta-size: 0.75rem; /* text-xs */
+
+    /* ---------- Layout rhythm (measured from current Container/sections) ---------- */
+    --page-gutter: 1.5rem; /* px-6 */
+    --page-gutter-wide: 2rem; /* lg:px-8 */
+    --width-content: 80rem; /* max-w-7xl */
+    --space-section: 6rem; /* py-24 */
+    --space-section-lg: 8rem; /* py-32 */
   }
 }
 
@@ -28,8 +65,22 @@
     overflow-x: clip;
   }
 
+  html {
+    scroll-behavior: smooth;
+  }
+
+  /* Explicit site-wide default: Syne via --font-syne (set on <body> by next/font).
+     Without this, any element lacking font-sans/font-mono falls back to the UA serif font. */
   body {
-    @apply bg-background text-foreground antialiased selection:bg-accent selection:text-accent-foreground;
+    @apply bg-background text-foreground font-sans antialiased selection:bg-accent selection:text-accent-foreground;
+  }
+
+  /* On-brand keyboard focus for interactive elements that do not opt into a
+     ring utility. Components that use ring-* also set focus-visible:outline-none,
+     so this only replaces the browser's default (blue) outline. */
+  :focus-visible {
+    outline: 2px solid var(--color-focus);
+    outline-offset: 2px;
   }
 
   /* Glassmorphism utility base */
@@ -46,33 +97,94 @@
   }
 }
 
-/* Registered custom properties for animating radial gradient stops */
-@property --orb-mid {
-  syntax: '<percentage>';
-  inherits: false;
-  initial-value: 40%;
+/*
+ * Lenis smooth scroll (src/components/layout/SmoothScroll.tsx).
+ * The auto override neutralises the global scroll-behavior: smooth only while
+ * Lenis is driving, so anchor jumps are eased by Lenis instead of the browser
+ * fighting it. Without JS or under reduced motion none of these classes exist.
+ */
+html.lenis,
+html.lenis body {
+  height: auto;
 }
 
-@property --orb-edge {
-  syntax: '<percentage>';
-  inherits: false;
-  initial-value: 70%;
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
 }
 
-@keyframes orbRadiusPulse {
-  0%, 100% {
-    --orb-mid: 40%;
-    --orb-edge: 70%;
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+
+.lenis.lenis-stopped {
+  overflow: hidden;
+}
+
+/*
+ * Shared word-reveal initial state (src/components/ui/RevealText.tsx). The
+ * hidden transform ships with the markup so there is no flash between first
+ * paint and hydration; GSAP lifts each word out of its overflow-hidden mask.
+ */
+.reveal-word {
+  transform: translateY(110%);
+  opacity: 0;
+  will-change: transform;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
   }
-  50% {
-    --orb-mid: 58%;
-    --orb-edge: 90%;
+}
+
+/* Keep the original circular radius, starting cleanly below the 60px navbar. */
+.studio-page {
+  --nav-height: 60px;
+  --studio-orb-size: clamp(32rem, 100vw, 62.5rem);
+  --studio-horizon-height: calc(var(--studio-orb-size) * .38);
+  --studio-ground-gap: clamp(2.5rem, 5svh, 3.5rem);
+}
+.studio-intro {
+  padding-top: calc(var(--nav-height) + var(--studio-horizon-height) + var(--studio-ground-gap));
+}
+.studio-sky {
+  top: var(--nav-height);
+  height: var(--studio-horizon-height);
+}
+.studio-horizon {
+  width: var(--studio-orb-size);
+  height: var(--studio-orb-size);
+  margin-top: calc(var(--studio-orb-size) * -.64);
+  background: radial-gradient(circle at center, var(--accent) 0%, #005588 40%, transparent 70%);
+  filter: blur(clamp(56px, 11vw, 110px));
+  will-change: opacity;
+  transform: translateZ(0);
+  pointer-events: none;
+}
+@media (min-width: 1024px) {
+  .studio-page {
+    --studio-ground-gap: clamp(3rem, 6svh, 4rem);
   }
 }
 
-.orb-pulse {
-  animation: orbRadiusPulse 6s ease-in-out infinite;
-  background: radial-gradient(circle at center, var(--accent) 0%, #005588 var(--orb-mid), transparent var(--orb-edge));
+/*
+ * A menu that opens rather than appears: four pixels of travel and a fade, short
+ * enough to answer the click without holding the pointer up. Stands down
+ * entirely under reduced motion, where the list is simply there.
+ */
+@keyframes dropdownIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.dropdown-enter {
+  animation: dropdownIn 0.14s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 @layer utilities {
@@ -87,5 +199,555 @@
   .mask-image-bottom {
     mask-image: linear-gradient(to bottom, black 60%, transparent 100%);
     -webkit-mask-image: linear-gradient(to bottom, black 60%, transparent 100%);
+  }
+}
+
+/*
+ * Reduced-motion policy — keep this block LAST so it wins the cascade over
+ * the animation definitions above and Tailwind's utility output.
+ * - Infinite CSS loops stop; the elements keep their static styles and
+ *   remain visible (marquee freezes on its first frame; the horizon keeps
+ *   its static gradient).
+ * - framer-motion transform/layout animations are handled globally by
+ *   MotionConfig reducedMotion="user" in src/app/layout.tsx; scroll-linked
+ *   parallax is guarded per component with useReducedMotion().
+ * - Opacity/color transitions still run: they do not trigger vestibular
+ *   responses and keep state changes legible.
+ */
+@media (prefers-reduced-motion: reduce) {
+  .animate-marquee,
+  .dropdown-enter {
+    animation: none;
+  }
+
+  /* Nav still works; only kill travel. */
+  .echo-nav,
+  .echo-nav__toggle svg,
+  .echo-nav__options,
+  .echo-nav--open .echo-nav__options,
+  .echo-nav__arrow,
+  .echo-nav__link,
+  .echo-nav--open .echo-nav__link,
+  .echo-nav__meta,
+  .echo-nav--open .echo-nav__meta,
+  .echo-nav__email,
+  .echo-nav--open .echo-nav__email {
+    transition: none;
+  }
+
+  .echo-nav__link,
+  .echo-nav--open .echo-nav__link {
+    opacity: 1;
+    clip-path: none;
+    translate: 0 0;
+  }
+
+  .echo-nav__meta,
+  .echo-nav--open .echo-nav__meta,
+  .echo-nav__email,
+  .echo-nav--open .echo-nav__email {
+    opacity: 1;
+    translate: 0 0;
+  }
+
+  /* Reveal words sit at rest: visible, upright, unblurred. RevealText skips
+     its GSAP timeline entirely in this mode, so the static styles above are
+     what the reader sees. */
+  .reveal-word {
+    transform: none !important;
+    opacity: 1 !important;
+    filter: none !important;
+  }
+
+  /* The plate pan's transform is written inline by the motion library, so only an
+     important declaration can stand it down. This keeps the rule in one place
+     with the rest of the policy, and it applies before first paint rather than
+     after hydration. */
+  .plate-pan-layer {
+    transform: none !important;
+  }
+}
+
+/* A brief media entrance that never waits on an image load callback. */
+@keyframes work-image-in {
+  from { opacity: 0.65; }
+  to { opacity: 1; }
+}
+
+/*
+ * Primary nav — mono bar, equal columns. Prefixed .echo-nav so it
+ * never collides with Laltin's scoped .nav*.
+ */
+.echo-nav {
+  --nav-speed: 0.25s;
+  --nav-bg: rgba(5, 5, 5, 0.72);
+  --nav-edge: rgba(255, 255, 255, 0.1);
+  --nav-fg: var(--palette-white);
+  --active-nav: 0;
+  height: 60px;
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-size: 13px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--nav-fg);
+  transition: background var(--nav-speed), backdrop-filter var(--nav-speed);
+}
+
+.echo-nav--open {
+  --active-nav: 1;
+  --nav-bg: rgba(5, 5, 5, 0.92);
+}
+
+.echo-nav__bar {
+  position: relative;
+  z-index: 2;
+  height: 60px;
+  background: var(--nav-bg);
+  border-bottom: 1px solid transparent;
+}
+
+/* Blurred chrome lives on the bar (not the header) so a
+   backdrop-filter on the header cannot trap the fixed mobile sheet.
+   Skip blur while the sheet is open — its own backdrop covers the page. */
+.echo-nav--scrolled .echo-nav__bar {
+  border-bottom-color: var(--nav-edge);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.echo-nav--open .echo-nav__bar {
+  border-bottom-color: var(--nav-edge);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+.echo-nav__content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  height: 100%;
+  max-width: calc(100% - 2rem);
+  width: 80rem;
+  margin: 0 auto;
+  position: relative;
+}
+
+.echo-nav__brand {
+  display: flex;
+  align-items: center;
+  height: 100%;
+  padding: 0 0.25rem;
+  color: currentColor;
+  text-decoration: none;
+  flex-shrink: 0;
+}
+
+.echo-nav__logo {
+  width: 96px;
+  height: 32px;
+  object-fit: contain;
+  object-position: left center;
+}
+
+.echo-nav__control {
+  position: relative;
+  z-index: 2;
+  width: 60px;
+  height: 60px;
+  flex-shrink: 0;
+}
+
+.echo-nav__toggle {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--nav-fg);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+.echo-nav__toggle svg {
+  width: 22px;
+  height: 22px;
+  rotate: calc(var(--active-nav, 0) * 45deg);
+  transition: rotate var(--nav-speed);
+}
+
+.echo-nav__toggle:focus-visible {
+  outline: 1px solid var(--color-focus);
+  outline-offset: -2px;
+}
+
+/*
+ * Mobile: full-viewport sheet under the bar. The menu is the hero —
+ * oversized Syne labels, fine grid ambient, clip-path stagger.
+ */
+.echo-nav__options {
+  position: fixed;
+  left: 0;
+  right: 0;
+  top: 60px;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 0.5rem 0 calc(1rem + env(safe-area-inset-bottom, 0px));
+  background: rgba(5, 5, 5, 0.97);
+  border-top: 1px solid var(--nav-edge);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  z-index: 1;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.echo-nav__options > * {
+  position: relative;
+  z-index: 1;
+}
+
+.echo-nav--open .echo-nav__options {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+}
+
+.echo-nav__link {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  min-height: clamp(3.25rem, 9vh, 4.25rem);
+  padding: 0.55rem 1.5rem;
+  color: var(--nav-fg);
+  text-decoration: none;
+  background: transparent;
+  font-family: var(--font-syne), sans-serif;
+  font-size: clamp(1.65rem, 6.5vw, 2.5rem);
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  text-transform: none;
+  line-height: 1.1;
+  opacity: 0;
+  clip-path: inset(0 0 100% 0);
+}
+
+.echo-nav--open .echo-nav__link {
+  opacity: 1;
+  clip-path: inset(0 0 0 0);
+  transition:
+    clip-path 0.55s cubic-bezier(0.16, 1, 0.3, 1)
+      calc(0.06s + var(--echo-nav-i, 0) * 0.05s),
+    opacity 0.3s ease calc(0.06s + var(--echo-nav-i, 0) * 0.05s),
+    color var(--nav-speed);
+}
+
+.echo-nav__index {
+  flex-shrink: 0;
+  width: 1.5rem;
+  padding-top: 0.35em;
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-size: 0.65rem;
+  font-weight: 400;
+  letter-spacing: 0.14em;
+  color: var(--palette-gray-400);
+  opacity: 0.65;
+}
+
+.echo-nav__label {
+  flex: 1;
+  min-width: 0;
+}
+
+.echo-nav__arrow {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  stroke-width: 2;
+  opacity: 0.3;
+  rotate: calc(var(--active, 0) * -45deg);
+  transition:
+    opacity calc(var(--nav-speed) * 1.5),
+    rotate var(--nav-speed);
+}
+
+.echo-nav__link:is(:hover, :focus-visible) {
+  --active: 1;
+  color: var(--palette-white);
+  outline: none;
+}
+
+.echo-nav__link:focus-visible {
+  outline: 1px solid var(--color-focus);
+  outline-offset: -1px;
+}
+
+/* Active route: cyan type + drawn left rail. */
+.echo-nav__link.is-active {
+  color: var(--color-accent);
+}
+
+.echo-nav__link.is-active::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 18%;
+  bottom: 18%;
+  width: 2px;
+  background: var(--color-accent);
+  box-shadow: 0 0 12px rgba(0, 229, 255, 0.45);
+}
+
+.echo-nav__link.is-active .echo-nav__index {
+  color: var(--color-accent);
+  opacity: 1;
+}
+
+.echo-nav__link.is-active .echo-nav__arrow {
+  opacity: 1;
+}
+
+.echo-nav__meta {
+  margin-top: auto;
+  padding: 1.5rem 1.5rem 0.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  opacity: 0;
+  translate: 0 12px;
+}
+
+.echo-nav--open .echo-nav__meta {
+  opacity: 1;
+  translate: 0 0;
+  transition:
+    opacity 0.4s ease calc(0.35s + (var(--echo-nav-i, 0) * 0.04s)),
+    translate 0.45s cubic-bezier(0.16, 1, 0.3, 1)
+      calc(0.35s + (var(--echo-nav-i, 0) * 0.04s));
+}
+
+.echo-nav__link--cta {
+  justify-content: center;
+  min-height: 3rem;
+  margin-top: 0.35rem;
+  border: 0;
+  background: var(--color-accent);
+  color: #000;
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-size: 0.72rem;
+  font-weight: 500;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  clip-path: none;
+  opacity: 1;
+}
+
+.echo-nav__link--cta .echo-nav__arrow {
+  display: none;
+}
+
+.echo-nav__link--cta:is(:hover, :focus-visible) {
+  color: #000;
+  background: #5cefff;
+}
+
+.echo-nav__email {
+  color: var(--palette-gray-400);
+  text-decoration: none;
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-size: 0.68rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  min-height: 2.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  translate: 0 8px;
+}
+
+.echo-nav--open .echo-nav__email {
+  opacity: 1;
+  translate: 0 0;
+  transition:
+    opacity 0.4s ease calc(0.4s + (var(--echo-nav-i, 0) * 0.04s)),
+    translate 0.45s cubic-bezier(0.16, 1, 0.3, 1)
+      calc(0.4s + (var(--echo-nav-i, 0) * 0.04s));
+}
+
+.echo-nav__email:focus-visible {
+  outline: 1px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+@media (min-width: 1280px) {
+  .echo-nav__control {
+    display: none;
+  }
+
+  .echo-nav__options {
+    flex: 1;
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: 1fr;
+    position: static;
+    top: auto;
+    bottom: auto;
+    left: auto;
+    right: auto;
+    width: auto;
+    padding: 0;
+    translate: 0 0;
+    opacity: 1;
+    pointer-events: auto;
+    visibility: visible;
+    z-index: 1;
+    border: 0;
+    background: transparent;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    overflow: visible;
+    transition: none;
+  }
+
+  .echo-nav__link {
+    position: relative;
+    height: 60px;
+    min-height: 60px;
+    min-width: 0;
+    border-bottom: 0;
+    border-right: 1px solid var(--nav-edge);
+    background: transparent;
+    justify-content: center;
+    padding: 0 0.75rem;
+    opacity: 1;
+    clip-path: none;
+    translate: 0 0;
+    font-family: var(--font-geist-mono), ui-monospace, monospace;
+    font-size: 13px;
+    font-weight: 400;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    line-height: normal;
+    transition: background var(--nav-speed), color var(--nav-speed);
+  }
+
+  .echo-nav--open .echo-nav__link {
+    transition: background var(--nav-speed), color var(--nav-speed);
+  }
+
+  .echo-nav__link.is-active::after {
+    display: none;
+  }
+
+  .echo-nav__index,
+  .echo-nav__email,
+  .echo-nav__arrow {
+    display: none;
+  }
+
+  /* Unwrap mobile meta so the CTA is a direct equal-column child. */
+  .echo-nav__meta {
+    display: contents;
+  }
+
+  .echo-nav__label {
+    flex: 0 1 auto;
+  }
+
+  .echo-nav__link:last-child {
+    border-right: 0;
+  }
+
+  .echo-nav__link--cta {
+    margin-top: 0;
+    border: 0;
+    background: transparent;
+    color: var(--color-accent);
+    font-family: var(--font-geist-mono), ui-monospace, monospace;
+    font-size: 13px;
+    font-weight: 400;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .echo-nav__link--cta .echo-nav__arrow {
+    display: none;
+  }
+
+  .echo-nav__link:is(:hover, :focus-visible) {
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--palette-white);
+  }
+
+  .echo-nav__link.is-active {
+    color: var(--color-accent);
+    background: rgba(0, 229, 255, 0.06);
+  }
+}
+
+/* Keep native pointers on touch devices and text fields. */
+@media (hover: hover) and (pointer: fine) {
+  html.echo-wave-cursor,
+  html.echo-wave-cursor * { cursor: none !important; }
+  html.echo-wave-cursor input,
+  html.echo-wave-cursor textarea { cursor: text !important; }
+  html.echo-wave-cursor select { cursor: auto !important; }
+}
+
+/* Short screens need a scrollable hero rather than a clipped sticky stage.
+   Keep the content-plane overlap coupled to the hero layout. */
+@media (max-height: 620px), (prefers-reduced-motion: reduce) {
+  .home-hero { height: auto; }
+  .home-hero-stage { position: relative; height: auto; }
+  .home-hero-content { position: relative; min-height: max(620px, 100svh); }
+  .home-hero-content, .home-hero-visual { opacity: 1 !important; transform: none !important; }
+  .home-content { margin-top: 0; }
+}
+
+/* Hero text and action arrangements only. Horizon geometry/offsets are unchanged. */
+.hero-copy { display: grid; gap: 1.75rem; padding-top: clamp(2rem, 3.5vw, 3rem); }
+.hero-copy > * { min-width: 0; }
+.hero-copy-title { max-width: 62rem; }
+.hero-copy-lead { max-width: 52ch; }
+.hero-copy-actions { margin-top: .25rem; display: flex; flex-wrap: wrap; align-items: center; gap: 1rem 1.5rem; }
+.hero-copy-actions > a, .hero-copy-actions > button { min-height: 48px; }
+.hero-copy-actions > a { max-width: 100%; }
+@media (min-width: 1024px) {
+  .hero-copy {
+    grid-template-columns: minmax(0, 1.25fr) minmax(0, 0.75fr);
+    row-gap: 2rem;
+    column-gap: 4rem;
+    align-items: end;
+  }
+  .hero-copy-title {
+    grid-column: 1 / -1;
+  }
+  .hero-copy-lead {
+    grid-column: 1;
+    align-self: end;
+  }
+  .hero-copy-actions {
+    grid-column: 2;
+    justify-content: flex-end;
+    align-self: end;
+  }
+}
+@media (max-width: 639px) {
+  .hero-copy-actions {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.875rem;
+  }
+  .hero-copy-actions > button,
+  .hero-copy-actions > a.echo-btn-primary {
+    width: 100%;
+    justify-content: center;
   }
 }

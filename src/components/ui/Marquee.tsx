@@ -7,21 +7,20 @@ export function Marquee({
   items,
   className,
   speed = 40,
+  label,
 }: {
   items: string[];
   className?: string;
   speed?: number;
+  label?: string;
 }) {
   const content = useMemo(() => {
     return items.map((item, i) => (
-      <div
-        key={`${item}-${i}`}
-        className="flex items-center gap-8 px-8 shrink-0"
-      >
-        <span className="text-xl font-bold font-sans tracking-tight text-foreground whitespace-nowrap">
+      <div key={`${item}-${i}`} className="flex shrink-0 items-center gap-7 px-7">
+        <span className="font-mono text-[11px] uppercase tracking-[0.2em] whitespace-nowrap text-white/45">
           {item}
         </span>
-        <span className="text-accent text-glow">/</span>
+        <span className="h-3 w-px shrink-0 bg-accent/40" aria-hidden="true" />
       </div>
     ));
   }, [items]);
@@ -29,14 +28,21 @@ export function Marquee({
   return (
     <div
       className={cn(
-        "relative flex w-full overflow-hidden whitespace-nowrap border-y border-white/5 bg-white/[0.02] py-6",
+        "relative flex w-full items-center gap-6 overflow-hidden border-y border-white/10 bg-black py-4",
         className
       )}
-      style={{
-        "--duration": `${speed}s`,
-        "--gap": "2rem",
-      } as React.CSSProperties}
+      style={
+        {
+          "--duration": `${speed}s`,
+          "--gap": "2rem",
+        } as React.CSSProperties
+      }
     >
+      {label ? (
+        <span className="hidden shrink-0 border-r border-white/10 pl-6 pr-6 font-mono text-[11px] uppercase tracking-[0.2em] text-accent md:inline-block lg:pl-0">
+          {label}
+        </span>
+      ) : null}
       <div className="animate-marquee flex flex-row items-center whitespace-nowrap">
         {content}
         {content}

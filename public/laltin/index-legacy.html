@@ -1,0 +1,745 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>LALTIN EcoResort · Nepal</title>
+  <meta name="description" content="LALTIN EcoResort — a place where life becomes quieter as the light becomes warmer. EcoResort · Nepal.">
+    <meta name="theme-color" content="#171814">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="LALTIN EcoResort">
+  <meta property="og:title" content="LALTIN EcoResort · Nepal">
+  <meta property="og:description" content="A place where life becomes quieter as the light becomes warmer. EcoResort · Nepal.">
+  <meta property="og:image" content="assets/img/hero-day.jpg">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="LALTIN EcoResort · Nepal">
+  <meta name="twitter:description" content="A place where life becomes quieter as the light becomes warmer.">
+  <meta name="twitter:image" content="assets/img/hero-day.jpg">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23171814'/%3E%3Cpath d='M10 26V12a6 6 0 0 1 12 0v14' stroke='%23D89A4B' stroke-width='2' fill='none'/%3E%3Ccircle cx='16' cy='17' r='2.4' fill='%23EDB968'/%3E%3C/svg%3E">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500&family=Geist+Mono:wght@400&display=swap" rel="stylesheet">
+
+  <link rel="preload" as="image" type="image/webp" href="assets/img/hero-mobile.webp" media="(max-width: 639px)" fetchpriority="high">
+  <link rel="preload" as="image" type="image/webp" href="assets/img/hero-day.webp" media="(min-width: 640px)" fetchpriority="high">
+  <link rel="stylesheet" href="css/tokens.css">
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/layout.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/sections.css">
+
+  <script>
+    /* motion gate — anim class only persists if motion.js signals ready.
+       3s failsafe: JS off / GSAP CDN fail / reduced motion → static page. */
+    (function () {
+      var r = document.documentElement;
+      if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        r.classList.add('anim');
+      }
+      setTimeout(function () {
+        if (!r.hasAttribute('data-motion-ready')) r.classList.remove('anim');
+      }, 3000);
+    })();
+  </script>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+
+<!-- ============================ NAV (§32) ============================ -->
+<header class="nav" data-nav data-od-id="site-nav">
+  <div class="nav__inner">
+    <a class="nav__logo" href="#top" aria-label="LALTIN home">Laltin</a>
+    <nav class="nav__links" aria-label="Primary">
+      <a href="#stay">Stay</a>
+      <a href="#experience">Experience</a>
+      <a href="#eat">Eat</a>
+      <a href="#place">Place</a>
+      <a href="#people">Story</a>
+    </nav>
+    <div class="nav__actions">
+      <a class="mono nav__reserve" href="#reserve" data-od-id="nav-reserve">Reserve</a>
+      <button class="nav__menu-btn" type="button" data-menu-open aria-expanded="false" aria-controls="site-menu" data-od-id="menu-open">
+        <span class="bars" aria-hidden="true"><i></i><i></i></span> Menu
+      </button>
+    </div>
+  </div>
+</header>
+
+<!-- ======================== FULLSCREEN MENU (§33) ===================== -->
+<div class="menu" id="site-menu" data-menu aria-hidden="true">
+  <div class="menu__bg" aria-hidden="true">
+    <div class="menu__bg-img" data-menu-bg="stay"><picture><source type="image/webp" srcset="assets/img/room-cottage.webp"><img src="assets/img/room-cottage.jpg" width="1023" height="681" alt="" loading="lazy"></picture></div>
+    <div class="menu__bg-img" data-menu-bg="eat"><picture><source type="image/webp" srcset="assets/img/table.webp"><img src="assets/img/table.jpg" width="2200" height="1542" alt="" loading="lazy"></picture></div>
+    <div class="menu__bg-img" data-menu-bg="place"><picture><source type="image/webp" srcset="assets/img/place-main.webp"><img src="assets/img/place-main.jpg" width="2200" height="1466" alt="" loading="lazy"></picture></div>
+  </div>
+  <div class="menu__sheet">
+    <div class="menu__top">
+      <span class="nav__logo">Laltin</span>
+      <button class="menu__close" type="button" data-menu-close data-od-id="menu-close">Close ✕</button>
+    </div>
+    <div class="menu__body">
+      <nav class="menu__list" aria-label="Menu">
+        <a class="menu__link" href="#stay" data-menu-link data-menu-img="stay" data-od-id="menu-stay">
+          <span class="idx">01</span><span class="label">Stay</span><span class="arrow" aria-hidden="true">→</span>
+        </a>
+        <a class="menu__link" href="#experience" data-menu-link data-od-id="menu-experience">
+          <span class="idx">02</span><span class="label">Experience</span><span class="arrow" aria-hidden="true">→</span>
+        </a>
+        <a class="menu__link" href="#eat" data-menu-link data-menu-img="eat" data-od-id="menu-eat">
+          <span class="idx">03</span><span class="label">Eat</span><span class="arrow" aria-hidden="true">→</span>
+        </a>
+        <a class="menu__link" href="#place" data-menu-link data-menu-img="place" data-od-id="menu-place">
+          <span class="idx">04</span><span class="label">Place</span><span class="arrow" aria-hidden="true">→</span>
+        </a>
+        <a class="menu__link" href="#people" data-menu-link data-od-id="menu-story">
+          <span class="idx">05</span><span class="label">Story</span><span class="arrow" aria-hidden="true">→</span>
+        </a>
+        <a class="menu__link" href="#journal" data-menu-link data-od-id="menu-journal">
+          <span class="idx">06</span><span class="label">Journal</span><span class="arrow" aria-hidden="true">→</span>
+        </a>
+      </nav>
+      <div class="menu__aside">
+        <p class="mono">Laltin EcoResort · Nepal<br>27.7172° N — 85.3240° E</p>
+        <div class="menu__aside-links">
+          <a href="#getting-here" data-menu-link>Getting here <span aria-hidden="true">→</span></a>
+          <a href="#contact" data-menu-link>Contact <span aria-hidden="true">→</span></a>
+          <a href="#reserve" data-menu-link>Reserve <span aria-hidden="true">→</span></a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<main id="main">
+
+  <!-- ==================== 00 · ARRIVAL (§13–14) ==================== -->
+  <section class="hero" id="top" data-od-id="chapter-arrival" aria-label="Arrival">
+    <div class="hero__media" aria-hidden="true">
+      <picture>
+        <source media="(max-width: 639px)" srcset="assets/img/hero-mobile.webp" type="image/webp">
+        <source media="(max-width: 639px)" srcset="assets/img/hero-mobile.jpg">
+        <source srcset="assets/img/hero-day.webp" type="image/webp">
+        <picture><source type="image/webp" srcset="assets/img/hero-day.webp"><img src="assets/img/hero-day.jpg" alt="" width="2200" height="1311" fetchpriority="high" data-hero-img></picture>
+      </picture>
+      <div class="hero__overlay" data-hero-overlay></div>
+    </div>
+    <div class="hero__content shell">
+      <h1 class="display hero__title" id="hero-title" data-hero-title>
+        <span class="line-mask"><span>LALTIN</span></span>
+      </h1>
+      <p class="mono hero__descriptor" data-hero-descriptor>EcoResort · Nepal</p>
+      <a class="hero__cue" href="#interruption" aria-label="Scroll to begin" data-hero-cue data-od-id="hero-scroll-cue">
+        <span aria-hidden="true">↓</span>
+      </a>
+    </div>
+  </section>
+
+  <!-- ==================== 01 · INTERRUPTION (§15) ==================== -->
+  <section class="section interruption" id="interruption" data-od-id="chapter-interruption">
+    <div class="shell">
+      <h2 class="display interruption__statement">
+        <span class="line-mask"><span>There are places</span></span>
+        <span class="line-mask"><span>you visit.</span></span>
+        <span class="line-mask interruption__alt"><span>And places that</span></span>
+        <span class="line-mask"><span>change your pace.</span></span>
+      </h2>
+      <p class="lead interruption__note" data-reveal>
+        Morning arrives slowly here. First through the trees, then across the cottages,
+        and finally onto the breakfast table.
+      </p>
+    </div>
+  </section>
+
+  <!-- ==================== 02 · THE PLACE (§16) ==================== -->
+  <section class="section place" id="place" data-od-id="chapter-place" aria-labelledby="place-title">
+    <div class="shell">
+      <div class="section-head">
+        <p class="eyebrow lbl-reveal">02 / The place</p>
+        <p class="mono muted lbl-reveal">27.7172° N — 85.3240° E</p>
+      </div>
+      <div class="place__grid g12">
+        <figure class="place__main win media-hover" data-parallax data-od-id="place-main-photo">
+          <picture><source type="image/webp" srcset="assets/img/place-main.webp"><img src="assets/img/place-main.jpg" width="2200" height="1466" alt="Forest ridgelines fading into sky above the valley" loading="lazy"></picture>
+        </figure>
+        <div class="place__text">
+          <h2 class="h2 place__title" id="place-title">
+            <span class="line-mask"><span>Somewhere between</span></span>
+            <span class="line-mask"><span>forest and sky.</span></span>
+          </h2>
+          <p class="lead" data-reveal>Laltin was created around the rhythms already here.</p>
+          <a class="link-editorial" href="#stay" data-od-id="place-explore-link">
+            Explore the place <span aria-hidden="true">↗</span>
+          </a>
+        </div>
+        <figure class="place__overlap win" data-od-id="place-overlap-photo">
+          <picture><source type="image/webp" srcset="assets/img/place-overlap.webp"><img src="assets/img/place-overlap.jpg" width="2200" height="1650" alt="A roofline settled among the trees" loading="lazy"></picture>
+        </figure>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== 03 · STAY (§18–20) ==================== -->
+  <section class="section stay" id="stay" data-od-id="chapter-stay" aria-labelledby="stay-title">
+    <div class="shell">
+      <div class="section-head">
+        <p class="eyebrow lbl-reveal">03 / Stay</p>
+        <p class="mono muted lbl-reveal">Room details provisional — awaiting property confirmation</p>
+      </div>
+      <div class="stay__intro">
+        <h2 class="h2" id="stay-title">
+          <span class="line-mask"><span>Spaces shaped</span></span>
+          <span class="line-mask"><span>around stillness.</span></span>
+        </h2>
+        <a class="btn btn--primary" href="#reserve" data-od-id="stay-reserve-cta">Reserve a stay <span aria-hidden="true">→</span></a>
+      </div>
+
+      <article class="room room--left" data-room="cottage" data-od-id="room-forest-cottage">
+        <div class="room__index mono">01 / 04</div>
+        <button class="room__media win media-hover" type="button" data-room-open="cottage" aria-label="View Forest Cottage details">
+          <picture><source type="image/webp" srcset="assets/img/room-cottage.webp"><img src="assets/img/room-cottage.jpg" width="1023" height="681" alt="Morning light crossing a bed beside a forest window" loading="lazy"></picture>
+        </button>
+        <div class="room__info">
+          <h3 class="room__name">Forest Cottage</h3>
+          <ul class="room__facts mono">
+            <li>2 guests</li><li>King bed</li><li>Private terrace</li>
+          </ul>
+          <button class="link-editorial" type="button" data-room-open="cottage" data-od-id="cottage-explore">
+            Explore <span aria-hidden="true">→</span>
+          </button>
+        </div>
+      </article>
+
+      <article class="room room--right" data-room="valley" data-od-id="room-valley-house">
+        <div class="room__index mono">02 / 04</div>
+        <button class="room__media win media-hover" type="button" data-room-open="valley" aria-label="View Valley House details">
+          <picture><source type="image/webp" srcset="assets/img/room-valley.webp"><img src="assets/img/room-valley.jpg" width="2200" height="1650" alt="A quiet room opening onto distant hills" loading="lazy"></picture>
+        </button>
+        <div class="room__info">
+          <h3 class="room__name">Valley House</h3>
+          <ul class="room__facts mono">
+            <li>4 guests</li><li>Two rooms</li><li>Valley view</li>
+          </ul>
+          <button class="link-editorial" type="button" data-room-open="valley" data-od-id="valley-explore">
+            Explore <span aria-hidden="true">→</span>
+          </button>
+        </div>
+      </article>
+
+      <article class="room room--bleed" data-room="suite" data-od-id="room-laltin-suite">
+        <div class="room__index mono">03 / 04</div>
+        <button class="room__media win media-hover" type="button" data-room-open="suite" aria-label="View Laltin Suite details">
+          <picture><source type="image/webp" srcset="assets/img/room-suite.webp"><img src="assets/img/room-suite.jpg" width="2200" height="1467" alt="Linen, timber and low light in a still room" loading="lazy"></picture>
+        </button>
+        <div class="room__info">
+          <h3 class="room__name">Laltin Suite</h3>
+          <ul class="room__facts mono">
+            <li>2 guests</li><li>Separate sitting</li><li>Terrace</li>
+          </ul>
+          <button class="link-editorial" type="button" data-room-open="suite" data-od-id="suite-explore">
+            Explore <span aria-hidden="true">→</span>
+          </button>
+        </div>
+      </article>
+
+      <article class="room room--center" data-room="family" data-od-id="room-family-retreat">
+        <div class="room__index mono">04 / 04</div>
+        <button class="room__media win media-hover" type="button" data-room-open="family" aria-label="View Family Retreat details">
+          <picture><source type="image/webp" srcset="assets/img/room-family.webp"><img src="assets/img/room-family.jpg" width="2200" height="1650" alt="A generous room arranged for slow family mornings" loading="lazy"></picture>
+        </button>
+        <div class="room__info">
+          <h3 class="room__name">Family Retreat</h3>
+          <ul class="room__facts mono">
+            <li>4–5 guests</li><li>Two bedrooms</li><li>Shared lounge</li>
+          </ul>
+          <button class="link-editorial" type="button" data-room-open="family" data-od-id="family-explore">
+            Explore <span aria-hidden="true">→</span>
+          </button>
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <!-- ==================== 04 · MORNING (§21) ==================== -->
+  <section class="morning" id="morning" data-od-id="chapter-morning" aria-label="Morning">
+    <figure class="morning__film win">
+      <picture><source type="image/webp" srcset="assets/img/morning.webp"><img src="assets/img/morning.jpg" width="2200" height="1467" alt="First light and steam — a morning interior" loading="lazy"></picture>
+      <figcaption class="morning__panel">
+        <p class="mono morning__stamp" data-reveal>Morning / Laltin</p>
+        <p class="morning__time mono" data-reveal>06:14</p>
+        <p class="morning__line">
+          <span class="line-mask"><span>The first</span></span>
+          <span class="line-mask"><span>light.</span></span>
+        </p>
+      </figcaption>
+    </figure>
+  </section>
+
+  <!-- ==================== 05 · EXPERIENCE (§22–23) ==================== -->
+  <section class="section experience" id="experience" data-od-id="chapter-experience" aria-labelledby="exp-title">
+    <div class="shell">
+      <div class="section-head">
+        <p class="eyebrow lbl-reveal">05 / Experience</p>
+        <p class="mono muted lbl-reveal">Five ways the days pass</p>
+      </div>
+      <h2 class="visually-hidden" id="exp-title">Experience</h2>
+      <div class="exp__grid">
+        <ul class="exp__list">
+          <li class="exp__item">
+            <button class="exp__row is-active" type="button" data-exp="0" data-od-id="exp-forest">
+              <span class="mono exp__idx">01</span>
+              <span class="exp__label">Walk the forest</span>
+              <span class="exp__arrow" aria-hidden="true">↗</span>
+            </button>
+            <div class="exp__mobile">
+              <figure class="win"><picture><source type="image/webp" srcset="assets/img/exp-forest.webp"><img src="assets/img/exp-forest.jpg" width="2200" height="1466" alt="A trail running into oak forest" loading="lazy"></picture></figure>
+              <p>The trail begins beyond the last cottage. From there, the forest takes over — oak, birdsong, damp earth and long stretches where nobody needs to say anything.</p>
+            </div>
+          </li>
+          <li class="exp__item">
+            <button class="exp__row" type="button" data-exp="1" data-od-id="exp-village">
+              <span class="mono exp__idx">02</span>
+              <span class="exp__label">Follow the village trail</span>
+              <span class="exp__arrow" aria-hidden="true">↗</span>
+            </button>
+            <div class="exp__mobile">
+              <figure class="win"><picture><source type="image/webp" srcset="assets/img/exp-village.webp"><img src="assets/img/exp-village.jpg" width="2048" height="1536" alt="Terraced farms and footpaths on the hillside" loading="lazy"></picture></figure>
+              <p>Walk beyond the resort and the landscape becomes everyday life: farms, footpaths, homes and people who have shaped this hillside for generations.</p>
+            </div>
+          </li>
+          <li class="exp__item">
+            <button class="exp__row" type="button" data-exp="2" data-od-id="exp-garden">
+              <span class="mono exp__idx">03</span>
+              <span class="exp__label">Eat from the garden</span>
+              <span class="exp__arrow" aria-hidden="true">↗</span>
+            </button>
+            <div class="exp__mobile">
+              <figure class="win"><picture><source type="image/webp" srcset="assets/img/exp-garden.webp"><img src="assets/img/exp-garden.jpg" width="1300" height="867" alt="Hands lifting greens from a kitchen garden" loading="lazy"></picture></figure>
+              <p>Everything in the kitchen begins a few steps from it. What is ready in the morning decides what is cooked that night.</p>
+            </div>
+          </li>
+          <li class="exp__item">
+            <button class="exp__row" type="button" data-exp="3" data-od-id="exp-river">
+              <span class="mono exp__idx">04</span>
+              <span class="exp__label">Find the river</span>
+              <span class="exp__arrow" aria-hidden="true">↗</span>
+            </button>
+            <div class="exp__mobile">
+              <figure class="win"><picture><source type="image/webp" srcset="assets/img/exp-river.webp"><img src="assets/img/exp-river.jpg" width="2200" height="1463" alt="Water moving over stone in the riverbed" loading="lazy"></picture></figure>
+              <p>The way down is not signposted. You hear the water before you see it — a low sound over stone, getting closer.</p>
+            </div>
+          </li>
+          <li class="exp__item">
+            <button class="exp__row" type="button" data-exp="4" data-od-id="exp-fire">
+              <span class="mono exp__idx">05</span>
+              <span class="exp__label">Stay by the fire</span>
+              <span class="exp__arrow" aria-hidden="true">↗</span>
+            </button>
+            <div class="exp__mobile">
+              <figure class="win"><picture><source type="image/webp" srcset="assets/img/exp-fire.webp"><img src="assets/img/exp-fire.jpg" width="2200" height="1467" alt="Fire holding a circle of light after dark" loading="lazy"></picture></figure>
+              <p>When daylight leaves the valley, Laltin becomes what its name promises. Fires are lit, lanterns come on, and dinner slows into evening.</p>
+            </div>
+          </li>
+        </ul>
+        <div class="exp__stage" aria-hidden="true">
+          <div class="exp__stage-media media-hover">
+            <picture><source type="image/webp" srcset="assets/img/exp-forest.webp"><img class="is-active" src="assets/img/exp-forest.jpg" width="2200" height="1466" alt="" loading="lazy" data-exp-img="0"></picture>
+            <picture><source type="image/webp" srcset="assets/img/exp-village.webp"><img src="assets/img/exp-village.jpg" width="2048" height="1536" alt="" loading="lazy" data-exp-img="1"></picture>
+            <picture><source type="image/webp" srcset="assets/img/exp-garden.webp"><img src="assets/img/exp-garden.jpg" width="1300" height="867" alt="" loading="lazy" data-exp-img="2"></picture>
+            <picture><source type="image/webp" srcset="assets/img/exp-river.webp"><img src="assets/img/exp-river.jpg" width="2200" height="1463" alt="" loading="lazy" data-exp-img="3"></picture>
+            <picture><source type="image/webp" srcset="assets/img/exp-fire.webp"><img src="assets/img/exp-fire.jpg" width="2200" height="1467" alt="" loading="lazy" data-exp-img="4"></picture>
+          </div>
+          <p class="exp__caption" data-exp-caption>The trail begins beyond the last cottage. From there, the forest takes over — oak, birdsong, damp earth and long stretches where nobody needs to say anything.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== 06 · EAT (§24–25) ==================== -->
+  <section class="section eat" id="eat" data-od-id="chapter-eat" aria-labelledby="eat-title">
+    <div class="shell">
+      <div class="section-head">
+        <p class="eyebrow lbl-reveal">06 / Eat</p>
+        <p class="mono muted lbl-reveal">Garden → kitchen → table</p>
+      </div>
+      <div class="eat__intro g12">
+        <h2 class="display eat__title" id="eat-title">
+          <span class="line-mask"><span>From</span></span>
+          <span class="line-mask"><span>this land.</span></span>
+        </h2>
+        <figure class="eat__hands win media-hover" data-parallax>
+          <picture><source type="image/webp" srcset="assets/img/eat-hands.webp"><img src="assets/img/eat-hands.jpg" width="2200" height="1473" alt="Hands preparing the evening's food" loading="lazy"></picture>
+        </figure>
+      </div>
+
+      <ol class="eat__flow">
+        <li class="eat__step">
+          <figure class="win"><picture><source type="image/webp" srcset="assets/img/garden.webp"><img src="assets/img/garden.jpg" width="2200" height="1456" alt="What the garden gave that morning" loading="lazy"></picture></figure>
+          <p class="mono">Garden</p>
+        </li>
+        <li class="eat__step">
+          <figure class="win"><picture><source type="image/webp" srcset="assets/img/kitchen.webp"><img src="assets/img/kitchen.jpg" width="2200" height="1391" alt="The kitchen mid-preparation" loading="lazy"></picture></figure>
+          <p class="mono">Kitchen</p>
+        </li>
+        <li class="eat__step">
+          <figure class="win"><picture><source type="image/webp" srcset="assets/img/table.webp"><img src="assets/img/table.jpg" width="2200" height="1542" alt="The table laid for the evening" loading="lazy"></picture></figure>
+          <p class="mono">Table</p>
+        </li>
+      </ol>
+
+      <div class="eat__tonight" data-od-id="tonight-menu">
+        <p class="mono eat__tonight-label">Tonight</p>
+        <ol class="menu-list">
+          <li class="menu-list__item">
+            <span class="mono menu-list__idx">01</span>
+            <div>
+              <h3 class="menu-list__name">Wood-fired trout</h3>
+              <p class="menu-list__desc">local greens · fermented chilli · lemon</p>
+            </div>
+          </li>
+          <li class="menu-list__item">
+            <span class="mono menu-list__idx">02</span>
+            <div>
+              <h3 class="menu-list__name">Seasonal thali</h3>
+              <p class="menu-list__desc">garden vegetables · lentils · rice · achar</p>
+            </div>
+          </li>
+        </ol>
+        <p class="mono muted eat__sample">Sample · seasonal — the menu changes with what is ready</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== 07 · PEOPLE (§27) ==================== -->
+  <section class="section people" id="people" data-od-id="chapter-people" aria-labelledby="people-title">
+    <div class="shell">
+      <div class="section-head">
+        <p class="eyebrow lbl-reveal">07 / People</p>
+        <p class="mono muted lbl-reveal">Hosts, cooks, guides</p>
+      </div>
+      <h2 class="h2 people__title" id="people-title">
+        <span class="line-mask"><span>People of</span></span>
+        <span class="line-mask"><span>Laltin</span></span>
+      </h2>
+      <div class="people__grid g12">
+        <figure class="person person--lead" data-od-id="person-maya">
+          <div class="person__media win media-hover">
+            <picture><source type="image/webp" srcset="assets/img/people-01.webp"><img src="assets/img/people-01.jpg" width="1377" height="2200" alt="Maya in the kitchen doorway" loading="lazy"></picture>
+          </div>
+          <figcaption class="person__cap">
+            <span class="person__name">Maya</span>
+            <span class="mono person__role">Kitchen / Garden</span>
+            <blockquote class="person__quote">[ Quote to be recorded ]</blockquote>
+          </figcaption>
+        </figure>
+        <figure class="person" data-od-id="person-host-02">
+          <div class="person__media win media-hover">
+            <picture><source type="image/webp" srcset="assets/img/people-02.webp"><img src="assets/img/people-02.jpg" width="2200" height="1643" alt="A host on the paths around the resort" loading="lazy"></picture>
+          </div>
+          <figcaption class="person__cap">
+            <span class="person__name mono">[ Host name ]</span>
+            <span class="mono person__role">[ Role — to be listed ]</span>
+          </figcaption>
+        </figure>
+        <figure class="person" data-od-id="person-host-03">
+          <div class="person__media win media-hover">
+            <picture><source type="image/webp" srcset="assets/img/people-03.webp"><img src="assets/img/people-03.jpg" width="1650" height="2200" alt="A guide paused on the ridge trail" loading="lazy"></picture>
+          </div>
+          <figcaption class="person__cap">
+            <span class="person__name mono">[ Host name ]</span>
+            <span class="mono person__role">[ Role — to be listed ]</span>
+          </figcaption>
+        </figure>
+      </div>
+      <p class="mono muted people__note">Real names, roles and words only — nothing here will be invented.</p>
+    </div>
+  </section>
+
+  <!-- ==================== 08 · FOOTPRINT (§26) ==================== -->
+  <section class="section footprint" id="footprint" data-od-id="chapter-footprint" aria-labelledby="footprint-title">
+    <div class="shell">
+      <div class="section-head">
+        <p class="eyebrow lbl-reveal">08 / Our footprint</p>
+        <p class="mono muted lbl-reveal">Documented, not advertised</p>
+      </div>
+      <div class="footprint__intro">
+        <h2 class="h2" id="footprint-title">
+          <span class="line-mask"><span>Not badges.</span></span>
+          <span class="line-mask"><span>A record.</span></span>
+        </h2>
+        <p class="lead" data-reveal>
+          How the place actually runs — published only once each practice is verified.
+          Specificity creates credibility.
+        </p>
+      </div>
+      <ul class="footprint__list">
+        <li class="fact" data-od-id="footprint-build"><span class="mono fact__cat">Build</span><span class="fact__body">[ Practice to be confirmed ]</span><span class="mono fact__status">To confirm</span></li>
+        <li class="fact" data-od-id="footprint-water"><span class="mono fact__cat">Water</span><span class="fact__body">[ Practice to be confirmed ]</span><span class="mono fact__status">To confirm</span></li>
+        <li class="fact" data-od-id="footprint-energy"><span class="mono fact__cat">Energy</span><span class="fact__body">[ Practice to be confirmed ]</span><span class="mono fact__status">To confirm</span></li>
+        <li class="fact" data-od-id="footprint-food"><span class="mono fact__cat">Food</span><span class="fact__body">[ Practice to be confirmed ]</span><span class="mono fact__status">To confirm</span></li>
+        <li class="fact" data-od-id="footprint-waste"><span class="mono fact__cat">Waste</span><span class="fact__body">[ Practice to be confirmed ]</span><span class="mono fact__status">To confirm</span></li>
+        <li class="fact" data-od-id="footprint-community"><span class="mono fact__cat">Community</span><span class="fact__body">[ Practice to be confirmed ]</span><span class="mono fact__status">To confirm</span></li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- ==================== 09 · GETTING HERE ==================== -->
+  <section class="section journey" id="getting-here" data-od-id="chapter-journey" aria-labelledby="journey-title">
+    <div class="shell">
+      <div class="section-head">
+        <p class="eyebrow lbl-reveal">09 / Getting here</p>
+        <p class="mono muted lbl-reveal">Place / data</p>
+      </div>
+      <div class="journey__grid g12">
+        <div class="journey__coords" data-od-id="journey-coords">
+          <p class="mono">27.7172° N</p>
+          <p class="mono">85.3240° E</p>
+          <p class="mono journey__alt">Alt / 1,850 m</p>
+        </div>
+        <div class="journey__text">
+          <h2 class="h2" id="journey-title">
+            <span class="line-mask"><span>The way here</span></span>
+            <span class="line-mask"><span>is part of it.</span></span>
+          </h2>
+          <p data-reveal>
+            Routes, transfers and directions are published once they are confirmed
+            with the property — an honest journey beats a fast claim.
+          </p>
+          <p class="mono muted">[ Travel details — to be confirmed ]</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== 10 · DUSK (§28) ==================== -->
+  <section class="dusk" id="dusk" data-od-id="chapter-dusk" aria-label="Day to dusk">
+    <div class="shell dusk__head">
+      <p class="eyebrow lbl-reveal">10 / Dusk</p>
+    </div>
+    <figure class="dusk__band dusk__band--a win">
+      <picture><source type="image/webp" srcset="assets/img/dusk-01.webp"><img src="assets/img/dusk-01.jpg" width="2200" height="1650" alt="Morning light on the far ridgeline" loading="lazy"></picture>
+      <figcaption class="dusk__chip mono">Daylight</figcaption>
+    </figure>
+    <figure class="dusk__band dusk__band--b win">
+      <picture><source type="image/webp" srcset="assets/img/dusk-02.webp"><img src="assets/img/dusk-02.jpg" width="2200" height="1467" alt="Green hills under full afternoon sun" loading="lazy"></picture>
+      <figcaption class="dusk__chip mono">Afternoon</figcaption>
+    </figure>
+    <figure class="dusk__band dusk__band--a win">
+      <picture><source type="image/webp" srcset="assets/img/dusk-03.webp"><img src="assets/img/dusk-03.jpg" width="2200" height="1466" alt="The valley held in golden hour" loading="lazy"></picture>
+      <figcaption class="dusk__chip mono">Golden hour</figcaption>
+    </figure>
+    <figure class="dusk__band dusk__band--b win">
+      <picture><source type="image/webp" srcset="assets/img/dusk-04.webp"><img src="assets/img/dusk-04.jpg" width="4863" height="3242" alt="Blue hour settling over the hills" loading="lazy"></picture>
+      <figcaption class="dusk__chip mono">Blue hour</figcaption>
+    </figure>
+    <figure class="dusk__band dusk__band--a win">
+      <picture><source type="image/webp" srcset="assets/img/dusk-05.webp"><img src="assets/img/dusk-05.jpg" width="2200" height="1461" alt="Night over the valley with scattered lights" loading="lazy"></picture>
+      <figcaption class="dusk__chip mono">Night</figcaption>
+    </figure>
+  </section>
+
+  <!-- ==================== 11 · LALTIN / LANTERN (§29) ==================== -->
+  <section class="section--lg laltin-night on-dark" id="laltin" data-od-id="chapter-lantern" aria-labelledby="lantern-title">
+    <div class="shell laltin-night__inner">
+      <figure class="lantern lantern--one win" data-lantern="1">
+        <picture><source type="image/webp" srcset="assets/img/lantern-01.webp"><img src="assets/img/lantern-01.jpg" width="2200" height="1650" alt="One lantern burning against the dark" loading="lazy"></picture>
+      </figure>
+      <h2 class="h2 lantern__statement" id="lantern-title">
+        <span class="line-mask"><span>Some places</span></span>
+        <span class="line-mask"><span>become quieter</span></span>
+        <span class="line-mask"><span>after dark.</span></span>
+      </h2>
+      <div class="lantern__more">
+        <figure class="win lantern lantern--two" data-lantern="2">
+          <picture><source type="image/webp" srcset="assets/img/lantern-02.webp"><img src="assets/img/lantern-02.jpg" width="2200" height="1631" alt="Warm light appearing at a window" loading="lazy"></picture>
+        </figure>
+        <figure class="win lantern lantern--three" data-lantern="3">
+          <picture><source type="image/webp" srcset="assets/img/lantern-03.webp"><img src="assets/img/lantern-03.jpg" width="1024" height="683" alt="Another light further along the path" loading="lazy"></picture>
+        </figure>
+      </div>
+      <p class="display laltin-wordmark" aria-hidden="true">
+        <span class="line-mask"><span>LALTIN</span></span>
+      </p>
+      <p class="mono laltin-night__tag lbl-reveal">A place where life becomes quieter as the light becomes warmer</p>
+    </div>
+  </section>
+
+  <!-- ==================== 12 · JOURNAL (§56) ==================== -->
+  <section class="section journal on-dark" id="journal" data-od-id="chapter-journal" aria-labelledby="journal-title">
+    <div class="shell">
+      <div class="section-head">
+        <p class="eyebrow eyebrow--dark lbl-reveal">12 / Journal</p>
+        <p class="mono journal__hint lbl-reveal">Stories from the hillside</p>
+      </div>
+      <h2 class="visually-hidden" id="journal-title">Journal</h2>
+      <div class="journal__grid">
+        <article class="story" data-od-id="journal-story-monsoon">
+          <button class="story__media win media-hover" type="button" data-story="monsoon" aria-label="Read: When the monsoon reaches the forest">
+            <picture><source type="image/webp" srcset="assets/img/journal-01.webp"><img src="assets/img/journal-01.jpg" width="2200" height="1237" alt="Rain moving through the forest canopy" loading="lazy"></picture>
+          </button>
+          <div class="story__meta mono"><span>Place</span><span>Read →</span></div>
+          <h3 class="story__title"><button type="button" data-story="monsoon">When the monsoon reaches the forest</button></h3>
+        </article>
+        <article class="story" data-od-id="journal-story-kitchen">
+          <button class="story__media win media-hover" type="button" data-story="kitchen" aria-label="Read: A morning with our kitchen">
+            <picture><source type="image/webp" srcset="assets/img/journal-02.webp"><img src="assets/img/journal-02.jpg" width="2200" height="1466" alt="Steam rising in the early kitchen" loading="lazy"></picture>
+          </button>
+          <div class="story__meta mono"><span>Food</span><span>Read →</span></div>
+          <h3 class="story__title"><button type="button" data-story="kitchen">A morning with our kitchen</button></h3>
+        </article>
+        <article class="story" data-od-id="journal-story-path">
+          <button class="story__media win media-hover" type="button" data-story="path" aria-label="Read: The path beyond Laltin">
+            <picture><source type="image/webp" srcset="assets/img/journal-03.webp"><img src="assets/img/journal-03.jpg" width="2200" height="1650" alt="The narrow path continuing past the last building" loading="lazy"></picture>
+          </button>
+          <div class="story__meta mono"><span>Walks</span><span>Read →</span></div>
+          <h3 class="story__title"><button type="button" data-story="path">The path beyond Laltin</button></h3>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== 13 · RESERVE (§30–31) ==================== -->
+  <section class="section reserve on-dark" id="reserve" data-od-id="chapter-reserve" aria-labelledby="reserve-title">
+    <div class="shell reserve__grid">
+      <div class="reserve__intro">
+        <p class="eyebrow eyebrow--dark lbl-reveal">13 / Reserve</p>
+        <h2 class="display" id="reserve-title">
+          <span class="line-mask"><span>Stay</span></span>
+          <span class="line-mask"><span>a little</span></span>
+          <span class="line-mask"><span>longer.</span></span>
+        </h2>
+      </div>
+
+      <form class="booking" novalidate data-booking data-od-id="booking-panel">
+        <div class="booking__fields">
+          <label class="booking__field">
+            <span class="mono">Arrival</span>
+            <input type="date" name="arrival" required data-booking-arrival>
+          </label>
+          <label class="booking__field">
+            <span class="mono">Departure</span>
+            <input type="date" name="departure" required data-booking-departure>
+          </label>
+          <div class="booking__field booking__guests">
+            <span class="mono" id="guests-label">Guests</span>
+            <div class="stepper" role="group" aria-labelledby="guests-label">
+              <button type="button" data-guests="-1" aria-label="Fewer guests">−</button>
+              <output data-guests-out aria-live="polite">2</output>
+              <button type="button" data-guests="1" aria-label="More guests">+</button>
+            </div>
+          </div>
+          <button class="btn btn--light booking__submit" type="submit" data-od-id="booking-submit">
+            Check availability <span aria-hidden="true">→</span>
+          </button>
+        </div>
+        <p class="booking__error mono" role="alert" data-booking-error hidden></p>
+        <div class="booking__result" role="status" data-booking-result hidden data-od-id="booking-result">
+          <p class="mono booking__result-head">Your stay request</p>
+          <p class="booking__result-dates" data-booking-summary></p>
+          <p class="mono booking__result-note">
+            This showcase prepares your request — live availability connects
+            to the property's booking engine.
+          </p>
+        </div>
+      </form>
+    </div>
+  </section>
+</main>
+
+<!-- ==================== 14 · FOOTER ==================== -->
+<footer class="footer on-dark" id="contact" data-od-id="site-footer">
+  <div class="shell">
+    <div class="footer__grid">
+      <div class="footer__brand">
+        <span class="nav__logo">Laltin</span>
+        <p>EcoResort · Nepal. A place where life becomes quieter as the light becomes warmer.</p>
+      </div>
+      <div class="footer__col">
+        <h4>Explore</h4>
+        <ul>
+          <li><a href="#stay">Stay</a></li>
+          <li><a href="#experience">Experience</a></li>
+          <li><a href="#eat">Eat</a></li>
+          <li><a href="#place">Place</a></li>
+        </ul>
+      </div>
+      <div class="footer__col">
+        <h4>More</h4>
+        <ul>
+          <li><a href="#people">Our story</a></li>
+          <li><a href="#journal">Journal</a></li>
+          <li><a href="#getting-here">Getting here</a></li>
+          <li><a href="#reserve">Reserve</a></li>
+        </ul>
+      </div>
+      <div class="footer__col">
+        <h4>Contact</h4>
+        <ul>
+          <li><a href="mailto:stay@laltin.example">stay@laltin.example</a></li>
+          <li><a href="#getting-here">27.7172° N — 85.3240° E</a></li>
+          <li><span class="mono muted">Instagram [ link ]</span></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer__base mono">
+      <span>© 2026 Laltin EcoResort</span>
+      <span>Alt / 1,850 m — Nepal</span>
+    </div>
+  </div>
+</footer>
+
+<!-- ==================== ROOM DETAIL DIALOG (§20) ==================== -->
+<div class="dialog" id="room-dialog" role="dialog" aria-modal="true" aria-labelledby="room-dialog-title" data-room-dialog hidden>
+  <div class="dialog__backdrop" data-dialog-close></div>
+  <div class="dialog__panel">
+    <button class="dialog__close" type="button" data-dialog-close data-od-id="room-dialog-close" aria-label="Close room details">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>
+    </button>
+    <figure class="dialog__hero win">
+      <picture><source type="image/webp" srcset="assets/img/room-cottage.webp"><img src="assets/img/room-cottage.jpg" width="1023" height="681" alt="" data-room-dialog-img></picture>
+    </figure>
+    <div class="dialog__body">
+      <p class="mono dialog__index" data-room-dialog-index>01 / 04</p>
+      <h3 class="h2" id="room-dialog-title" data-room-dialog-title>Forest Cottage</h3>
+      <p class="lead" data-room-dialog-desc></p>
+      <div class="dialog__pair" aria-hidden="true">
+        <picture><source type="image/webp" srcset="assets/img/room-cottage.webp"><img src="assets/img/room-cottage.jpg" width="1023" height="681" alt="" data-room-dialog-pair-a></picture>
+        <picture><source type="image/webp" srcset="assets/img/room-cottage.webp"><img src="assets/img/room-cottage.jpg" width="1023" height="681" alt="" data-room-dialog-pair-b></picture>
+      </div>
+      <ul class="room__facts mono" data-room-dialog-facts></ul>
+      <ul class="dialog__amenities" data-room-dialog-amenities></ul>
+      <button class="btn btn--light" type="button" data-room-dialog-book data-od-id="room-dialog-book">
+        Check availability <span aria-hidden="true">→</span>
+      </button>
+      <p class="mono muted dialog__provisional">Details provisional — confirmed with the property before publication</p>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== JOURNAL OVERLAY ==================== -->
+<div class="dialog dialog--story" id="story-dialog" role="dialog" aria-modal="true" aria-labelledby="story-dialog-title" data-story-dialog hidden>
+  <div class="dialog__backdrop" data-story-close></div>
+  <div class="dialog__panel">
+    <button class="dialog__close" type="button" data-story-close data-od-id="story-dialog-close" aria-label="Close article">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>
+    </button>
+    <div class="dialog__body story-body">
+      <p class="mono story-body__cat" data-story-cat>Place</p>
+      <h3 class="h2" id="story-dialog-title" data-story-title></h3>
+      <p class="lead" data-story-open></p>
+      <p class="mono muted">[ Full story — editorial in progress ]</p>
+    </div>
+  </div>
+</div>
+
+<!-- pointer label for room media (§19) -->
+<div class="pointer-chip mono" data-pointer-chip aria-hidden="true">View</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js" defer></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js" defer></script>
+<script src="js/main.js" defer></script>
+<script src="js/motion.js" defer></script>
+<script src="js/interactions.js" defer></script>
+</body>
+</html>

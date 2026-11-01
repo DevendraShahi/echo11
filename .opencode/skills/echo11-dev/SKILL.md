@@ -14,7 +14,6 @@ Use this skill for general development work across the Echo11 repository.
 - Supabase
 - Supabase Auth
 - Resend
-- React Hook Form + Zod
 - Lucide React
 - @react-pdf/renderer
 
@@ -48,9 +47,15 @@ Always run `npm run build` after meaningful changes.
 
 ## Architecture notes
 - Echo11 has separate route surfaces for marketing, portal, and lab.
+- `/client` is the current client workspace; `/portal` is a retained legacy surface.
 - Public-facing pages are presentation-led and brand-heavy.
 - Portal and lab are more app-like, but should still inherit project tokens and visual DNA.
 - Do not treat `/lab` as a separate visual universe.
+
+## Source of truth
+- Read `AGENTS.md` before making changes. It contains the repository's current validation commands, route boundaries, and project-skill routing.
+- Treat `supabase/migrations/` as the database source of truth. `docs/supabase-schema.sql` is reference material and can lag behind migrations.
+- Preserve existing uncommitted work unless the request explicitly includes it.
 
 ## Error handling
 - Use try/catch for async work.
@@ -68,3 +73,7 @@ When making changes, think across:
 
 ## Source
 This skill is derived from the repository structure, `AGENTS.md`, and direct inspection of the existing Echo11 codebase.
+
+## Development output
+
+Next development servers use `.next-dev-${PORT}`; production builds retain `.next`. Each preview port has a separate generated cache. These directories are ignored by Git. Do not run two development processes on the same port.

@@ -1,8 +1,11 @@
+import { MotionConfig } from "framer-motion";
 import { Hero } from "@/components/sections/Hero";
-import { Marquee } from "@/components/ui/Marquee";
-import { ServicesGrid } from "@/components/sections/ServicesGrid";
-import { SelectedWork } from "@/components/sections/SelectedWork";
+import { ClientLogos } from "@/components/sections/ClientLogos";
+import { Statement } from "@/components/sections/Statement";
+import { Capabilities } from "@/components/sections/Capabilities";
+import { FeaturedWork } from "@/components/sections/FeaturedWork";
 import { ProcessTimeline } from "@/components/sections/ProcessTimeline";
+import { MakeItYours } from "@/components/sections/MakeItYours";
 import { CTABanner } from "@/components/sections/CTABanner";
 import { PageWrapper } from "@/components/layout/PageWrapper";
 import { createMetadata, siteConfig } from "@/lib/seo";
@@ -13,24 +16,24 @@ export const metadata = createMetadata({
   path: "/",
 });
 
-const industries = [
-  "E-Commerce",
-  "SaaS Platforms",
-  "FinTech",
-  "Corporate Portals",
-  "Creative Studios",
-  "Healthcare Tech"
-];
-
 export default function Home() {
+
   return (
     <PageWrapper>
-      <Hero />
-      <Marquee items={industries} speed={30} />
-      <ServicesGrid />
-      <SelectedWork />
-      <ProcessTimeline />
-      <CTABanner />
+      <MotionConfig reducedMotion="user">
+        <main>
+          <Hero />
+          <div className="home-content relative z-10 -mt-[60svh] bg-background">
+            <ClientLogos />
+            <Statement />
+            <Capabilities />
+            <FeaturedWork />
+            <MakeItYours />
+            <ProcessTimeline />
+            <CTABanner />
+          </div>
+        </main>
+      </MotionConfig>
     </PageWrapper>
   );
 }

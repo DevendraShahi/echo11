@@ -11,8 +11,19 @@
     #000;
 }
 
-.audioInteractive {
-  cursor: pointer;
+.splashRoot.exiting {
+  pointer-events: none;
+  animation: curtainLift 650ms cubic-bezier(0.76, 0, 0.24, 1) forwards;
+}
+
+@keyframes curtainLift {
+  from {
+    transform: translateY(0);
+  }
+
+  to {
+    transform: translateY(-100%);
+  }
 }
 
 .canvas {
@@ -214,6 +225,10 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .splashRoot.exiting {
+    animation: none;
+  }
+
   .brandLayer {
     animation: none;
   }
